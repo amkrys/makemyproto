@@ -7,8 +7,8 @@
    ========================================================= */
 
 const CONFIG = {
-  whatsapp: "919785674228",          // country code + number, digits only
-  phoneText: "+91 97856 74228",      // how the number is shown on the page
+  whatsapp: "918487072210",          // country code + number, digits only
+  phoneText: "+91 84870 72210",      // how the number is shown on the page
   email: "hello@makemyproto.in",
   city: "Gurugram",
   cityFull: "Gurugram, Haryana",
