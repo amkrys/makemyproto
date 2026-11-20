@@ -1,6 +1,8 @@
+<p align="center"><img src="assets/brand/makemyproto-logo-animated-1080p.gif" alt="MakeMyProto" width="560"></p>
+
 # MakeMyProto website
 
-**Socho. Design Karo. Print Karo.**
+**Socho. Design Karo. Print Karo.** · 3D design & 3D printing, Gurugram
 
 A one-page website for MakeMyProto (3D design & 3D printing services). Plain HTML, CSS and JavaScript, with nothing to install.
 
@@ -11,6 +13,7 @@ MakeMyProto/
 ├── index.html      ← all page text and sections
 ├── css/style.css   ← colours, fonts, layout
 ├── js/main.js      ← your contact details, prices, quote calculator
+├── assets/brand/   ← 4K logos, icon, animated logo, Kalam font
 └── README.md
 ```
 
@@ -88,7 +91,9 @@ To make your own palette, copy one of the `[data-theme="…"]` lines at the top 
 - **Try a sample** button in the quote section lets people test the calculator without a file (it's labelled as a sample).
 - A small **⚡ Instant price** pill appears at the bottom left while scrolling.
 
-## Logo
+## Logo & brand assets
+
+Ready-made 4K files are in `assets/brand/` (transparent, white, cream and dark PNGs, a square icon, and animated GIF/MP4). The Kalam font used for the wordmark is in `assets/brand/fonts/` (SIL Open Font License, see `OFL.txt`).
 
 The logo is a small nozzle "writing" the name: the orange line under `makemyproto` is filament from the nozzle and draws itself on load and hover. It's built from code (`.logo` in `index.html`), so it stays sharp everywhere. For social media you'll want a PNG version as well.
 
