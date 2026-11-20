@@ -7,8 +7,8 @@
    ========================================================= */
 
 const CONFIG = {
-  whatsapp: "91XXXXXXXXXX",          // country code + number, digits only, e.g. "919876543210"
-  phoneText: "+91 XXXXX XXXXX",      // how the number is shown on the page
+  whatsapp: "919785674228",          // country code + number, digits only
+  phoneText: "+91 97856 74228",      // how the number is shown on the page
   email: "hello@makemyproto.in",
   city: "Gurugram",
   cityFull: "Gurugram, Haryana",
@@ -36,7 +36,26 @@ const CONFIG = {
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const inr = (n) => "₹" + Math.round(n).toLocaleString("en-IN");
-const waLink = (text) => `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(text)}`;
+/* Every WhatsApp message is laid out the same way, so they're easy to read and sort:
+     *📌 MakeMyProto · Topic*
+     ━━━━━━━━━━━━
+     *Label:* value
+     _Sent from makemyproto website_                                         */
+const waFormat = (topic, rows, note) => [
+  `*📌 MakeMyProto · ${topic}*`,
+  "━━━━━━━━━━━━",
+  ...rows.filter((r) => r && r[1] != null && String(r[1]).trim() !== "").map(([k, v]) => (k ? `*${k}:* ${v}` : v)),
+  note ? `\n${note}` : null,
+  "",
+  "_Sent from the makemyproto website_",
+].filter((x) => x != null).join("\n");
+// data-wa="Topic|Message" on links becomes a formatted message too
+const waText = (raw) => {
+  if (!raw.includes("|")) return raw;
+  const [topic, message] = raw.split("|");
+  return waFormat(topic.trim(), [["Message", message.trim()]]);
+};
+const waLink = (text) => `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(waText(text))}`;
 
 /* ---------- Language: Hinglish (default in India) or English ---------- */
 let LANG = "hi";
@@ -298,7 +317,7 @@ function initPrinter() {
   }
   $("#nameIdeasX")?.addEventListener("click", () => { ideas.hidden = true; });
   $$("[data-idea]").forEach((b) => b.addEventListener("click", () => {
-    const msg = `Hi MakeMyProto! I want my name "${modelText}" made as a ${b.dataset.idea}. What would it cost?`;
+    const msg = waFormat("Name gift idea 🎁", [["Name to print", modelText], ["Product", b.dataset.idea]], "What would it cost?");
     window.open(waLink(msg), "_blank", "noopener");
   }));
 
@@ -640,15 +659,16 @@ function initQuote() {
     out.weight.textContent = `${weight.toFixed(0)} g${q > 1 ? " each" : ""}`;
     out.time.textContent = hours < 1 ? `~${Math.max(10, Math.round(hours * 60))} min` : `~${hours.toFixed(1)} hrs`;
 
-    const msg = [
-      "Hi MakeMyProto! I'd like a 3D printing quote.",
-      fileName ? `File: ${fileName}` : `Approx weight: ${weight.toFixed(0)} g`,
-      model ? `Size: ${out.size.textContent}` : null,
-      `Material: ${material.value} | Infill: ${infill.value}% | Colour: ${color()}`,
-      `Quantity: ${q}`,
-      `Website estimate: ${out.price.textContent}`,
-      fileName ? "(I'll send the file here.)" : null,
-    ].filter(Boolean).join("\n");
+    const msg = waFormat("Quote request 🧾", [
+      ["File", fileName || null],
+      ["Approx weight", fileName ? null : `${weight.toFixed(0)} g`],
+      ["Size", model ? out.size.textContent : null],
+      ["Material", material.value],
+      ["Infill", `${infill.value}%`],
+      ["Colour", color()],
+      ["Quantity", q],
+      ["Website estimate", out.price.textContent],
+    ], fileName ? "📎 I'll attach the STL file in this chat." : null);
     out.wa.href = waLink(msg);
     out.wa.target = "_blank";
     out.wa.rel = "noopener";
@@ -752,17 +772,17 @@ function initContact() {
       hint.style.color = "#c73f0c";
       return;
     }
-    const msg = [
-      `Hi MakeMyProto! I'm ${name}.`,
-      `Phone: ${phone}`,
-      `I need: ${$("#cService").value}`,
-      $("#cMsg").value.trim() ? `Details: ${$("#cMsg").value.trim()}` : null,
-    ].filter(Boolean).join("\n");
+    const msg = waFormat("New enquiry 👋", [
+      ["Name", name],
+      ["Phone", phone],
+      ["Service", $("#cService").value],
+      ["Details", $("#cMsg").value.trim() || null],
+    ]);
     window.open(waLink(msg), "_blank", "noopener");
     hint.style.color = "";
     hint.textContent = hasRealNumber()
       ? "WhatsApp opened. Just press send."
-      : "WhatsApp number not set yet (edit CONFIG in js/main.js).";
+      : "WhatsApp number not set yet.";
   });
 }
 
@@ -933,8 +953,8 @@ function initAdda() {
     e.preventDefault();
     const topic = $("#addaTopic").value, q = $("#addaQ").value.trim();
     if (!q) { $("#addaQ").focus(); return; }
-    const msg = `Hi MakeMyProto 3D Adda! 🙋\nTopic: ${topic}\nQuestion: ${q}`;
-    window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`, "_blank", "noopener");
+    const msg = waFormat("3D Adda question 🙋", [["Topic", topic], ["Question", q]]);
+    window.open(waLink(msg), "_blank", "noopener");
   });
 }
 
