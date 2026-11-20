@@ -158,3 +158,10 @@ All of this is in `initGuideFun()` in `js/main.js`; the moods are CSS classes (`
 
 ## After each update
 `index.html` loads `css/style.css?v=…` and `js/main.js?v=…`. Change that `v=` value whenever you edit the CSS or JS, so visitors' browsers fetch the new files instead of an old saved copy.
+
+### Smart Proto (latest)
+- When idle he tucks half into the screen edge; he comes out to talk or when hovered.
+- Before speaking he scans the screen and stands where his bubble covers the least content (headings, text, buttons, printer, forms), with the bubble beside, above or below him.
+- Each section's tip shows once, only after you've stayed on it ~2 s, with at least 5 s between tips. Tips stay up for their reading time (6–15 s), and stay while your mouse is on them. Tap Proto to hear a tip again.
+- If you drag him somewhere, he stays there.
+- The top section is sized to the screen height, so on laptops the printer, shelf, spools and main buttons are visible without scrolling.

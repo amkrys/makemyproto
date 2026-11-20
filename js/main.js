@@ -1003,24 +1003,35 @@ function initGuide() {
     reviews: ["Pehla review aapka ho sakta hai ⭐", "The first review could be yours ⭐"],
     faq: ["Sawaal hai? Bindaas pucho 🙋", "Got questions? Ask away 🙋"],
   };
-  let current = "hero", quiet = false, hideT = 0;
+  let current = "hero", quiet = false, hideT = 0, lastSaid = 0, dwellT = 0;
+  const seen = new Set();
+  // reading time: ~0.4 s a word + a calm buffer, between 6 and 15 seconds
+  const readMs = (str, hasBtn) => Math.min(15000, Math.max(6000, str.split(/\s+/).length * 420 + 3500 + (hasBtn ? 3000 : 0)));
+  function hide() { bubble.classList.remove("show"); window.mmpGuide?.rest(); }
   function say(key, force) {
     const tip = typeof TIPS[key] === "function" ? TIPS[key]() : TIPS[key];
     if (!tip || (quiet && !force)) return;
-    text.textContent = T(tip[0], tip[1]);
+    const msg = T(tip[0], tip[1]);
+    text.textContent = msg;
     const btn = tip[2];
     cta.hidden = !btn;
-    if (btn) { cta.textContent = T(btn.hi, btn.en); cta.onclick = () => { btn.run(); bubble.classList.remove("show"); }; }
+    if (btn) { cta.textContent = T(btn.hi, btn.en); cta.onclick = () => { btn.run(); hide(); }; }
+    window.mmpGuide?.wake();                       // come out of the corner…
+    window.mmpGuide?.findSpot();                   // …and stand somewhere empty
     bubble.classList.remove("show"); void bubble.offsetWidth; bubble.classList.add("show");
     window.fitGuideBubble?.();
     g.classList.remove("hop"); void g.offsetWidth; g.classList.add("hop");
+    seen.add(key); lastSaid = Date.now();
     clearTimeout(hideT);
-    hideT = setTimeout(() => bubble.classList.remove("show"), key === "hero" ? 14000 : 7000);
+    hideT = setTimeout(hide, readMs(msg, !!btn));
   }
+  // don't keep the bubble open while the hand is busy with it
+  bubble.addEventListener("pointerenter", () => clearTimeout(hideT));
+  bubble.addEventListener("pointerleave", () => { clearTimeout(hideT); hideT = setTimeout(hide, 3500); });
   $("#guideBot").addEventListener("click", () => { quiet = false; say(current, true); });
-  $("#guideX").addEventListener("click", () => { quiet = true; bubble.classList.remove("show"); });
+  $("#guideX").addEventListener("click", () => { quiet = true; hide(); });
   window.addEventListener("mmp:lang", () => { if (bubble.classList.contains("show")) say(current, true); });
-  window.addEventListener("mmp:print", () => { g.classList.add("cheer"); bubble.classList.remove("show"); });
+  window.addEventListener("mmp:print", () => { g.classList.add("cheer"); hide(); window.mmpGuide?.wake(); });
   window.addEventListener("mmp:done", (e) => {
     g.classList.remove("cheer");
     if (current !== "hero") return;
@@ -1039,12 +1050,26 @@ function initGuide() {
         if (key === current) return;
         current = key;
         g.classList.toggle("away", key === "contact");   // Proto goes "home" to the contact form
-        if (key !== "contact") say(key);
+        clearTimeout(dwellT);
+        if (key === "contact" || seen.has(key)) return;  // each tip once; tap Proto to hear it again
+        // wait until the visitor actually stops on the section, and leave a gap after the last tip
+        const wait = Math.max(1800, 5000 - (Date.now() - lastSaid));
+        dwellT = setTimeout(() => { if (current === key && !bubble.classList.contains("show")) say(key); }, wait);
       });
     }, { rootMargin: "-45% 0px -50% 0px" });
     map.forEach(([sel, key]) => { const el = $(sel); if (el) { el.dataset.guide = key; io.observe(el); } });
   }
-  setTimeout(() => say("hero"), 2200);
+  // first tip: on laptops right away; on phones only once the printer is actually on screen
+  const frameEl = $(".printer__frame");
+  if (innerWidth > 860 || !frameEl || !("IntersectionObserver" in window)) setTimeout(() => say("hero"), 3000);
+  else {
+    const po = new IntersectionObserver((en) => {
+      if (!en[0].isIntersecting) return;
+      po.disconnect();
+      setTimeout(() => { if (current === "hero" && !seen.has("hero")) say("hero"); }, 1200);
+    }, { threshold: 0.6 });
+    po.observe(frameEl);
+  }
 }
 
 /* ---------- Proto's personality: greets, leans, winks, sleeps, gets tickled, can be dragged ---------- */
@@ -1118,12 +1143,64 @@ function initGuideFun() {
     setTimeout(habit, 5000);
   }
 
+  /* smart placement: when he talks, stand where the bubble covers the least real content */
+  let pinned = false, tuckT = 0;
+  const IMPORTANT = "h1,h2,h3,.hero__lead,.hero__nofile,.hero__chips,.section__head p,.section__sub,.eyebrow,.btn,.hero__cta,input,select,textarea,.printer__frame,.shelf,.spools,.printer__readout,.card,.ex,.mat,.uses__panel,.uses__tabs,.quote__result,.drop,.compare,.notebook,.maker,.note,.fix,.tile,summary,.step,.nameideas,.nametag,.review__card,.adda__card,.contact__form";
+  function overlap(a, b) { const w = Math.min(a.right, b.right) - Math.max(a.left, b.left), h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top); return w > 0 && h > 0 ? w * h : 0; }
+  function findSpot() {
+    if (pinned || g.classList.contains("dragging") || g.classList.contains("away")) return;
+    const els = $$(IMPORTANT).map((e) => e.getBoundingClientRect()).filter((r) => r.bottom > 0 && r.top < innerHeight && r.width > 0);
+    const bw = W(), bh = H(), bubW = Math.min(270, innerWidth - bw - 50), bubH = Math.max(110, bub.offsetHeight || 120);
+    const cur = g.getBoundingClientRect();
+    let best = null;
+    const STACK_W = Math.min(240, innerWidth - 28);
+    for (const right of [true, false]) {
+      for (let y = 80; y <= innerHeight - bh - 20; y += 30) {
+        const x = right ? innerWidth - bw - 14 : 14;
+        const botR = { left: x, right: x + bw, top: y, bottom: y + bh };
+        const layouts = [];
+        // bubble beside him
+        if (y <= innerHeight - bh - 110) {
+          const drop = y < 260, by = drop ? y + 6 : y + bh - 26 - bubH, bx = right ? x - 12 - bubW : x + bw + 12;
+          layouts.push({ mode: "beside", r: { left: bx, right: bx + bubW, top: by, bottom: by + bubH } });
+        }
+        // bubble stacked above or below him, along the screen edge
+        const sx = right ? innerWidth - 14 - STACK_W : 14;
+        if (y - 10 - bubH > 76) layouts.push({ mode: "above", r: { left: sx, right: sx + STACK_W, top: y - 10 - bubH, bottom: y - 10 } });
+        if (y + bh + 10 + bubH < innerHeight - 8) layouts.push({ mode: "below", r: { left: sx, right: sx + STACK_W, top: y + bh + 10, bottom: y + bh + 10 + bubH } });
+        for (const L of layouts) {
+          let score = 0;
+          for (const r of els) score += overlap(L.r, r) + overlap(botR, r) * 2;
+          score += Math.abs(y - cur.top) * 3 + (right !== g.classList.contains("right") ? 1200 : 0) + (L.mode === "beside" ? 0 : 400);
+          if (!best || score < best.score) best = { score, x, y, right, mode: L.mode };
+        }
+      }
+    }
+    if (!best) return;
+    g.classList.add("snapping", "moved");
+    g.style.right = "auto"; g.style.bottom = "auto";
+    g.classList.toggle("right", best.right);
+    g.classList.toggle("stack-above", best.mode === "above");
+    g.classList.toggle("stack-below", best.mode === "below");
+    requestAnimationFrame(() => { g.style.left = best.x + "px"; g.style.top = best.y + "px"; });
+    setTimeout(() => { g.classList.remove("snapping"); fit(); }, 520);
+  }
+  /* when he isn't talking, he tucks half-way into the screen edge so he's out of your way */
+  function rest() { clearTimeout(tuckT); tuckT = setTimeout(() => { if (!bub.classList.contains("show") && !g.matches(":hover") && !g.classList.contains("dragging")) g.classList.add("tucked"); }, 3500); }
+  function wakeUp() { clearTimeout(tuckT); g.classList.remove("tucked"); }
+  window.mmpGuide = { findSpot, rest, wake: wakeUp };
+  bot.addEventListener("pointerenter", wakeUp);
+  bot.addEventListener("pointerleave", rest);
+  bot.addEventListener("focus", wakeUp);
+  rest();
+
   /* keep both speech bubbles fully on screen, whichever side he's on */
   const bub = $("#guideBubble");
   function fit() {
     const r = bot.getBoundingClientRect(), right = g.classList.contains("right");
     const room = right ? r.left - 22 : innerWidth - r.right - 22;          // space beside him
-    bub.style.maxWidth = Math.max(150, Math.min(270, room)) + "px";
+    const stacked = g.classList.contains("stack-above") || g.classList.contains("stack-below");
+    bub.style.maxWidth = (stacked ? Math.min(240, innerWidth - 28) : Math.max(150, Math.min(270, room))) + "px";
     g.classList.toggle("g-drop", r.top < 260);                                // near the top: bubble opens downward
     hi.classList.toggle("under", r.top < 60);
     const cx = r.left + r.width / 2, half = hi.offsetWidth / 2;          // unscaled size, so it's exact
@@ -1175,7 +1252,9 @@ function initGuideFun() {
     if (!moved) return;
     justDragged = true; setTimeout(() => (justDragged = false), 50);
     g.classList.remove("dragging");
-    snap(true);
+    pinned = true;                                   // the visitor chose this place; respect it
+    g.classList.remove("stack-above", "stack-below");
+    snap(true); rest();
     act("land", 600); pop("Nayi jagah, mast! 😎", "Nice spot! 😎");
   });
   fit();
