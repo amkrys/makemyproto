@@ -1,0 +1,6 @@
+# Normalise line endings so Windows and Mac/Linux don't fight
+* text=auto eol=lf
+*.png binary
+*.gif binary
+*.mp4 binary
+*.ttf binary
