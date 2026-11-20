@@ -37,6 +37,31 @@ const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const inr = (n) => "₹" + Math.round(n).toLocaleString("en-IN");
 const waLink = (text) => `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(text)}`;
+
+/* ---------- Language: Hinglish (default in India) or English ---------- */
+let LANG = "hi";
+const T = (hi, en) => (LANG === "en" ? en : hi);
+const original = new WeakMap();
+function setLang(lang, save) {
+  LANG = lang === "en" ? "en" : "hi";
+  document.documentElement.lang = LANG === "en" ? "en" : "en-IN";
+  $$("[data-en]").forEach((el) => {
+    if (!original.has(el)) original.set(el, el.innerHTML);
+    el.innerHTML = LANG === "en" ? el.getAttribute("data-en") : original.get(el);
+    $$("[data-wa]", el).forEach((a) => { a.href = waLink(a.dataset.wa); });
+  });
+  $$("#langBtn [data-lang]").forEach((s) => s.classList.toggle("on", s.dataset.lang === LANG));
+  if (save) { try { localStorage.setItem("mmp-lang", LANG); } catch (e) {} }
+  window.dispatchEvent(new Event("mmp:lang"));
+}
+function initLang() {
+  let saved = null;
+  try { saved = localStorage.getItem("mmp-lang"); } catch (e) {}
+  const langs = navigator.languages || [navigator.language || ""];
+  const indian = langs.some((l) => /^hi|-IN$/i.test(l));
+  setLang(saved || (indian ? "hi" : "en"), false);
+  $("#langBtn")?.addEventListener("click", () => setLang(LANG === "en" ? "hi" : "en", true));
+}
 const hasRealNumber = () => /^\d{10,15}$/.test(CONFIG.whatsapp);
 
 /* ---------- Fill in business details ---------- */
@@ -103,6 +128,7 @@ function initPrinter() {
   const visual = $(".hero__visual");
   const playBtn = $("#printPlay");
   const nameInput = $("#printName");
+  const tilt = $(".enclosure") || svg.parentElement;   // the whole printer body tilts toward the mouse
   const NS = "http://www.w3.org/2000/svg";
 
   const LAYERS = 26, H = 300, layerH = 9.5, gap = 1.5, base = H - 6;
@@ -229,16 +255,17 @@ function initPrinter() {
     nozzle.style.setProperty("--nx", fx.toFixed(1) + "px");
     if (now - lastSpark > 45 && p < LAYERS) { spark(toFrame(x, rowY(i)).x, gantryTopFor(i + 1) + 34); lastSpark = now; }
     render();
-    if (p >= LAYERS) { mode = "idle"; current = target = LAYERS; render(); celebrate(); raf = 0; resetPose(); return; }
+    if (p >= LAYERS) { mode = "idle"; current = target = LAYERS; render(); celebrate(); raf = 0; resetPose(); showIdeas(); window.dispatchEvent(new CustomEvent("mmp:done", { detail: { model: modelKey } })); return; }
     raf = requestAnimationFrame(autoFrame);
   }
   function autoPrint() {
     printer.classList.add("played");
+    window.dispatchEvent(new CustomEvent("mmp:print", { detail: { model: modelKey } }));
     cancelAnimationFrame(raf);
     mode = "auto"; celebrated = false;
     current = 0; target = LAYERS; shown = -1;
     printer.classList.remove("is-idle");
-    frame.style.removeProperty("--rx"); frame.style.removeProperty("--ry");
+    tilt.style.removeProperty("--rx"); tilt.style.removeProperty("--ry");
     autoStart = performance.now();
     raf = requestAnimationFrame(autoFrame);
   }
@@ -262,9 +289,23 @@ function initPrinter() {
     setTimeout(() => s.remove(), 600);
   }
 
+  /* --- after printing a name: "make it for real" ideas --- */
+  function showIdeas() {
+    if (!ideas || modelKey !== "name" || !modelText) return;
+    $("#nameIdeasName").textContent = modelText;
+    ideas.hidden = false;
+    ideas.classList.remove("pop"); void ideas.offsetWidth; ideas.classList.add("pop");
+  }
+  $("#nameIdeasX")?.addEventListener("click", () => { ideas.hidden = true; });
+  $$("[data-idea]").forEach((b) => b.addEventListener("click", () => {
+    const msg = `Hi MakeMyProto! I want my name "${modelText}" made as a ${b.dataset.idea}. What would it cost?`;
+    window.open(waLink(msg), "_blank", "noopener");
+  }));
+
   /* --- confetti + "Ho gaya!" when a print finishes --- */
   const bubble = $("#printBubble");
   const phrases = ["Ho gaya! ✨", "Ekdum perfect!", "Bas, ready hai!", "Mast print!", "Taiyaar! 🎉"];
+  const phrasesEn = ["Done! ✨", "Looking perfect!", "All ready!", "Nice print!", "Ta-da! 🎉"];
   function celebrate() {
     if (celebrated) return;
     celebrated = true;
@@ -282,14 +323,15 @@ function initPrinter() {
       setTimeout(() => c.remove(), 1100);
     }
     if (bubble) {
-      bubble.textContent = phrases[Math.floor(Math.random() * phrases.length)];
+      const list = LANG === "en" ? phrasesEn : phrases;
+      bubble.textContent = list[Math.floor(Math.random() * list.length)];
       bubble.classList.remove("pop"); void bubble.offsetWidth; bubble.classList.add("pop");
     }
   }
 
   function resetPose() {
     nozzle.style.removeProperty("--nx");
-    frame.style.removeProperty("--rx"); frame.style.removeProperty("--ry");
+    tilt.style.removeProperty("--rx"); tilt.style.removeProperty("--ry");
     printer.classList.add("is-idle");
   }
 
@@ -301,14 +343,14 @@ function initPrinter() {
     const hb = hero.getBoundingClientRect();
     const tx = clamp((e.clientX - (fb.left + fb.width / 2)) / hb.width, -0.5, 0.5);
     const ty = clamp((e.clientY - (fb.top + fb.height / 2)) / hb.height, -0.5, 0.5);
-    frame.style.setProperty("--ry", (tx * 16).toFixed(2) + "deg");
-    frame.style.setProperty("--rx", (-ty * 10).toFixed(2) + "deg");
+    tilt.style.setProperty("--ry", (tx * 16).toFixed(2) + "deg");
+    tilt.style.setProperty("--rx", (-ty * 10).toFixed(2) + "deg");
     const fx = clamp((e.clientX - fb.left) / fb.width, 0, 1) - 0.5;
     nozzle.style.setProperty("--nx", (fx * fb.width * 0.62).toFixed(1) + "px");
     printer.classList.remove("is-idle");
     // layers: only while the pointer is over the printer column
-    const vb = visual.getBoundingClientRect();
-    const over = e.clientX >= vb.left && e.clientX <= vb.right && e.clientY >= vb.top && e.clientY <= vb.bottom;
+    // only while the pointer is over the printer itself (not the shelf or spools below it)
+    const over = e.clientX >= fb.left - 10 && e.clientX <= fb.right + 10 && e.clientY >= fb.top - 30 && e.clientY <= fb.bottom + 6;
     if (over) {
       printer.classList.add("played");
       mode = "scrub";
@@ -331,7 +373,11 @@ function initPrinter() {
 
   /* --- controls: a little shelf of models, spools of filament, a name tag --- */
   const modelBtns = $$(".shelf__item");
+  let modelKey = "vase", modelText = "";
+  const ideas = $("#nameIdeas");
   function setModel(key, text) {
+    modelKey = key; modelText = text || "";
+    if (key !== "name" && ideas) ideas.hidden = true;
     modelBtns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.model === key)));
     build(key === "name" ? textShape(text) : SHAPES[key]);
   }
@@ -397,7 +443,8 @@ function initPrinter() {
       if (!ghost && Math.hypot(ev.clientX - sx, ev.clientY - sy) > 8) {
         ghost = document.createElement("div");
         ghost.className = "shelf__ghost";
-        ghost.innerHTML = b.querySelector(".shelf__thumb").innerHTML;
+        const th = b.querySelector(".shelf__thumb");
+        ghost.innerHTML = th ? th.innerHTML : `<span class="hand">${b.textContent.trim()}</span>`;
         document.body.appendChild(ghost);
         printer.classList.add("is-target");
       }
@@ -419,6 +466,13 @@ function initPrinter() {
     addEventListener("pointermove", move); addEventListener("pointerup", up);
   }));
 
+  window.mmpPrinter = {
+    print: () => autoPrint(),
+    printName: () => $('.shelf__item[data-model="name"]')?.click(),
+    played: () => printer.classList.contains("played"),
+    el: printer,
+  };
+  window.addEventListener("mmp:lang", () => { if (ideas && !ideas.hidden) $("#nameIdeasName").textContent = modelText; });
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   setModel("vase");
   current = LAYERS;
@@ -426,6 +480,35 @@ function initPrinter() {
   if (reduce) { printer.classList.remove("is-idle"); return; }
 
   playBtn?.addEventListener("click", autoPrint);
+
+  /* --- show people the printer is a toy: a ghost hand scrubs the layers until they try it --- */
+  const hand = $(".demo-hand");
+  let demoTimer = 0;
+  function demo() {
+    if (!hand || printer.classList.contains("played") || mode !== "idle" || document.hidden) return schedule();
+    const fb = frame.getBoundingClientRect();
+    if (fb.bottom < 0 || fb.top > innerHeight) return schedule();              // only when it's on screen
+    printer.classList.add("demo");
+    const t0 = performance.now(), D = 3000;
+    const step = (now) => {
+      const k = (now - t0) / D;
+      if (k >= 1 || printer.classList.contains("played")) {
+        printer.classList.remove("demo");
+        if (!printer.classList.contains("played")) { mode = "idle"; target = LAYERS; kick(); }
+        return schedule();
+      }
+      const y = k < 0.45 ? k / 0.45 : 1 - (k - 0.45) / 0.55;                  // 0 = top, 1 = bottom
+      hand.style.setProperty("--hy", (14 + y * 62).toFixed(1) + "%");
+      hand.style.setProperty("--hx", (50 + Math.sin(k * Math.PI * 2) * 14).toFixed(1) + "%");
+      mode = "scrub";
+      target = Math.round((1 - y) * LAYERS);
+      kick();
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+  function schedule(ms = 9000) { clearTimeout(demoTimer); if (!printer.classList.contains("played")) demoTimer = setTimeout(demo, ms); }
+  schedule(1800);
   window.addEventListener("mmp:theme", autoPrint);   // new colours → fresh print
   let lastType = "mouse";
   frame.addEventListener("click", () => { if (lastType !== "touch") autoPrint(); });
@@ -578,7 +661,7 @@ function initQuote() {
     if (!/\.stl$/i.test(f.name)) { showFileMsg("Please choose an .stl file", true); return; }
     const mb = f.size / 1048576;
     if (mb > CONFIG.maxFileMb) { showFileMsg(`File is over ${CONFIG.maxFileMb} MB. Send it on WhatsApp instead.`, true); return; }
-    showFileMsg(mb > 50 ? `Reading ${f.name} (${Math.round(mb)} MB)… badi file hai, thoda time lagega ☕` : "Reading " + f.name + "…");
+    showFileMsg(mb > 50 ? `Reading ${f.name} (${Math.round(mb)} MB)… ${T("badi file hai, thoda time lagega ☕", "big file, this may take a moment ☕")}` : "Reading " + f.name + "…");
     await new Promise((r) => setTimeout(r, 40));   // let the message show before the heavy work
     try {
       model = parseSTL(await f.arrayBuffer());
@@ -738,23 +821,49 @@ function initDoodles() {
 function initUses() {
   const tabs = $$(".uses__tab");
   if (!tabs.length) return;
-  const select = (tab) => {
-    tabs.forEach((t) => {
+  const box = $(".uses"), dots = $$(".uses__dots i");
+  let idx = 0, auto = 0, touched = false;
+  const select = (tab, focus) => {
+    idx = tabs.indexOf(tab);
+    tabs.forEach((t, i) => {
       const on = t === tab;
       t.setAttribute("aria-selected", String(on));
       t.tabIndex = on ? 0 : -1;
       $("#" + t.getAttribute("aria-controls")).hidden = !on;
+      dots[i]?.classList.toggle("on", on);
     });
+    if (focus) tab.focus();
+    box.classList.remove("tick"); void box.offsetWidth; if (!touched) box.classList.add("tick");
   };
+  const next = (d = 1) => select(tabs[(idx + d + tabs.length) % tabs.length]);
+  const stop = () => { touched = true; clearInterval(auto); box.classList.remove("tick"); box.classList.add("touched"); };
   tabs.forEach((t, i) => {
-    t.addEventListener("click", () => select(t));
+    t.addEventListener("click", () => { stop(); select(t); });
     t.addEventListener("keydown", (e) => {
       const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
       if (!d) return;
-      const next = tabs[(i + d + tabs.length) % tabs.length];
-      select(next); next.focus();
+      stop(); select(tabs[(i + d + tabs.length) % tabs.length], true);
     });
   });
+  $("#usesNext")?.addEventListener("click", () => { stop(); next(); });
+  dots.forEach((d, i) => d.addEventListener("click", () => { stop(); select(tabs[i]); }));
+  // swipe left/right on the panel (phones)
+  let sx = null;
+  box.addEventListener("pointerdown", (e) => { if (e.pointerType === "touch") sx = e.clientX; });
+  box.addEventListener("pointerup", (e) => {
+    if (sx == null) return;
+    const dx = e.clientX - sx; sx = null;
+    if (Math.abs(dx) > 50 && !e.target.closest(".uses__tabs")) { stop(); next(dx < 0 ? 1 : -1); }
+  });
+  // gently show every option once, until the visitor picks one
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  select(tabs[0]);
+  if (!reduce && "IntersectionObserver" in window) {
+    new IntersectionObserver((en) => {
+      clearInterval(auto);
+      if (en[0].isIntersecting && !touched) { box.classList.add("tick"); auto = setInterval(() => (touched ? clearInterval(auto) : next()), 3600); }
+    }, { threshold: 0.4 }).observe(box);
+  }
 }
 
 /* ---------- "Kitne ka padega?" examples: same formula as the calculator ---------- */
@@ -829,13 +938,238 @@ function initAdda() {
   });
 }
 
+/* ---------- "Do dost": flip the polaroids and the sticky notes ---------- */
+function initMakers() {
+  $$(".maker").forEach((m) => {
+    const flip = () => m.classList.toggle("is-flipped");
+    m.addEventListener("click", (e) => { if (!e.target.closest("a")) flip(); });
+    m.addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target === m) { e.preventDefault(); flip(); } });
+  });
+  $$(".note__btn").forEach((b) => b.addEventListener("click", () => b.parentElement.classList.toggle("is-flipped")));
+}
+
+/* ---------- Floating WhatsApp button: hide it while the hero's WhatsApp button is on screen ---------- */
+function initWaFloat() {
+  const fl = $(".wa-float"), heroWa = $(".hero__cta [data-wa]");
+  if (!fl || !heroWa || !("IntersectionObserver" in window)) return;
+  new IntersectionObserver((en) => fl.classList.toggle("is-hidden", en[0].isIntersecting)).observe(heroWa);
+}
+
+/* ---------- Proto the guide: dances in the corner, explains each section, shows how the printer works ---------- */
+function initGuide() {
+  const g = $("#guide");
+  if (!g) return;
+  const text = $("#guideText"), cta = $("#guideCta"), bubble = $("#guideBubble");
+  const P = () => window.mmpPrinter;
+  const scrollToPrinter = () => P()?.el.scrollIntoView({ behavior: "smooth", block: "center" });
+  // what Proto says in each section: [Hinglish, English, optional button]
+  const TIPS = {
+    hero: () => P()?.played()
+      ? ["Mast! 🎉 Ab apna naam print karke dekho ✍️", "Nice! 🎉 Now print your own name ✍️", { hi: "✍️ Apna naam", en: "✍️ My name", run: () => { scrollToPrinter(); P()?.printName(); } }]
+      : (matchMedia("(hover: none)").matches
+        ? ["Psst! 👋 Main Proto. Printer pe tap karo, ya ye dabao 👇", "Psst! 👋 I'm Proto. Tap the printer, or tap here 👇"]
+        : ["Psst! 👋 Main Proto. Printer pe mouse upar-neeche karo, ya ye dabao 👇", "Psst! 👋 I'm Proto. Move your mouse over the printer, or tap here 👇"]).concat([ { hi: "▶ Print karke dikhao", en: "▶ Show me a print", run: () => { scrollToPrinter(); setTimeout(() => P()?.print(), 400); } }]),
+    services: ["Kuch bhi banwana ho, yahan se shuru karo 🛠️", "Whatever you need made, start here 🛠️"],
+    uses: ["Apna type chuno: student, startup, ghar… 👆", "Pick who you are: student, startup, home… 👆"],
+    process: ["Sirf 4 steps. Main bhi aise hi bana tha 😎", "Just 4 steps. That's how I was made too 😎"],
+    quote: ["STL hai? Daalo, price turant milega ⚡", "Got an STL? Drop it in for an instant price ⚡", { hi: "📂 STL chuno", en: "📂 Choose STL", run: () => $("#stlFile")?.click() }],
+    prices: ["Ek keychain bhi sirf ₹300 😉", "Even one keychain is just ₹300 😉"],
+    materials: ["Confused? PLA le lo, sabse easy 👍", "Not sure? Go with PLA, it's the easiest 👍"],
+    fixer: ["Slider ko drag karo ← → 🔧", "Drag the slider ← → 🔧"],
+    work: ["Real photos jaldi aa rahe hain 📸", "Real photos coming soon 📸"],
+    makers: ["Polaroid pe tap karo, palat jaayega 🔄", "Tap a polaroid to flip it 🔄"],
+    tips: ["Deepak ki diary padho, bahut kaam ki hai 📒", "Read Deepak's diary, it's gold 📒"],
+    adda: ["Print fail? Problem chuno, fix dekho 🩺", "Print failed? Pick the problem, see the fix 🩺"],
+    reviews: ["Pehla review aapka ho sakta hai ⭐", "The first review could be yours ⭐"],
+    faq: ["Sawaal hai? Bindaas pucho 🙋", "Got questions? Ask away 🙋"],
+  };
+  let current = "hero", quiet = false, hideT = 0;
+  function say(key, force) {
+    const tip = typeof TIPS[key] === "function" ? TIPS[key]() : TIPS[key];
+    if (!tip || (quiet && !force)) return;
+    text.textContent = T(tip[0], tip[1]);
+    const btn = tip[2];
+    cta.hidden = !btn;
+    if (btn) { cta.textContent = T(btn.hi, btn.en); cta.onclick = () => { btn.run(); bubble.classList.remove("show"); }; }
+    bubble.classList.remove("show"); void bubble.offsetWidth; bubble.classList.add("show");
+    window.fitGuideBubble?.();
+    g.classList.remove("hop"); void g.offsetWidth; g.classList.add("hop");
+    clearTimeout(hideT);
+    hideT = setTimeout(() => bubble.classList.remove("show"), key === "hero" ? 14000 : 7000);
+  }
+  $("#guideBot").addEventListener("click", () => { quiet = false; say(current, true); });
+  $("#guideX").addEventListener("click", () => { quiet = true; bubble.classList.remove("show"); });
+  window.addEventListener("mmp:lang", () => { if (bubble.classList.contains("show")) say(current, true); });
+  window.addEventListener("mmp:print", () => { g.classList.add("cheer"); bubble.classList.remove("show"); });
+  window.addEventListener("mmp:done", (e) => {
+    g.classList.remove("cheer");
+    if (current !== "hero") return;
+    if (e.detail.model === "name") return;            // the name-ideas card takes over
+    say("hero", true);
+  });
+  // which section is in the middle of the screen?
+  const map = [[".hero", "hero"], ["#services", "services"], ["#uses", "uses"], ["#process", "process"], ["#quote", "quote"],
+    ["#prices", "prices"], ["#materials", "materials"], ["#fixer", "fixer"], ["#work", "work"], ["#makers", "makers"],
+    ["#tips", "tips"], ["#adda", "adda"], ["#reviews", "reviews"], ["#faq", "faq"], ["#contact", "contact"]];
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return;
+        const key = en.target.dataset.guide;
+        if (key === current) return;
+        current = key;
+        g.classList.toggle("away", key === "contact");   // Proto goes "home" to the contact form
+        if (key !== "contact") say(key);
+      });
+    }, { rootMargin: "-45% 0px -50% 0px" });
+    map.forEach(([sel, key]) => { const el = $(sel); if (el) { el.dataset.guide = key; io.observe(el); } });
+  }
+  setTimeout(() => say("hero"), 2200);
+}
+
+/* ---------- Proto's personality: greets, leans, winks, sleeps, gets tickled, can be dragged ---------- */
+function initGuideFun() {
+  const g = $("#guide"), bot = $("#guideBot"), hi = $("#guideHi");
+  if (!g || !bot) return;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const pick = (a) => a[Math.floor(Math.random() * a.length)];
+  let hiT = 0;
+  const pop = (hiText, enText, ms = 1600) => {
+    if ($("#guideBubble")?.classList.contains("show") && !g.classList.contains("dragging")) return;   // never talk over the tip bubble
+    hi.textContent = T(hiText, enText);
+    window.fitGuideBubble?.();
+    hi.classList.remove("show"); void hi.offsetWidth; hi.classList.add("show");
+    clearTimeout(hiT); hiT = setTimeout(() => hi.classList.remove("show"), ms);
+  };
+  const act = (cls, ms) => { g.classList.remove(cls); void g.offsetWidth; g.classList.add(cls); setTimeout(() => g.classList.remove(cls), ms); };
+
+  /* hello on hover */
+  const GREET = [["Namaste! 🙏", "Hello! 👋"], ["Arre, hello! 👋", "Hey there! 😄"], ["Kaise ho? 😄", "How's it going? 😄"], ["Hi hi! ✨", "Hi friend! ✨"]];
+  bot.addEventListener("pointerenter", (e) => {
+    if (e.pointerType === "touch" || g.classList.contains("sleep")) return;
+    g.classList.add("greet");
+    const [a, b] = pick(GREET); pop(a, b);
+  });
+  bot.addEventListener("pointerleave", () => g.classList.remove("greet"));
+
+  /* lean toward the cursor, like he's curious */
+  addEventListener("pointermove", (e) => {
+    if (e.pointerType === "touch") return;
+    const r = bot.getBoundingClientRect();
+    const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+    g.style.setProperty("--lean", Math.max(-14, Math.min(14, dx / 35)).toFixed(1) + "deg");
+    g.classList.toggle("near", Math.hypot(dx, dy) < 170);
+  }, { passive: true });
+
+  /* tickle: three quick taps */
+  let taps = [];
+  bot.addEventListener("click", () => {
+    const now = Date.now();
+    taps = taps.filter((t) => now - t < 1200); taps.push(now);
+    if (taps.length >= 3) { taps = []; act("tickle", 1100); pop("Hehe, gudgudi! 😆", "Hehe, that tickles! 😆", 1800); }
+  });
+
+  /* fall asleep when you go quiet, wake up startled */
+  let idleT = 0;
+  const wake = () => {
+    if (g.classList.contains("sleep")) { g.classList.remove("sleep"); act("startle", 700); pop("Oh! Main so nahi raha tha 😳", "Oh! I wasn't sleeping 😳", 2000); }
+    clearTimeout(idleT); idleT = setTimeout(() => { g.classList.remove("greet"); g.classList.add("sleep"); }, 25000);
+  };
+  ["pointermove", "keydown", "scroll", "touchstart"].forEach((ev) => addEventListener(ev, wake, { passive: true }));
+  wake();
+
+  /* wobble when you scroll really fast */
+  let lastY = scrollY, lastT = performance.now(), wobT = 0;
+  addEventListener("scroll", () => {
+    const now = performance.now(), v = Math.abs(scrollY - lastY) / Math.max(1, now - lastT);
+    lastY = scrollY; lastT = now;
+    if (v > 4 && now - wobT > 2500 && !g.classList.contains("away")) { wobT = now; act("wobble", 900); pop("Woah, dheere! 🌀", "Whoa, slow down! 🌀", 1400); }
+  }, { passive: true });
+
+  /* little habits every few seconds: wink, look around, stretch, jump, spin */
+  if (!reduce) {
+    const HABITS = [["wink", 700], ["look", 1600], ["stretch", 900], ["jump", 700], ["spin", 900]];
+    const habit = () => {
+      if (!g.classList.contains("sleep") && !g.classList.contains("greet") && !g.classList.contains("dragging") && !document.hidden) {
+        const [c, ms] = pick(HABITS); act(c, ms);
+      }
+      setTimeout(habit, 6000 + Math.random() * 6000);
+    };
+    setTimeout(habit, 5000);
+  }
+
+  /* keep both speech bubbles fully on screen, whichever side he's on */
+  const bub = $("#guideBubble");
+  function fit() {
+    const r = bot.getBoundingClientRect(), right = g.classList.contains("right");
+    const room = right ? r.left - 22 : innerWidth - r.right - 22;          // space beside him
+    bub.style.maxWidth = Math.max(150, Math.min(270, room)) + "px";
+    g.classList.toggle("drop", r.top < 260);                                // near the top: bubble opens downward
+    hi.classList.toggle("under", r.top < 60);
+    const cx = r.left + r.width / 2, half = hi.offsetWidth / 2;          // unscaled size, so it's exact
+    let shift = 0;
+    if (cx - half < 6) shift = 6 - (cx - half);
+    if (cx + half > innerWidth - 6) shift = innerWidth - 6 - (cx + half);
+    hi.style.setProperty("--hx", shift + "px");
+  }
+  window.fitGuideBubble = fit;
+  addEventListener("resize", () => { if (g.classList.contains("moved")) snap(false); fit(); });
+
+  /* drag him anywhere; he glides to the nearest side */
+  let drag = null, justDragged = false;
+  const W = () => bot.offsetWidth, H = () => bot.offsetHeight;
+  function snap(animate = true) {
+    const r = g.getBoundingClientRect();
+    const right = r.left + W() / 2 > innerWidth / 2;
+    const left = right ? innerWidth - W() - 14 : 14;
+    const top = Math.max(80, Math.min(innerHeight - H() - 110, r.top));   // clear of the nav and the WhatsApp button
+    g.classList.toggle("right", right);
+    if (animate) g.classList.add("snapping");
+    requestAnimationFrame(() => { g.style.left = left + "px"; g.style.top = top + "px"; });
+    setTimeout(() => { g.classList.remove("snapping"); fit(); }, 520);
+  }
+  bot.addEventListener("pointerdown", (e) => {
+    if (e.button !== 0) return;
+    const r = g.getBoundingClientRect();
+    drag = { x: e.clientX, y: e.clientY, ox: e.clientX - r.left, oy: e.clientY - r.top, moved: false, id: e.pointerId };
+  });
+  addEventListener("pointermove", (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 8) return;
+    if (!drag.moved) {
+      drag.moved = true;
+      const r = g.getBoundingClientRect();
+      g.classList.add("dragging", "moved"); g.classList.remove("snapping");
+      g.style.left = r.left + "px"; g.style.top = r.top + "px"; g.style.bottom = "auto"; g.style.right = "auto";
+      bub.classList.remove("show");
+      pop("Weee! 🎢", "Weee! 🎢", 4000);
+      try { bot.setPointerCapture(e.pointerId); } catch (_) {}
+    }
+    g.style.left = Math.max(4, Math.min(innerWidth - W() - 4, e.clientX - drag.ox)) + "px";
+    g.style.top = Math.max(64, Math.min(innerHeight - H() - 8, e.clientY - drag.oy)) + "px";
+    fit();
+  });
+  addEventListener("pointerup", (e) => {
+    if (!drag) return;
+    const moved = drag.moved; drag = null;
+    if (!moved) return;
+    justDragged = true; setTimeout(() => (justDragged = false), 50);
+    g.classList.remove("dragging");
+    snap(true);
+    act("land", 600); pop("Nayi jagah, mast! 😎", "Nice spot! 😎");
+  });
+  fit();
+  bot.addEventListener("click", (e) => { if (justDragged) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+}
+
 /* ---------- Proto the cube: eyes follow you, says hi ---------- */
 function initProto() {
   const proto = $("#proto");
   if (!proto) return;
-  const pupils = $$(".proto__pupil", proto);
+  const pupils = $$(".proto__pupil");
   const bubble = $("#protoBubble");
-  const lines = ["Hi! Main Proto hoon 👋", "Kya banwana hai? 🤔", "Form bharo na, please! 🙏", "Main bhi 3D printed hoon 😎", "Deepak & Bal Krishan se baat karo!"];
+  const linesHi = ["Hi! Main Proto hoon 👋", "Kya banwana hai? 🤔", "Form bharo na, please! 🙏", "Main bhi 3D printed hoon 😎", "Deepak & Bal Krishan se baat karo!"];
+  const linesEn = ["Hi! I'm Proto 👋", "What do you want made? 🤔", "Fill in the form, please! 🙏", "I'm 3D printed too 😎", "Talk to Deepak & Bal Krishan!"];
   let k = 0;
   addEventListener("pointermove", (e) => {
     pupils.forEach((p) => {
@@ -846,6 +1180,7 @@ function initProto() {
     });
   }, { passive: true });
   const say = () => {
+    const lines = LANG === "en" ? linesEn : linesHi;
     k = (k + 1) % lines.length;
     bubble.textContent = lines[k];
     proto.classList.remove("is-bouncing"); void proto.offsetWidth; proto.classList.add("is-bouncing");
@@ -874,6 +1209,7 @@ function initReveal() {
 
 document.addEventListener("DOMContentLoaded", () => {
   applyConfig();
+  initLang();
   initThemer();
   initProgress();
   initDoodles();
@@ -885,6 +1221,10 @@ document.addEventListener("DOMContentLoaded", () => {
   initExamples();
   initCompare();
   initAdda();
+  initMakers();
+  initGuide();
+  initGuideFun();
+  initWaFloat();
   initProto();
   initReveal();
 });

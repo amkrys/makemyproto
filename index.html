@@ -31,6 +31,9 @@
         <a href="#faq">FAQ</a>
         <a href="#contact" class="btn btn--sm btn--ink">Contact</a>
       </nav>
+      <button type="button" class="langbtn" id="langBtn" aria-label="Switch language between Hinglish and English">
+        <span data-lang="hi">हिं</span><span data-lang="en">EN</span>
+      </button>
       <button class="nav__toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
         <span></span><span></span>
       </button>
@@ -55,9 +58,9 @@
         <div class="hero__copy">
           <p class="eyebrow"><span class="dot"></span> 3D Design &amp; Printing<span class="eyebrow__city"> · <span data-city>Gurugram</span></span></p>
           <h1 class="hero__title">
-            <span>Socho.</span>
-            <span>Design Karo.</span>
-            <span class="accent">Print Karo.</span>
+            <span data-en="Think it.">Socho.</span>
+            <span data-en="Design it.">Design Karo.</span>
+            <span class="accent" data-en="Print it.">Print Karo.</span>
           </h1>
           <p class="hero__lead">Send us an idea, a sketch, a photo or a <span class="hl">broken part</span>. We design it in 3D and print it <span class="circle-word">layer by layer</span>, ready to hold in your hand.</p>
           <div class="hero__cta">
@@ -67,10 +70,10 @@
               WhatsApp us
             </a>
           </div>
-          <p class="hero__nofile hand">STL nahi hai? Koi baat nahi, photo bhejo, design hum kar denge ✌️</p>
+          <p class="hero__nofile hand" data-en="No STL? No problem. Send a photo and we&#x27;ll design it ✌️">STL nahi hai? Koi baat nahi, photo bhejo, design hum kar denge ✌️</p>
           <ul class="hero__chips">
-            <li><b>₹5/gram</b> se shuru</li>
-            <li><b>2–4 din</b> delivery</li>
+            <li data-en="&lt;b&gt;₹5/gram&lt;/b&gt; onwards"><b>₹5/gram</b> se shuru</li>
+            <li><b data-en="2–4 days">2–4 din</b> delivery</li>
             <li><b>PLA · PETG · ABS · TPU</b></li>
           </ul>
           <a href="#makers" class="hello">
@@ -78,19 +81,20 @@
               <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="19" fill="#ffd9c7"/><path d="M8 17c1-9 23-11 24 0-5-4-17-5-24 0Z" fill="#141414"/><circle cx="15" cy="21" r="1.6" fill="#141414"/><circle cx="25" cy="21" r="1.6" fill="#141414"/><path d="M15 27q5 4 10 0" stroke="#141414" stroke-width="1.8" fill="none" stroke-linecap="round"/><rect x="10" y="17.5" width="9" height="7" rx="3" fill="none" stroke="#141414" stroke-width="1.4"/><rect x="21" y="17.5" width="9" height="7" rx="3" fill="none" stroke="#141414" stroke-width="1.4"/></svg>
               <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="19" fill="#cfeee2"/><path d="M7 19c0-12 26-12 26 0-2-6-8-7-13-7s-11 1-13 7Z" fill="#141414"/><circle cx="15" cy="21" r="1.6" fill="#141414"/><circle cx="25" cy="21" r="1.6" fill="#141414"/><path d="M14 26q6 5 12 0" stroke="#141414" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
             </span>
-            <span class="hello__text"><b class="hand">Namaste! Hum Deepak &amp; Bal Krishan hain.</b><span>Two engineers, one printer, a lot of chai →</span></span>
+            <span class="hello__text"><b class="hand" data-en="Hi! We&#x27;re Deepak &amp;amp; Bal Krishan.">Namaste! Hum Deepak &amp; Bal Krishan hain.</b><span>Two engineers, one printer, a lot of chai →</span></span>
           </a>
         </div>
 
         <div class="hero__visual">
           <div class="printer is-idle" id="printer">
             <p class="scribble scribble--hero hand" aria-hidden="true">
-              <span class="hint-mouse">psst… mouse upar-neeche karo,<br>ya neeche se kuch uthake<br>printer pe daal do!</span>
-              <span class="hint-touch">neeche se kuch bhi<br>chuno, print dekho!</span>
+              <span class="hint-mouse" data-en="psst… move your mouse up &amp;amp; down,&lt;br&gt;or pick something below&lt;br&gt;and drop it on the printer!">psst… mouse upar-neeche karo,<br>ya neeche se kuch uthake<br>printer pe daal do!</span>
+              <span class="hint-touch" data-en="pick anything below&lt;br&gt;and watch it print!">neeche se kuch bhi<br>chuno, print dekho!</span>
               <svg viewBox="0 0 80 60"><path d="M6 6c22 2 46 12 56 38m0 0-9-6m9 6 4-11"/></svg>
             </p>
             <div class="printer__frame" title="Click to print">
               <span class="printer__bubble hand" id="printBubble" aria-hidden="true"></span>
+              <i class="demo-hand" aria-hidden="true"><svg viewBox="0 0 32 40"><path d="M12 22V6.5a2.5 2.5 0 0 1 5 0V18l1-.4a2.5 2.5 0 0 1 3 1.5l.2.6.8-.3a2.5 2.5 0 0 1 3 1.6l.3.9a2.4 2.4 0 0 1 3.1 1.5l1 3.4c1 3.6-.3 7.5-3.4 9.6l-1.6 1.1H13.6L6.5 27.6a2.4 2.4 0 0 1 3.5-3.3Z"/></svg><b></b></i>
               <div class="printer__gantry" id="gantry">
                 <div class="printer__nozzle"><span></span></div>
               </div>
@@ -104,14 +108,14 @@
             <div class="bench">
               <div class="shelf" role="group" aria-label="Pick something to print">
                 <button type="button" class="shelf__item" data-model="vase" aria-pressed="true" aria-label="Print a vase"><span class="shelf__thumb" data-thumb="vase"></span><span class="shelf__label hand">vase</span></button>
-                <button type="button" class="shelf__item" data-model="kulhad" aria-pressed="false" aria-label="Print a kulhad"><span class="shelf__thumb" data-thumb="kulhad"></span><span class="shelf__label hand">kulhad</span></button>
+                <button type="button" class="shelf__item" data-model="kulhad" aria-pressed="false" aria-label="Print a kulhad"><span class="shelf__thumb" data-thumb="kulhad"></span><span class="shelf__label hand" data-en="clay cup">kulhad</span></button>
                 <button type="button" class="shelf__item" data-model="rocket" aria-pressed="false" aria-label="Print a rocket"><span class="shelf__thumb" data-thumb="rocket"></span><span class="shelf__label hand">rocket</span></button>
-                <button type="button" class="shelf__item" data-model="heart" aria-pressed="false" aria-label="Print a dil"><span class="shelf__thumb" data-thumb="heart"></span><span class="shelf__label hand">dil</span></button>
-                <button type="button" class="shelf__item" data-model="name" aria-pressed="false" aria-label="Print your name"><span class="shelf__thumb shelf__tag"><b>Aa</b></span><span class="shelf__label hand">apna naam</span></button>
+                <button type="button" class="shelf__item" data-model="heart" aria-pressed="false" aria-label="Print a dil"><span class="shelf__thumb" data-thumb="heart"></span><span class="shelf__label hand" data-en="heart">dil</span></button>
+                <button type="button" class="shelf__item" data-model="name" aria-pressed="false" aria-label="Print your name"><span class="shelf__thumb shelf__tag"><b>Aa</b></span><span class="shelf__label hand" data-en="your name">apna naam</span></button>
                 <svg class="shelf__plank" viewBox="0 0 400 24" preserveAspectRatio="none" aria-hidden="true"><path d="M4 8c60-3 130-2 196-1s130 2 196-1"/><path d="M40 9l-6 13M360 9l6 13"/></svg>
               </div>
               <form class="nametag" id="nameForm" hidden>
-                <label class="hand" for="printName">naam likho:</label>
+                <label class="hand" for="printName" data-en="your name:">naam likho:</label>
                 <input type="text" id="printName" maxlength="10" autocomplete="off" spellcheck="false" placeholder="Riya">
                 <button type="submit" class="nametag__go hand">print ↵</button>
                 <button type="button" class="nametag__x" id="nameClose" aria-label="Close">✕</button>
@@ -124,20 +128,34 @@
                 <button type="button" class="spool" data-fil="#A35CFF" style="--c:#A35CFF" aria-pressed="false" aria-label="Purple filament" data-tip="purple"><svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15.5" class="spool__fil"/><path d="M8 13c6-3 14-3 20 0M7 19c7-3 15-3 22 0M9 25c6-3 12-3 18 0" class="spool__wind"/><circle cx="18" cy="18" r="15.5" class="spool__rim"/><circle cx="18" cy="18" r="5" class="spool__hub"/></svg></button>
                 <button type="button" class="spool" data-fil="#F2B705" style="--c:#F2B705" aria-pressed="false" aria-label="Yellow filament" data-tip="yellow"><svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15.5" class="spool__fil"/><path d="M8 13c6-3 14-3 20 0M7 19c7-3 15-3 22 0M9 25c6-3 12-3 18 0" class="spool__wind"/><circle cx="18" cy="18" r="15.5" class="spool__rim"/><circle cx="18" cy="18" r="5" class="spool__hub"/></svg></button>
                 <button type="button" class="spool" data-fil="#2b2b2b" style="--c:#2b2b2b" aria-pressed="false" aria-label="Black filament" data-tip="black"><svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15.5" class="spool__fil"/><path d="M8 13c6-3 14-3 20 0M7 19c7-3 15-3 22 0M9 25c6-3 12-3 18 0" class="spool__wind"/><circle cx="18" cy="18" r="15.5" class="spool__rim"/><circle cx="18" cy="18" r="5" class="spool__hub"/></svg></button>
-                <button type="button" class="again hand" id="printPlay">↻ phir se</button>
+                <button type="button" class="again hand" id="printPlay" data-en="↻ again">↻ phir se</button>
+              </div>
+              <div class="nameideas" id="nameIdeas" hidden>
+                <button type="button" class="nameideas__x" id="nameIdeasX" aria-label="Close">✕</button>
+                <p class="nameideas__title"><span class="hand" data-en="Make &quot;&lt;b id=&quot;nameIdeasName&quot;&gt;Riya&lt;/b&gt;&quot; for real? ✨">"<b id="nameIdeasName">Riya</b>" ko asli mein banwao? ✨</span><small>Tap one and we'll WhatsApp you the details. From ₹300.</small></p>
+                <div class="nameideas__list">
+                  <button type="button" data-idea="keychain">🔑 Keychain</button>
+                  <button type="button" data-idea="pendant">📿 Pendant</button>
+                  <button type="button" data-idea="fridge magnet">🧲 Fridge magnet</button>
+                  <button type="button" data-idea="desk name plate">🪧 Desk name plate</button>
+                  <button type="button" data-idea="name lamp">💡 Name lamp</button>
+                  <button type="button" data-idea="door sign">🚪 Door sign</button>
+                  <button type="button" data-idea="cake topper">🎂 Cake topper</button>
+                  <button type="button" data-idea="gift tag">🎁 Gift tag</button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <a href="#services" class="scrollcue hand">aur bhi bahut kuch hai, neeche dekho <svg viewBox="0 0 24 36" aria-hidden="true"><path d="M12 3c-3 9 3 17 0 28m0 0-6-7m6 7 6-7"/></svg></a>
+      <a href="#services" class="scrollcue hand"><span data-en="there&#x27;s lots more, scroll down">aur bhi bahut kuch hai, neeche dekho</span> <svg viewBox="0 0 24 36" aria-hidden="true"><path d="M12 3c-3 9 3 17 0 28m0 0-6-7m6 7 6-7"/></svg></a>
 
       <div class="tapes" aria-hidden="true">
       <div class="ticker ticker--b">
         <div class="ticker__track">
-          <span>Socho</span><span>Design karo</span><span>Print karo</span><span>Haath mein lo</span><span>Socho</span><span>Design karo</span><span>Print karo</span><span>Haath mein lo</span>
-          <span>Socho</span><span>Design karo</span><span>Print karo</span><span>Haath mein lo</span><span>Socho</span><span>Design karo</span><span>Print karo</span><span>Haath mein lo</span>
+          <span data-en="Think">Socho</span><span data-en="Design">Design karo</span><span data-en="Print">Print karo</span><span data-en="Hold it">Haath mein lo</span><span data-en="Think">Socho</span><span data-en="Design">Design karo</span><span data-en="Print">Print karo</span><span data-en="Hold it">Haath mein lo</span>
+          <span data-en="Think">Socho</span><span data-en="Design">Design karo</span><span data-en="Print">Print karo</span><span data-en="Hold it">Haath mein lo</span><span data-en="Think">Socho</span><span data-en="Design">Design karo</span><span data-en="Print">Print karo</span><span data-en="Hold it">Haath mein lo</span>
         </div>
       </div>
       <div class="ticker">
@@ -154,7 +172,7 @@
       <div class="wrap">
         <div class="section__head">
           <p class="kicker mono"><span class="circ">01</span> / Services</p>
-          <h2>Kya <span class="squiggle">banwana</span> hai?</h2>
+          <h2 data-en="What should we &lt;span class=&quot;squiggle&quot;&gt;make&lt;/span&gt;?">Kya <span class="squiggle">banwana</span> hai?</h2>
           <p class="section__sub">Design from scratch, or print a file you already have. One printer, done carefully.</p>
         </div>
 
@@ -168,7 +186,7 @@
           </article>
           <article class="card card--hl">
             <div class="card__icon"><svg viewBox="0 0 48 48"><rect x="6" y="6" width="36" height="36" rx="3"/><path d="M14 14h20M24 14v8"/><path d="m21 22 3 4 3-4"/><path d="M15 36h18M17 32h14"/></svg></div>
-            <span class="cnote hand" style="--tilt:-4deg" aria-hidden="true">STL hai? seedha bhejo →</span>
+            <span class="cnote hand" style="--tilt:-4deg" aria-hidden="true" data-en="Got an STL? Send it →">STL hai? seedha bhejo →</span>
             <h3>3D Printing</h3>
             <p>Already have an STL? Send it. We print in PLA, PETG, ABS or TPU.</p>
             <p class="card__price mono">₹5–8 / gram</p>
@@ -182,7 +200,7 @@
           </article>
           <article class="card">
             <div class="card__icon"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="8"/><path d="M24 6v6M24 36v6M6 24h6M36 24h6M11 11l4 4M33 33l4 4M37 11l-4 4M15 33l-4 4"/></svg></div>
-            <span class="cnote hand" style="--tilt:-5deg" aria-hidden="true">mat phenko! ♻️</span>
+            <span class="cnote hand" style="--tilt:-5deg" aria-hidden="true" data-en="don&#x27;t throw it out! ♻️">mat phenko! ♻️</span>
             <h3>Replacement Parts</h3>
             <p>Broken knob, clip, bracket or gear? Send a photo and we recreate it.</p>
             <p class="card__price mono">From ₹300</p>
@@ -196,7 +214,7 @@
           </article>
           <article class="card">
             <div class="card__icon"><svg viewBox="0 0 48 48"><path d="M4 18 24 8l20 10-20 10L4 18Z"/><path d="M12 22v10c0 3 6 6 12 6s12-3 12-6V22M44 18v12"/></svg></div>
-            <span class="cnote hand" style="--tilt:-4deg" aria-hidden="true">submission kal hai? 😅</span>
+            <span class="cnote hand" style="--tilt:-4deg" aria-hidden="true" data-en="submission tomorrow? 😅">submission kal hai? 😅</span>
             <h3>Student Projects</h3>
             <p>Robot parts, models and final-year projects. Special rates for students.</p>
             <p class="card__price mono">Student rates</p>
@@ -226,22 +244,23 @@
     <section class="section section--paper2" id="uses">
       <div class="wrap">
         <div class="section__head">
-          <p class="kicker mono"><span class="circ">02</span> / Kiske liye?</p>
-          <h2>Aap kaun ho? <span class="squiggle">Batao</span>.</h2>
+          <p class="kicker mono" data-en="&lt;span class=&quot;circ&quot;&gt;02&lt;/span&gt; / Who it&#x27;s for"><span class="circ">02</span> / Kiske liye?</p>
+          <h2 data-en="Who are &lt;span class=&quot;squiggle&quot;&gt;you&lt;/span&gt;?">Aap kaun ho? <span class="squiggle">Batao</span>.</h2>
           <p>Pick what fits you. Here's what people like you usually get made.</p>
         </div>
         <div class="uses">
+          <p class="uses__nudge hand" aria-hidden="true" data-en="👇 pick yours, each one is different!">👇 apna wala chuno, har ek ka alag kaam hai!</p>
           <div class="uses__tabs" role="tablist" aria-label="Who are you">
             <button role="tab" id="tab-st" aria-controls="use-st" aria-selected="true" class="uses__tab">🎓 Student</button>
             <button role="tab" id="tab-en" aria-controls="use-en" aria-selected="false" class="uses__tab" tabindex="-1">🛠️ Engineer / startup</button>
             <button role="tab" id="tab-sh" aria-controls="use-sh" aria-selected="false" class="uses__tab" tabindex="-1">🏪 Shop / brand</button>
-            <button role="tab" id="tab-ho" aria-controls="use-ho" aria-selected="false" class="uses__tab" tabindex="-1">🏠 Ghar ke liye</button>
-            <button role="tab" id="tab-gi" aria-controls="use-gi" aria-selected="false" class="uses__tab" tabindex="-1">🎁 Gift dena hai</button>
+            <button role="tab" id="tab-ho" aria-controls="use-ho" aria-selected="false" class="uses__tab" tabindex="-1" data-en="🏠 For home">🏠 Ghar ke liye</button>
+            <button role="tab" id="tab-gi" aria-controls="use-gi" aria-selected="false" class="uses__tab" tabindex="-1" data-en="🎁 Giving a gift">🎁 Gift dena hai</button>
           </div>
 
           <div class="uses__panel" role="tabpanel" id="use-st" aria-labelledby="tab-st">
             <div>
-              <p class="uses__lead hand">"Kal submission hai aur model abhi bana nahi…" 😅</p>
+              <p class="uses__lead hand" data-en="&quot;Submission is tomorrow and the model isn&#x27;t ready…&quot; 😅">"Kal submission hai aur model abhi bana nahi…" 😅</p>
               <p>Final-year projects, robotics parts, architecture models and mechanisms. Send your CAD, or tell us the idea and we'll help with the design.</p>
               <a href="#" class="btn btn--ink" data-wa="Hi MakeMyProto! I'm a student and need a part for my project.">Help with my project</a>
             </div>
@@ -249,7 +268,7 @@
           </div>
           <div class="uses__panel" role="tabpanel" id="use-en" aria-labelledby="tab-en" hidden>
             <div>
-              <p class="uses__lead hand">"Tooling banane se pehle ek baar haath mein dekhna hai."</p>
+              <p class="uses__lead hand" data-en="&quot;I want to hold it before paying for tooling.&quot;">"Tooling banane se pehle ek baar haath mein dekhna hai."</p>
               <p>Check fit, form and function before you spend on moulds or machining. Make changes and print the next version quickly.</p>
               <a href="#" class="btn btn--ink" data-wa="Hi MakeMyProto! I need a prototype for my product.">Prototype my product</a>
             </div>
@@ -257,7 +276,7 @@
           </div>
           <div class="uses__panel" role="tabpanel" id="use-sh" aria-labelledby="tab-sh" hidden>
             <div>
-              <p class="uses__lead hand">"Kuch alag chahiye jo sab ke paas na ho."</p>
+              <p class="uses__lead hand" data-en="&quot;I want something nobody else has.&quot;">"Kuch alag chahiye jo sab ke paas na ho."</p>
               <p>Branded display pieces, logo signs and custom merchandise that customers actually remember.</p>
               <a href="#" class="btn btn--ink" data-wa="Hi MakeMyProto! I want custom pieces for my shop/brand.">Make something for my brand</a>
             </div>
@@ -265,7 +284,7 @@
           </div>
           <div class="uses__panel" role="tabpanel" id="use-ho" aria-labelledby="tab-ho" hidden>
             <div>
-              <p class="uses__lead hand">"Ek chhota sa plastic part toota aur poora cheez bekaar!"</p>
+              <p class="uses__lead hand" data-en="&quot;One tiny plastic part broke and now the whole thing is useless!&quot;">"Ek chhota sa plastic part toota aur poora cheez bekaar!"</p>
               <p>Broken clips, knobs and covers that you can't buy anywhere. Plus little things that make home life easier.</p>
               <a href="#" class="btn btn--ink" data-wa="Hi MakeMyProto! I need a replacement part for something at home.">Fix something at home</a>
             </div>
@@ -273,11 +292,15 @@
           </div>
           <div class="uses__panel" role="tabpanel" id="use-gi" aria-labelledby="tab-gi" hidden>
             <div>
-              <p class="uses__lead hand">"Kuch aisa dena hai jo market mein nahi milta." 🎁</p>
+              <p class="uses__lead hand" data-en="&quot;I want to give something you can&#x27;t buy in a shop.&quot; 🎁">"Kuch aisa dena hai jo market mein nahi milta." 🎁</p>
               <p>Personal gifts with a name, a date or an inside joke. Made once, just for them.</p>
               <a href="#" class="btn btn--ink" data-wa="Hi MakeMyProto! I want to make a custom gift.">Plan a custom gift</a>
             </div>
             <ul class="uses__list"><li>Name lamps &amp; plates</li><li>Couple &amp; family keychains</li><li>Mini figurines</li><li>Custom trophies</li><li>Moon &amp; photo lamps</li></ul>
+          </div>
+          <div class="uses__nav">
+            <span class="uses__dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+            <button type="button" class="uses__next hand" id="usesNext" data-en="next →">agla dekho →</button>
           </div>
         </div>
       </div>
@@ -288,35 +311,35 @@
       <div class="wrap">
         <div class="section__head">
           <p class="kicker mono"><span class="circ">03</span> / How it works</p>
-          <h2>4 steps. Idea se <span class="squiggle">haath</span> tak.</h2>
+          <h2 data-en="4 steps. From idea to &lt;span class=&quot;squiggle&quot;&gt;your hands&lt;/span&gt;.">4 steps. Idea se <span class="squiggle">haath</span> tak.</h2>
         </div>
         <ol class="steps">
           <li class="step">
-            <span class="step__note hand">bas ek photo bhi chalega</span>
+            <span class="step__note hand" data-en="even just a photo works">bas ek photo bhi chalega</span>
             <span class="step__no mono">01</span>
-            <h3>Idea bhejo</h3>
+            <h3 data-en="Send your idea">Idea bhejo</h3>
             <p>WhatsApp a photo, sketch, STL file or just describe what you need.</p>
           </li>
           <li class="step">
-            <span class="step__note hand">price pehle, kaam baad mein</span>
+            <span class="step__note hand" data-en="price first, work later">price pehle, kaam baad mein</span>
             <span class="step__no mono">02</span>
             <h3>Design &amp; quote</h3>
             <p>We design or check your file and send a clear price and timeline.</p>
           </li>
           <li class="step">
-            <span class="step__note hand">layer by layer, pyaar se</span>
+            <span class="step__note hand" data-en="layer by layer, with love">layer by layer, pyaar se</span>
             <span class="step__no mono">03</span>
             <h3>Print</h3>
             <p>Pay 50% advance. We print, clean and finish your part with care.</p>
           </li>
           <li class="step">
-            <span class="step__note hand">aapke haath mein! 🙌</span>
+            <span class="step__note hand" data-en="in your hands! 🙌">aapke haath mein! 🙌</span>
             <span class="step__no mono">04</span>
             <h3>Delivery</h3>
             <p>Pickup or courier. Pay the rest when it's in your hands.</p>
           </li>
         </ol>
-        <p class="aside-note hand">+ step 3½: we WhatsApp you a photo while it prints, taaki aap bhi excited raho 📸</p>
+        <p class="aside-note hand" data-en="+ step 3½: we WhatsApp you a photo while it prints, so you can get excited too 📸">+ step 3½: we WhatsApp you a photo while it prints, taaki aap bhi excited raho 📸</p>
       </div>
     </section>
 
@@ -325,7 +348,7 @@
       <div class="wrap">
         <div class="section__head">
           <p class="kicker mono"><span class="circ">04</span> / Instant Quote</p>
-          <h2>Kitna lagega? <span class="squiggle">Abhi</span> pata karo.</h2>
+          <h2 data-en="How much? Find out &lt;span class=&quot;squiggle&quot;&gt;now&lt;/span&gt;.">Kitna lagega? <span class="squiggle">Abhi</span> pata karo.</h2>
           <p class="section__sub">Upload an STL file (<span class="hl">it stays on your device</span>) or enter an approximate weight. You get an estimate in seconds.</p>
         </div>
 
@@ -336,7 +359,7 @@
               <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 32V10M15 19l9-9 9 9"/><path d="M8 30v8h32v-8"/></svg>
               <p><b>Drop your STL file here</b><br><span>or <label for="stlFile" class="link">browse</label> · up to 500 MB</span></p>
               <p class="drop__file mono" id="fileInfo" hidden></p>
-              <p class="drop__note hand" aria-hidden="true">bas drag karo, ho gaya! ✨</p>
+              <p class="drop__note hand" aria-hidden="true" data-en="just drag it in, done! ✨">bas drag karo, ho gaya! ✨</p>
             </div>
             <p class="sample">No file handy? <button type="button" class="link" id="sampleBtn">Try a sample (phone stand)</button></p>
 
@@ -356,7 +379,7 @@
                   <option value="ABS">ABS: heat resistant, functional</option>
                   <option value="TPU">TPU: flexible, rubber-like</option>
                 </select>
-                <small class="hnote hand" id="matNote">confused? PLA le lo 😉</small>
+                <small class="hnote hand" id="matNote" data-en="not sure? pick PLA 😉">confused? PLA le lo 😉</small>
               </label>
               <label class="field">
                 <span>Quantity</span>
@@ -384,15 +407,15 @@
             <label class="field">
               <span>Strength (infill) <b class="mono" id="infillVal">20%</b></span>
               <input type="range" id="infill" min="10" max="100" step="5" value="20">
-              <small class="hnote hand">zyada infill = zyada strong (aur thoda heavy) 💪 · showpiece ke liye 15–20% kaafi hai</small>
+              <small class="hnote hand" data-en="more infill = stronger (and a bit heavier) 💪 · 15–20% is plenty for display pieces">zyada infill = zyada strong (aur thoda heavy) 💪 · showpiece ke liye 15–20% kaafi hai</small>
             </label>
           </form>
 
           <aside class="quote__result" aria-live="polite">
-            <p class="sticky hand" aria-hidden="true">Weight nahi pata?<br>No tension, bas photo bhejo 🙂</p>
+            <p class="sticky hand" aria-hidden="true" data-en="Don&#x27;t know the weight?&lt;br&gt;No worries, just send a photo 🙂">Weight nahi pata?<br>No tension, bas photo bhejo 🙂</p>
             <p class="mono quote__label">Estimated price</p>
             <p class="quote__price" id="price">₹ —</p>
-            <p class="quote__cheer hand" id="cheer" aria-hidden="true">bas itna hi! 🎉</p>
+            <p class="quote__cheer hand" id="cheer" aria-hidden="true" data-en="that&#x27;s it! 🎉">bas itna hi! 🎉</p>
             <p class="quote__note" id="priceNote">Upload a file or enter a weight to see your estimate.</p>
             <dl class="quote__stats mono">
               <div><dt>Weight</dt><dd id="statWeight">—</dd></div>
@@ -412,7 +435,7 @@
       <div class="wrap">
         <div class="section__head">
           <p class="kicker mono"><span class="circ">05</span> / Prices</p>
-          <h2>Kitne ka <span class="squiggle">padega</span>?</h2>
+          <h2 data-en="What will it &lt;span class=&quot;squiggle&quot;&gt;cost&lt;/span&gt;?">Kitne ka <span class="squiggle">padega</span>?</h2>
           <p>Real examples worked out with the same formula as the calculator above (20% infill). Weights are typical; yours may differ.</p>
         </div>
         <div class="exs">
@@ -421,7 +444,7 @@
             <h3>Keychain</h3>
             <p class="ex__meta mono">~8 g · PLA</p>
             <p class="ex__price" data-grams="8" data-mat="PLA" data-qty="1">₹—</p>
-            <p class="ex__note hand">Ek ka bhi ₹300, paanch ka bhi ₹300 😉</p>
+            <p class="ex__note hand" data-en="One costs ₹300, and so do five 😉">Ek ka bhi ₹300, paanch ka bhi ₹300 😉</p>
             <button type="button" class="ex__try link" data-grams="8" data-mat="PLA">Calculate this →</button>
           </article>
           <article class="ex">
@@ -465,7 +488,7 @@
             <button type="button" class="ex__try link" data-grams="400" data-mat="PLA">Calculate this →</button>
           </article>
         </div>
-        <p class="exs__foot hand">+ 3D design (if you don't have a file) starts from ₹300/hour. Price pehle batayenge, hamesha. 🤝</p>
+        <p class="exs__foot hand" data-en="+ 3D design (if you don&#x27;t have a file) starts from ₹300/hour. You always get the price first. 🤝">+ 3D design (if you don't have a file) starts from ₹300/hour. Price pehle batayenge, hamesha. 🤝</p>
       </div>
     </section>
 
@@ -474,12 +497,12 @@
       <div class="wrap">
         <div class="section__head">
           <p class="kicker mono"><span class="circ">06</span> / Materials</p>
-          <h2>Sahi material, sahi kaam.</h2>
+          <h2 data-en="The right material for the job.">Sahi material, sahi kaam.</h2>
           <p class="section__sub">Not sure which one? Tell us what the part will do and we'll suggest the right material.</p>
         </div>
         <div class="mats">
           <article class="mat">
-            <p class="annot annot--mat hand" aria-hidden="true">confused? isi se shuru karo!<svg viewBox="0 0 50 44"><path d="M4 8c20-4 34 6 36 30m0 0-7-7m7 7 5-9"/></svg></p>
+            <p class="annot annot--mat hand" aria-hidden="true"><span data-en="not sure? start with this one!">confused? isi se shuru karo!</span><svg viewBox="0 0 50 44"><path d="M4 8c20-4 34 6 36 30m0 0-7-7m7 7 5-9"/></svg></p>
             <div class="mat__swatch" style="--c:#FF5A1F"></div>
             <h3>PLA</h3>
             <p>Easy, accurate, many colours. Best for gifts, models, prototypes and display pieces.</p>
@@ -516,7 +539,7 @@
             <div class="mat__swatch" style="--c:#141414"></div>
             <h3>TPU</h3>
             <p>Flexible like rubber. Phone cases, gaskets, grips, bumpers and wearable parts.</p>
-            <p class="mat__aside hand">psst… isse bend kar sakte ho!</p>
+            <p class="mat__aside hand" data-en="psst… this one bends!">psst… isse bend kar sakte ho!</p>
             <ul class="mono">
               <li><span>Strength</span><i style="--v:3"></i></li>
               <li><span>Heat</span><i style="--v:2"></i></li>
@@ -533,10 +556,10 @@
       <div class="wrap fixer">
         <div class="fixer__copy">
           <p class="kicker mono"><span class="circ">07</span> / Repair</p>
-          <h2>Toota part? <span class="squiggle">Mat</span> phenko.</h2>
+          <h2 data-en="Broken part? &lt;span class=&quot;squiggle&quot;&gt;Don&#x27;t&lt;/span&gt; throw it out.">Toota part? <span class="squiggle">Mat</span> phenko.</h2>
           <p>That one tiny clip that broke and made the whole thing useless? We can usually remake it, often stronger than the original.</p>
           <ol class="fixer__steps">
-            <li><b>Photo bhejo</b> with a ruler or coin next to it, from 2–3 sides.</li>
+            <li><b data-en="Send a photo">Photo bhejo</b> with a ruler or coin next to it, from 2–3 sides.</li>
             <li><b>We model it</b> in CAD from your photos and measurements.</li>
             <li><b>We print it</b> in PETG or ABS for strength, and you check the fit.</li>
           </ol>
@@ -552,7 +575,7 @@
               <g transform="translate(18 -14) rotate(14 300 100)"><path d="M240 90h50v40l-14 6-10-8-12 10-14-8Z" fill="#c9c4b8" stroke="#6d6a63" stroke-width="3"/></g>
               <circle cx="110" cy="225" r="9" fill="#F4F1EA" stroke="#6d6a63" stroke-width="3"/><circle cx="180" cy="225" r="9" fill="#F4F1EA" stroke="#6d6a63" stroke-width="3"/>
             </svg>
-            <span class="compare__label hand">pehle 😢</span>
+            <span class="compare__label hand" data-en="before 😢">pehle 😢</span>
           </div>
           <div class="compare__side compare__after">
             <svg viewBox="0 0 400 300" aria-hidden="true">
@@ -562,11 +585,11 @@
               <path d="M300 70l6 14 14 6-14 6-6 14-6-14-14-6 14-6Z" fill="#F2B705"/>
               <path d="M60 80l4 9 9 4-9 4-4 9-4-9-9-4 9-4Z" fill="#F2B705"/>
             </svg>
-            <span class="compare__label hand">baad mein 😍</span>
+            <span class="compare__label hand" data-en="after 😍">baad mein 😍</span>
           </div>
           <div class="compare__handle" aria-hidden="true"><span>⟷</span></div>
           <input type="range" min="0" max="100" value="50" class="compare__range" aria-label="Drag to compare before and after">
-          <p class="compare__hint hand" aria-hidden="true">← drag karke dekho →</p>
+          <p class="compare__hint hand" aria-hidden="true" data-en="← drag to compare →">← drag karke dekho →</p>
         </div>
       </div>
     </section>
@@ -576,9 +599,9 @@
       <div class="wrap">
         <div class="section__head">
           <p class="kicker mono"><span class="circ">08</span> / Our work</p>
-          <h2>Kya kya ban sakta hai.</h2>
+          <h2 data-en="What we can make.">Kya kya ban sakta hai.</h2>
           <p class="section__sub">A few examples of what we make.</p>
-          <p class="hnote hnote--big hand">real photos jaldi aa rahe hain, abhi printer garam ho raha hai 🔥</p>
+          <p class="hnote hnote--big hand" data-en="real photos coming soon, the printer is warming up 🔥">real photos jaldi aa rahe hain, abhi printer garam ho raha hai 🔥</p>
         </div>
         <div class="gallery">
           <figure class="tile polaroid tile--a"><div class="tile__art"><svg viewBox="0 0 200 160"><path d="M40 130h120M60 130l20-80h40l20 80M80 50h40"/><path d="M84 70h32M88 90h24M92 110h16"/></svg></div><figcaption><b>Phone stand</b><span class="mono">PLA · 4 hrs</span></figcaption></figure>
@@ -595,33 +618,33 @@
     <section class="section section--paper2 makers" id="makers">
       <div class="wrap makers__grid">
         <div class="makers__copy">
-          <p class="kicker mono"><span class="circ">09</span> / Hum kaun?</p>
-          <h2>Do dost. Ek printer. <span class="squiggle">Bahut</span> saari chai.</h2>
+          <p class="kicker mono" data-en="&lt;span class=&quot;circ&quot;&gt;09&lt;/span&gt; / Who we are"><span class="circ">09</span> / Hum kaun?</p>
+          <h2 data-en="Two friends. One printer. &lt;span class=&quot;squiggle&quot;&gt;Lots&lt;/span&gt; of chai.">Do dost. Ek printer. <span class="squiggle">Bahut</span> saari chai.</h2>
           <p class="makers__lead">MakeMyProto started on a desk in <span data-city>Gurugram</span>. One of us designs, one of us prints, and both of us get a little too excited every time a print comes off the bed in one piece.</p>
           <p>We're not a big factory. When you message us, you talk to the same two people who design, print and pack your part, so nothing gets lost in between.</p>
           <p class="signature hand">— Deepak &amp; Bal Krishan</p>
         </div>
 
         <div class="makers__cards">
-          <figure class="maker polaroid" style="--tilt:-3deg">
+          <figure class="maker polaroid" style="--tilt:-3deg" tabindex="0" aria-label="Deepak Dadheech, tap to flip"><div class="maker__inner"><div class="maker__front">
             <div class="maker__art" style="--bg:#cfeee2">
               <svg viewBox="0 0 160 160" aria-hidden="true"><circle cx="80" cy="74" r="42" fill="#f3c9a8"/><path d="M38 70c0-40 84-40 84 0-8-18-26-22-42-22s-34 4-42 22Z" fill="#141414"/><circle cx="66" cy="78" r="4" fill="#141414"/><circle cx="94" cy="78" r="4" fill="#141414"/><path d="M66 94q14 10 28 0" stroke="#141414" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M30 160c4-28 24-40 50-40s46 12 50 40" fill="#141414"/><path d="M104 132l14-10 6 6-14 10" fill="var(--accent)"/></svg>
             </div>
             <figcaption><b class="hand">Deepak Dadheech</b><span>Mechanical engineer · the printer whisperer</span><i class="mono">Assistant Professor, Anant National University</i><a class="maker__li" href="https://www.linkedin.com/in/deepak-dadheech-0546a116a/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9.5h4V21H3V9.5Zm7 0h3.8v1.6h.06c.53-1 1.84-2.06 3.79-2.06 4.05 0 4.8 2.67 4.8 6.13V21h-4v-5.1c0-1.22-.02-2.79-1.7-2.79-1.7 0-1.96 1.33-1.96 2.7V21h-4V9.5Z"/></svg> Connect on LinkedIn</a></figcaption>
-          </figure>
-          <figure class="maker polaroid" style="--tilt:2.5deg">
+          <span class="maker__flip hand" aria-hidden="true" data-en="tap to flip ↻">tap karo ↻</span></div><div class="maker__back" style="--bg:#cfeee2"><p class="hand maker__ask" data-en="Ask Deepak about 👇">Deepak se poocho 👇</p><ul><li data-en="Which material to use">Kaunsa material lein?</li><li>Strength &amp; fit</li><li>Printer tuning</li><li>Finishing &amp; sanding</li></ul><a href="#" class="btn btn--ink maker__msg" data-wa="Hi Deepak! I have a question about materials / printing.">Message Deepak →</a><span class="maker__flip hand" aria-hidden="true" data-en="back ↻">wapas ↻</span></div></div></figure>
+          <figure class="maker polaroid" style="--tilt:2.5deg" tabindex="0" aria-label="Bal Krishan Swami, tap to flip"><div class="maker__inner"><div class="maker__front">
             <div class="maker__art" style="--bg:#ffd9c7">
               <svg viewBox="0 0 160 160" aria-hidden="true"><circle cx="80" cy="74" r="42" fill="#e8b892"/><path d="M40 64c4-34 76-38 80 0-14-12-60-14-80 0Z" fill="#141414"/><rect x="56" y="70" width="20" height="16" rx="6" fill="none" stroke="#141414" stroke-width="3.5"/><rect x="84" y="70" width="20" height="16" rx="6" fill="none" stroke="#141414" stroke-width="3.5"/><path d="M76 78h8" stroke="#141414" stroke-width="3.5"/><path d="M66 98q14 10 28 0" stroke="#141414" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M30 160c4-28 24-40 50-40s46 12 50 40" fill="var(--accent)"/></svg>
             </div>
             <figcaption><b class="hand">Bal Krishan Swami</b><span>Software engineer · design &amp; pixels</span><i class="mono">Software Technologist, Philips · Ex-Samsung Research</i><a class="maker__li" href="https://www.linkedin.com/in/bal-krishan-swami/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9.5h4V21H3V9.5Zm7 0h3.8v1.6h.06c.53-1 1.84-2.06 3.79-2.06 4.05 0 4.8 2.67 4.8 6.13V21h-4v-5.1c0-1.22-.02-2.79-1.7-2.79-1.7 0-1.96 1.33-1.96 2.7V21h-4V9.5Z"/></svg> Connect on LinkedIn</a></figcaption>
-          </figure>
+          <span class="maker__flip hand" aria-hidden="true" data-en="tap to flip ↻">tap karo ↻</span></div><div class="maker__back" style="--bg:#ffd9c7"><p class="hand maker__ask" data-en="Ask Bal Krishan about 👇">Bal Krishan se poocho 👇</p><ul><li>3D design / CAD</li><li data-en="Fixing STL files">STL fix karna</li><li>Custom name gifts</li><li>Orders &amp; website</li></ul><a href="#" class="btn btn--ink maker__msg" data-wa="Hi Bal Krishan! I have a question about 3D design.">Message Bal Krishan →</a><span class="maker__flip hand" aria-hidden="true" data-en="back ↻">wapas ↻</span></div></div></figure>
         </div>
 
         <ul class="rules">
-          <li class="note" style="--tilt:-2deg;--n:#fff1a8"><b class="hand">Rule #1</b> Measure twice, print once.</li>
-          <li class="note" style="--tilt:1.5deg;--n:#ffd9c7"><b class="hand">Rule #2</b> Every part gets a fit check before it leaves.</li>
-          <li class="note" style="--tilt:-1deg;--n:#cfeee2"><b class="hand">Rule #3</b> Price first, print later. No surprises.</li>
-          <li class="note" style="--tilt:2deg;--n:#e3e0ff"><b class="hand">Rule #4</b> Chai break when the print hits 50%.</li>
+          <li class="note" style="--tilt:-2deg;--n:#fff1a8"><button type="button" class="note__btn" aria-label="Rule #1: Measure twice, print once. Tap to see why"><span class="note__front"><b class="hand">Rule #1</b> Measure twice, print once.<i class="hand" data-en="why? ↻">kyun? ↻</i></span><span class="note__back hand" data-en="One wrong mm and the part won&#x27;t fit. So calipers first, printer later. 📏">Ek galat mm aur part fit nahi hoga. Isliye calipers pehle, printer baad mein. 📏</span></button></li>
+          <li class="note" style="--tilt:1.5deg;--n:#ffd9c7"><button type="button" class="note__btn" aria-label="Rule #2: Every part gets a fit check before it leaves. Tap to see why"><span class="note__front"><b class="hand">Rule #2</b> Every part gets a fit check before it leaves.<i class="hand" data-en="why? ↻">kyun? ↻</i></span><span class="note__back hand" data-en="Every part that reaches your hands has been checked in ours first. ✋">Jo part aapke haath jaata hai, woh pehle humare haath mein check hota hai. ✋</span></button></li>
+          <li class="note" style="--tilt:-1deg;--n:#cfeee2"><button type="button" class="note__btn" aria-label="Rule #3: Price first, print later. No surprises. Tap to see why"><span class="note__front"><b class="hand">Rule #3</b> Price first, print later. No surprises.<i class="hand" data-en="why? ↻">kyun? ↻</i></span><span class="note__back hand" data-en="Price on WhatsApp first. You say yes, then we print. No hidden charges. 🤝">WhatsApp pe price pehle. Aap haan bolo, tab print. Koi hidden charge nahi. 🤝</span></button></li>
+          <li class="note" style="--tilt:2deg;--n:#e3e0ff"><button type="button" class="note__btn" aria-label="Rule #4: Chai break when the print hits 50%. Tap to see why"><span class="note__front"><b class="hand">Rule #4</b> Chai break when the print hits 50%.<i class="hand" data-en="why? ↻">kyun? ↻</i></span><span class="note__back hand" data-en="This is the most serious rule of all. ☕😄">Ye wala rule sabse serious hai. ☕😄</span></button></li>
         </ul>
       </div>
     </section>
@@ -631,18 +654,18 @@
       <div class="wrap tips">
         <div class="tips__copy">
           <p class="kicker mono"><span class="circ">10</span> / Tips</p>
-          <h2>Designing it yourself? <span class="squiggle">Ye</span> padh lo.</h2>
+          <h2 data-en="Designing it yourself? &lt;span class=&quot;squiggle&quot;&gt;Read&lt;/span&gt; this.">Designing it yourself? <span class="squiggle">Ye</span> padh lo.</h2>
           <p>A few rules that save time, money and failed prints. If this sounds like too much, just send the file and we'll check it for you.</p>
           <a href="#quote" class="btn btn--ghost">I have my STL ready →</a>
         </div>
         <div class="notebook">
-          <p class="notebook__title hand">Deepak ki diary ✏️ <span>print-ready STL ke 6 rules</span></p>
+          <p class="notebook__title hand" data-en="Deepak&#x27;s diary ✏️ &lt;span&gt;6 rules for a print-ready STL&lt;/span&gt;">Deepak ki diary ✏️ <span>print-ready STL ke 6 rules</span></p>
           <ol class="notebook__list hand">
-            <li><b>Walls ≥ 1.2 mm.</b> Patli deewar = toota part.</li>
-            <li><b>Overhangs under 45°</b> print without supports. Zyada jhuka? Supports lagenge.</li>
-            <li><b>Moving / fitting parts:</b> 0.2–0.3 mm ka gap chhodo.</li>
-            <li><b>Max 25 × 25 × 25 cm</b> in one piece. Bada hai? Hum tod ke jod denge.</li>
-            <li><b>Export in millimetres.</b> Warna 2 cm ka part 2 metre ka ban jaata hai 😅</li>
+            <li data-en="&lt;b&gt;Walls ≥ 1.2 mm.&lt;/b&gt; Thin walls = broken parts."><b>Walls ≥ 1.2 mm.</b> Patli deewar = toota part.</li>
+            <li data-en="&lt;b&gt;Overhangs under 45°&lt;/b&gt; print without supports. Steeper? It needs supports."><b>Overhangs under 45°</b> print without supports. Zyada jhuka? Supports lagenge.</li>
+            <li data-en="&lt;b&gt;Moving / fitting parts:&lt;/b&gt; leave a 0.2–0.3 mm gap."><b>Moving / fitting parts:</b> 0.2–0.3 mm ka gap chhodo.</li>
+            <li data-en="&lt;b&gt;Max 25 × 25 × 25 cm&lt;/b&gt; in one piece. Bigger? We&#x27;ll split it and join it."><b>Max 25 × 25 × 25 cm</b> in one piece. Bada hai? Hum tod ke jod denge.</li>
+            <li data-en="&lt;b&gt;Export in millimetres.&lt;/b&gt; Otherwise a 2 cm part becomes 2 metres 😅"><b>Export in millimetres.</b> Warna 2 cm ka part 2 metre ka ban jaata hai 😅</li>
             <li><b>Text at least 1 mm</b> raised or deep, so it actually shows.</li>
           </ol>
           <span class="notebook__stain" aria-hidden="true"></span>
@@ -657,8 +680,8 @@
         <div class="adda__head">
           <p class="kicker mono"><span class="circ">11</span> / Community</p>
           <h2>3D <span class="squiggle">Adda</span> 🧡</h2>
-          <p class="adda__lead">Free help for anyone into 3D, even if you never order from us. Your own printer acting up, a design doubt, a file that won't slice, or you're just starting out. Pucho, hum batayenge.</p>
-          <p class="adda__note hand">no selling, no spam. bas madad. ✌️</p>
+          <p class="adda__lead">Free help for anyone into 3D, even if you never order from us. Your own printer acting up, a design doubt, a file that won't slice, or you're just starting out. <span data-en="Ask, and we&#x27;ll answer.">Pucho, hum batayenge.</span></p>
+          <p class="adda__note hand" data-en="no selling, no spam. just help. ✌️">no selling, no spam. bas madad. ✌️</p>
         </div>
 
         <div class="adda__grid">
@@ -686,7 +709,7 @@
 
         <div class="adda__tools">
           <div class="fix">
-            <p class="fix__title hand">Print fail ho gaya? Quick fix dekho 👇</p>
+            <p class="fix__title hand" data-en="Print failed? See a quick fix 👇">Print fail ho gaya? Quick fix dekho 👇</p>
             <div class="fix__btns" role="group" aria-label="Pick your problem">
               <button type="button" class="fix__btn" data-fix="fix-warp" aria-pressed="false">🌀 Corners lifting</button>
               <button type="button" class="fix__btn" data-fix="fix-stick" aria-pressed="false">🙅 Not sticking to bed</button>
@@ -699,7 +722,7 @@
           </div>
 
           <form class="adda__ask" id="addaForm">
-            <p class="adda__askTitle hand">Apna sawaal pucho 🙋</p>
+            <p class="adda__askTitle hand" data-en="Ask your question 🙋">Apna sawaal pucho 🙋</p>
             <label class="field"><span>Topic</span>
               <select id="addaTopic">
                 <option>My printer has a problem</option>
@@ -727,30 +750,30 @@
     <!-- ===== WHY ===== -->
     <section class="section section--accent">
       <div class="wrap why">
-        <h2>Why MakeMyProto? <span class="promise hand">(pakka promise!)</span></h2>
+        <h2>Why MakeMyProto? <span class="promise hand" data-en="(promise!)">(pakka promise!)</span></h2>
         <ul class="why__list">
           <li><b>Engineers, not just a print shop.</b> A mechanical engineer checks every design for strength and fit before it prints.</li>
           <li><b>Clear pricing.</b> You see the price before we start. No hidden charges.</li>
           <li><b>Small orders welcome.</b> One keychain or 200 parts, we treat both seriously.</li>
           <li><b>Your idea stays yours.</b> Happy to sign an NDA for product designs.</li>
         </ul>
-        <p class="why__aside hand">ye sab hum likh ke bhi de sakte hain ✍️</p>
+        <p class="why__aside hand" data-en="we&#x27;ll happily put all of this in writing ✍️">ye sab hum likh ke bhi de sakte hain ✍️</p>
       </div>
     </section>
 
     <!-- ===== FIRST REVIEW ===== -->
-    <section class="section section--ink review">
+    <section class="section section--ink review" id="reviews">
       <div class="wrap review__grid">
         <div>
           <p class="kicker mono"><span class="circ">12</span> / Reviews</p>
-          <h2>Reviews? Abhi <span class="squiggle">zero</span>. 😅</h2>
+          <h2 data-en="Reviews? &lt;span class=&quot;squiggle&quot;&gt;Zero&lt;/span&gt; so far. 😅">Reviews? Abhi <span class="squiggle">zero</span>. 😅</h2>
           <p>We're new, and we'd rather be honest than fill this space with fake stars. Your order could be our very first story, and we'll treat it that way.</p>
           <a href="#" class="btn btn--accent" data-wa="Hi MakeMyProto! I want to be one of your first customers.">Be our first customer</a>
         </div>
         <figure class="review__card">
           <div class="review__stars" aria-hidden="true">☆☆☆☆☆</div>
           <blockquote class="hand">"…"</blockquote>
-          <figcaption class="hand">— aapka naam yahan ho sakta hai ✍️</figcaption>
+          <figcaption class="hand" data-en="— your name could be here ✍️">— aapka naam yahan ho sakta hai ✍️</figcaption>
           <span class="review__tape" aria-hidden="true"></span>
         </figure>
       </div>
@@ -761,11 +784,11 @@
       <div class="wrap faq">
         <div class="section__head">
           <p class="kicker mono"><span class="circ">13</span> / FAQ</p>
-          <h2>Sawaal? Jawaab yahan.</h2>
+          <h2 data-en="Questions? Answers here.">Sawaal? Jawaab yahan.</h2>
         </div>
         <div class="faq__list">
-          <p class="faq__more hand">Aur kuch poochna hai? <a href="#" data-wa="Hi MakeMyProto! I have a question.">Seedha WhatsApp karo →</a></p>
-          <p class="hnote hnote--big hand faq__top">sabse zyada puche gaye sawaal 👇</p>
+          <p class="faq__more hand"><span data-en="Anything else?">Aur kuch poochna hai?</span> <a href="#" data-wa="Hi MakeMyProto! I have a question." data-en="WhatsApp us directly →">Seedha WhatsApp karo →</a></p>
+          <p class="hnote hnote--big hand faq__top" data-en="most asked questions 👇">sabse zyada puche gaye sawaal 👇</p>
           <details>
             <summary>I don't have a 3D file. Can you still help?</summary>
             <p>Yes. Send a photo, sketch or measurements, or the broken part itself. We create the 3D model for you (design starts from ₹300 per hour, depending on complexity).</p>
@@ -803,7 +826,7 @@
       <div class="wrap contact">
         <div class="contact__info">
           <p class="kicker mono"><span class="circ">14</span> / Contact</p>
-          <h2>Chalo, <span class="squiggle">banate</span> hain.</h2>
+          <h2 data-en="Let&#x27;s &lt;span class=&quot;squiggle&quot;&gt;make&lt;/span&gt; it.">Chalo, <span class="squiggle">banate</span> hain.</h2>
           <p>Tell us what you want to make. A real human (one of us two) usually replies within a <span class="circle-word circle-word--light">few hours</span>.</p>
           <ul class="contact__list">
             <li><span class="mono">WhatsApp</span><a href="#" data-wa="Hi MakeMyProto!" data-phone-text>+91 XXXXX XXXXX</a></li>
@@ -816,7 +839,7 @@
 
         <div class="contact__formwrap">
         <div class="proto" id="proto" aria-hidden="true">
-          <span class="proto__bubble hand" id="protoBubble">Hi! Main Proto hoon 👋</span>
+          <span class="proto__bubble hand" id="protoBubble" data-en="Hi! I&#x27;m Proto 👋">Hi! Main Proto hoon 👋</span>
           <svg viewBox="0 0 120 110" class="proto__body">
             <path class="proto__side" d="M98 26 112 14v62l-14 14Z"/>
             <path class="proto__top" d="M22 26 36 14h76L98 26Z"/>
@@ -846,7 +869,7 @@
           <label class="field"><span>Tell us more</span><textarea id="cMsg" rows="4" placeholder="Size, quantity, deadline, anything that helps…"></textarea></label>
           <button type="submit" class="btn btn--accent btn--block">Send on WhatsApp</button>
           <p class="contact__hint" id="contactHint">Opens WhatsApp with your message ready to send.</p>
-          <p class="hnote hand contact__promise">hum sach mein reply karte hain, bot nahi hain 🤞</p>
+          <p class="hnote hand contact__promise" data-en="real humans reply here, no bots 🤞">hum sach mein reply karte hain, bot nahi hain 🤞</p>
         </form>
         </div>
       </div>
@@ -863,7 +886,7 @@
           <span class="logo__text">make<b>my</b>proto</span>
           <svg class="logo__fil" viewBox="0 0 200 24" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M3 2c0 10 6 15 22 15 30 0 60-5 100-5 30 0 50 2 60 6 6 2 10-4 4-6s-8 6 8 8"/></svg>
         </a>
-        <p class="footer__tag">3D Design &amp; Printing Services<br><b>Socho. Design Karo. Print Karo.</b></p>
+        <p class="footer__tag">3D Design &amp; Printing Services<br><b data-en="Think it. Design it. Print it.">Socho. Design Karo. Print Karo.</b></p>
       </div>
       <nav class="footer__links" aria-label="Footer">
         <a href="#services">Services</a>
@@ -873,7 +896,7 @@
         <a href="#contact">Contact</a>
       </nav>
       <p class="footer__made hand">Made with ☕ + PLA by two friends in <span data-city>Gurugram</span>.</p>
-      <p class="footer__ps hand">P.S. Agar aap yahan tak scroll karke aa gaye, toh aap pakka kuch banwana chahte ho. Chalo, baat karte hain! 😄</p>
+      <p class="footer__ps hand" data-en="P.S. If you scrolled all the way here, you definitely want something made. Let&#x27;s talk! 😄">P.S. Agar aap yahan tak scroll karke aa gaye, toh aap pakka kuch banwana chahte ho. Chalo, baat karte hain! 😄</p>
       <p class="footer__copy mono">© <span id="year">2026</span> MakeMyProto · <span data-city-full>Gurugram, Haryana</span></p>
     </div>
   </footer>
@@ -882,8 +905,37 @@
   <div class="dropall" id="dropAll" aria-hidden="true">
     <div class="dropall__card">
       <svg viewBox="0 0 48 48"><path d="M24 32V10M15 19l9-9 9 9"/><path d="M8 30v8h32v-8"/></svg>
-      <b class="hand">Chhod do! 📦</b>
+      <b class="hand" data-en="Drop it! 📦">Chhod do! 📦</b>
       <span>Drop your STL anywhere. Price in seconds.</span>
+    </div>
+  </div>
+
+  <!-- Proto, the guide who follows you around the site -->
+  <div class="guide" id="guide">
+    <button type="button" class="guide__bot" id="guideBot" aria-label="Proto, your guide. Tap for a tip, drag to move him">
+      <span class="guide__hi hand" id="guideHi" aria-hidden="true"></span>
+      <span class="guide__zzz hand" aria-hidden="true"><i>z</i><i>z</i><i>Z</i></span>
+      <svg viewBox="0 0 120 110" class="proto__body" aria-hidden="true">
+        <g class="guide__head">
+          <path class="proto__side" d="M98 26 112 14v62l-14 14Z"/>
+          <path class="proto__top" d="M22 26 36 14h76L98 26Z"/>
+          <rect class="proto__front" x="22" y="26" width="76" height="64" rx="6"/>
+          <path class="proto__lines" d="M22 46h76M22 66h76"/>
+          <g class="guide__eye guide__eye--l" transform="translate(46 50)"><g class="proto__eye"><circle r="10" fill="#fff"/><circle class="proto__pupil" r="4.5"/></g><path class="guide__happy" d="M-8 2q8-10 16 0"/><path class="guide__shut" d="M-8 1h16"/></g>
+          <g class="guide__eye guide__eye--r" transform="translate(74 50)"><g class="proto__eye"><circle r="10" fill="#fff"/><circle class="proto__pupil" r="4.5"/></g><path class="guide__happy" d="M-8 2q8-10 16 0"/><path class="guide__shut" d="M-8 1h16"/></g>
+          <circle class="guide__blush" cx="36" cy="66" r="5"/><circle class="guide__blush" cx="84" cy="66" r="5"/>
+          <path class="proto__mouth guide__smile" d="M50 70q10 8 20 0"/>
+          <ellipse class="guide__mouthO" cx="60" cy="74" rx="6" ry="7"/>
+        </g>
+        <path class="proto__arm guide__armR" d="M98 60c10-4 14-14 12-24"/>
+        <path class="guide__arm2 guide__armL" d="M22 60c-10-4-14-14-12-24"/>
+      </svg>
+      <i class="guide__shadow"></i>
+    </button>
+    <div class="guide__bubble" id="guideBubble" role="status" aria-live="polite">
+      <button type="button" class="guide__x" id="guideX" aria-label="Hide tip">✕</button>
+      <p class="guide__text hand" id="guideText"></p>
+      <button type="button" class="guide__cta" id="guideCta" hidden></button>
     </div>
   </div>
 

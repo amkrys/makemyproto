@@ -125,3 +125,33 @@ Under the printer is a little hand-drawn **shelf** of mini printed models (vase,
 - **filament:** six little spools; click one to load that colour (the shelf models change colour too).
 - **↻ phir se** prints the current model again.
 The shelf thumbnails are drawn from the same `SHAPES` the printer uses, so a new shape automatically gets a matching thumbnail. Add a button with `data-model` and `data-thumb`.
+
+## Interactive touches (latest)
+
+- **Floating WhatsApp button** stays hidden while the hero's "WhatsApp us" button is on screen, then appears once you scroll past it.
+- **Printer hints:** a pulsing "try me! 👆" badge, a soft glow, and a ghost hand that moves up and down every few seconds to show the layers change. All of these stop once the visitor touches the printer.
+- **Name ideas:** after a name prints, a card asks "Deepu ko asli mein banwao?" with keychain, pendant, fridge magnet, name plate, lamp, door sign, cake topper and gift tag. Each opens WhatsApp with the name and item filled in. Edit the list in `index.html` (`data-idea`).
+- **"Aap kaun ho?" tabs** rotate on their own with a progress line until someone picks one, and have dots, an "agla dekho →" button, and swipe on phones.
+- **Do dost:** tap a polaroid to flip it ("Deepak se poocho" topics + a message button); tap a rule sticky note to see the "kyun?".
+- **Phones:** services, prices, materials, work and steps show 2 per row in compact cards.
+
+## Language switch (हिं / EN)
+
+The pill at the top right switches the whole site between Hinglish and English.
+- Every Hinglish phrase has its English version in a `data-en="…"` attribute right on the same element in `index.html`. To change a translation, edit that attribute.
+- Text written by JavaScript (Proto's lines, the printer's "Ho gaya!" bubble) has both versions in `js/main.js`.
+- First visit: Indian browsers (hi / -IN) start in Hinglish, everyone else in English. The visitor's choice is remembered.
+
+## Proto, the guide
+
+Proto dances in the bottom-left corner on every page and says something about the section you're looking at. In the top section he offers "▶ Show me a print", which runs the printer; after a print he suggests printing your name. In the quote section his button opens the STL picker. He goes "home" (hides) when you reach the contact form, where the other Proto lives. Tap him any time for a tip; ✕ keeps him quiet. His lines are in `initGuide()` in `js/main.js`.
+
+### Proto's personality
+- **Hover:** waves fast, happy eyes and blush, head tilt, says "Namaste! 🙏" / "Hello! 👋".
+- **Curious:** leans toward your cursor and grows a little when it comes close; eyes follow the mouse; blinks.
+- **Habits** every few seconds: wink, look around, stretch, jump, spin.
+- **Tickle** (3 quick taps): laughing spin, "Hehe, gudgudi! 😆".
+- **Sleep** after 25 s without activity (eyes shut, breathing, floating Zzz); wakes up startled when you move.
+- **Fast scroll:** wobbles, "Woah, dheere! 🌀".
+- **Drag** him anywhere; he snaps to the nearest side, and his speech bubble flips to fit.
+All of this is in `initGuideFun()` in `js/main.js`; the moods are CSS classes (`greet`, `wink`, `sleep`, `tickle`…) at the end of `css/style.css`.
