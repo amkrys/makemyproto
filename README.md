@@ -155,3 +155,6 @@ Proto starts in the top-right corner on every page and says something about the 
 - **Fast scroll:** wobbles, "Woah, dheere! 🌀".
 - **Drag** him anywhere; he snaps to the nearest side, and his speech bubble flips to fit.
 All of this is in `initGuideFun()` in `js/main.js`; the moods are CSS classes (`greet`, `wink`, `sleep`, `tickle`…) at the end of `css/style.css`.
+
+## After each update
+`index.html` loads `css/style.css?v=…` and `js/main.js?v=…`. Change that `v=` value whenever you edit the CSS or JS, so visitors' browsers fetch the new files instead of an old saved copy.
