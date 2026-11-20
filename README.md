@@ -144,7 +144,7 @@ The pill at the top right switches the whole site between Hinglish and English.
 
 ## Proto, the guide
 
-Proto dances in the bottom-left corner on every page and says something about the section you're looking at. In the top section he offers "▶ Show me a print", which runs the printer; after a print he suggests printing your name. In the quote section his button opens the STL picker. He goes "home" (hides) when you reach the contact form, where the other Proto lives. Tap him any time for a tip; ✕ keeps him quiet. His lines are in `initGuide()` in `js/main.js`.
+Proto starts in the top-right corner on every page and says something about the section you're looking at. In the top section he offers "▶ Show me a print", which runs the printer; after a print he suggests printing your name. In the quote section his button opens the STL picker. He goes "home" (hides) when you reach the contact form, where the other Proto lives. Tap him any time for a tip; ✕ keeps him quiet. His lines are in `initGuide()` in `js/main.js`.
 
 ### Proto's personality
 - **Hover:** waves fast, happy eyes and blush, head tilt, says "Namaste! 🙏" / "Hello! 👋".

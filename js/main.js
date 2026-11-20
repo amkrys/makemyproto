@@ -1124,7 +1124,7 @@ function initGuideFun() {
     const r = bot.getBoundingClientRect(), right = g.classList.contains("right");
     const room = right ? r.left - 22 : innerWidth - r.right - 22;          // space beside him
     bub.style.maxWidth = Math.max(150, Math.min(270, room)) + "px";
-    g.classList.toggle("drop", r.top < 260);                                // near the top: bubble opens downward
+    g.classList.toggle("g-drop", r.top < 260);                                // near the top: bubble opens downward
     hi.classList.toggle("under", r.top < 60);
     const cx = r.left + r.width / 2, half = hi.offsetWidth / 2;          // unscaled size, so it's exact
     let shift = 0;

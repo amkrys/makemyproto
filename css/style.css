@@ -1484,12 +1484,17 @@ input[type="range"] { accent-color: var(--accent); width: 100%; }
 .guide__bubble { position: absolute; left: calc(100% + 12px); bottom: 26px; margin: 0; width: max-content; max-width: 270px; box-sizing: border-box; }
 .guide__text { overflow-wrap: break-word; }
 .guide.right .guide__bubble { left: auto; right: calc(100% + 12px); }
-.guide.drop .guide__bubble { bottom: auto; top: 6px; }
-.guide.drop .guide__bubble::before { bottom: auto; top: 14px; }
-.guide.drop:not(.right) .guide__bubble { border-radius: 4px 16px 16px 16px; transform-origin: left top; }
-.guide.drop.right .guide__bubble { border-radius: 16px 4px 16px 16px; transform-origin: right top; }
+.guide.g-drop .guide__bubble { bottom: auto; top: 6px; }
+.guide.g-drop .guide__bubble::before { bottom: auto; top: 14px; }
+.guide.g-drop:not(.right) .guide__bubble { border-radius: 4px 16px 16px 16px; transform-origin: left top; }
+.guide.g-drop.right .guide__bubble { border-radius: 16px 4px 16px 16px; transform-origin: right top; }
 .guide__hi { transform: translateX(calc(-50% + var(--hx, 0px))) scale(.5); }
 .guide__hi.show { transform: translateX(calc(-50% + var(--hx, 0px))) scale(1) rotate(-4deg); }
 .guide__hi.under { bottom: auto; top: calc(100% + 6px); }
 @media (max-width: 560px) { .guide { width: 58px; height: 56px; } }
 .guide__bot:focus:not(:focus-visible) { outline: none; }
+
+/* v20: Proto starts in the top-right corner */
+.guide { left: auto; right: 14px; bottom: auto; top: 86px; }
+.guide.away { transform: translateY(-30px) scale(.6); opacity: 0; pointer-events: none; }
+@media (max-width: 560px) { .guide { left: auto; right: 10px; bottom: auto; top: 76px; } }
