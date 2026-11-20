@@ -150,7 +150,7 @@ function initPrinter() {
   const tilt = $(".enclosure") || svg.parentElement;   // the whole printer body tilts toward the mouse
   const NS = "http://www.w3.org/2000/svg";
 
-  const LAYERS = 26, H = 300, layerH = 9.5, gap = 1.5, base = H - 6;
+  const LAYERS = 52, H = 300, layerH = 4.6, gap = 0.9, base = H - 6;   // 52 fine layers
   const rowY = (i) => base - (i + 1) * (layerH + gap);       // top y of layer i (0 = bottom)
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
@@ -185,11 +185,18 @@ function initPrinter() {
     const c = document.createElement("canvas");
     c.width = 300; c.height = 300;
     const g = c.getContext("2d");
-    let size = 150;
+    let size = 170;
     const fam = getComputedStyle(document.body).getPropertyValue("--f-display") || "sans-serif";
-    do { g.font = `900 ${size}px ${fam}`; size -= 4; } while (g.measureText(text).width > 270 && size > 30);
+    do { g.font = `900 ${size}px ${fam}`; size -= 2; } while (g.measureText(text).width > 280 && size > 30);
     g.textAlign = "center"; g.textBaseline = "alphabetic";
-    g.fillText(text, 150, 236);
+    const m = g.measureText(text);
+    const asc = m.actualBoundingBoxAscent || size * 0.72, desc = m.actualBoundingBoxDescent || 0;
+    const sy = Math.min(2.2, 130 / (asc + desc));                           // stretch tall: more layers per letter
+    g.save();
+    g.translate(150, base - 2);
+    g.scale(1, sy);
+    g.fillText(text, 0, -desc);                                              // letters sit on the bed
+    g.restore();
     const data = g.getImageData(0, 0, 300, 300).data;
     return (v, u) => {
       const x = Math.round(150 + v * 150), y = Math.round(rowY(Math.round(u * (LAYERS - 1))) + layerH / 2);
@@ -197,7 +204,7 @@ function initPrinter() {
     };
   }
 
-  // Build 26 <g> layers from a shape
+  // Build the <g> layers from a shape
   let layers = [];   // [{ g, x0, x1 }]
   function build(shape) {
     svg.innerHTML = "";
@@ -206,15 +213,15 @@ function initPrinter() {
       const u = i / (LAYERS - 1);
       const g = document.createElementNS(NS, "g");
       let start = null, x0 = 150, x1 = 150, any = false;
-      for (let x = 0; x <= 300; x += 2) {
+      for (let x = 0; x <= 300; x += 1) {
         const inside = x < 300 && shape((x - 150) / 150, u);
         if (inside && start === null) start = x;
         if (!inside && start !== null) {
-          if (x - start >= 4) {
+          if (x - start >= 3) {
             const r = document.createElementNS(NS, "rect");
             r.setAttribute("x", start); r.setAttribute("y", rowY(i));
             r.setAttribute("width", x - start); r.setAttribute("height", layerH);
-            r.setAttribute("rx", 3);
+            r.setAttribute("rx", layerH / 2);
             g.appendChild(r);
             if (!any) x0 = start;
             x1 = x; any = true;
@@ -262,7 +269,7 @@ function initPrinter() {
   }
 
   /* --- auto print: layer by layer, nozzle tracing each layer --- */
-  const MS_PER_LAYER = 110;
+  const MS_PER_LAYER = 58;
   function autoFrame(now) {
     const p = Math.max(0, now - autoStart) / MS_PER_LAYER;  // layers printed (float)
     current = Math.min(LAYERS, p);
@@ -404,12 +411,13 @@ function initPrinter() {
   $$("[data-thumb]").forEach((el) => {
     const shape = SHAPES[el.dataset.thumb];
     let r = "";
-    for (let i = 0; i < 12; i++) {
-      const u = i / 11; let start = null;
-      for (let x = 0; x <= 300; x += 6) {
+    const ROWS = 30, step = 292 / ROWS, h = step * 0.78;
+    for (let i = 0; i < ROWS; i++) {
+      const u = i / (ROWS - 1); let start = null;
+      for (let x = 0; x <= 300; x += 2) {
         const inside = x < 300 && shape((x - 150) / 150, u);
         if (inside && start === null) start = x;
-        if (!inside && start !== null) { r += `<rect x="${start}" y="${296 - (i + 1) * 24}" width="${x - start}" height="20" rx="7"/>`; start = null; }
+        if (!inside && start !== null) { r += `<rect x="${start}" y="${(296 - (i + 1) * step).toFixed(1)}" width="${x - start}" height="${h.toFixed(1)}" rx="${(h / 2).toFixed(1)}"/>`; start = null; }
       }
     }
     el.innerHTML = `<svg viewBox="0 0 300 300" aria-hidden="true">${r}</svg>`;

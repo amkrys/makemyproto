@@ -1538,3 +1538,6 @@ input[type="range"] { accent-color: var(--accent); width: 100%; }
 .guide.right.stack-above .guide__bubble::before { left: auto; right: 26px; }
 .guide.stack-below .guide__bubble::before { left: 26px; right: auto; top: -9px; bottom: auto; transform: rotate(135deg); }
 .guide.right.stack-below .guide__bubble::before { left: auto; right: 26px; }
+/* v22: finer layers. One shadow on the whole model instead of on every line keeps it fast */
+.printer__model rect { filter: none; }
+.printer__model { filter: drop-shadow(0 1px 0 rgba(0,0,0,.14)); }
