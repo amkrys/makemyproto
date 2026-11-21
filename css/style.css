@@ -1572,8 +1572,12 @@ input[type="range"] { accent-color: var(--accent); width: 100%; }
 }
 
 /* v26: home = two snap screens, calmer spacing.  1) intro + collage  2) how-to (left) + printer (right) */
-html:has(body[data-page="index"]) { scroll-snap-type: y proximity; scroll-padding-top: 72px; }
-.intro, .play, #make { scroll-snap-align: start; }
+/* snap only where the printer screen fits completely (laptops); phones scroll freely */
+@media (min-width: 861px) and (min-height: 640px) {
+  html:has(body[data-page="index"]) { scroll-snap-type: y proximity; scroll-padding-top: 72px; }
+  .intro, .play { scroll-snap-align: start; scroll-snap-stop: normal; }
+  .play { height: calc(100svh - 72px); }
+}
 
 /* background doodles follow the mouse on both screens */
 .doodle { opacity: .18; transform: translate(calc(var(--mx, 0) * var(--d, 10) * 1.8px), calc(var(--my, 0) * var(--d, 10) * 1.8px)) rotate(var(--rot, 0deg)); transition: transform .25s ease-out; }
@@ -1694,3 +1698,12 @@ html:has(body[data-page="index"]) { scroll-snap-type: y proximity; scroll-paddin
   #prices .ex__price { font-size: 1.3rem; }
   #prices .ex__note { margin-left: 0; }
 }
+
+/* v27: after printing a name, the "make it for real" card takes the place of the generic chips (left column on laptops) */
+.play__side .nameideas { margin: 0; border: 0; border-top: 1.5px dashed var(--line); border-radius: 0; background: none; padding: clamp(18px, 3vh, 26px) 0 0; }
+.play__side .nameideas__x { top: clamp(14px, 2.6vh, 22px); right: 0; }
+.play__side .nameideas__title .hand { font-size: 1.5rem; }
+.play__side .nameideas__list button { border: 2px solid var(--ink); background: transparent; padding: .6em 1em; }
+.play__side .nameideas__list button:hover { background: var(--ink); color: var(--paper); }
+.makeit[hidden] { display: none; }
+.play__title { position: relative; }

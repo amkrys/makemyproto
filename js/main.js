@@ -325,10 +325,18 @@ function initPrinter() {
   function showIdeas() {
     if (!ideas || modelKey !== "name" || !modelText) return;
     $("#nameIdeasName").textContent = modelText;
+    // laptops: the card replaces the generic "get it made" chips next to the printer, so it's on screen
+    // phones: it sits under the printer and scrolls into view
+    ideasHome ??= ideas.parentElement;
+    const side = $(".play__side"), makeit = $(".makeit"), wide = matchMedia("(min-width: 861px)").matches;
+    if (side && wide) { side.appendChild(ideas); if (makeit) makeit.hidden = true; }
+    else if (ideasHome && ideas.parentElement !== ideasHome) { ideasHome.appendChild(ideas); if (makeit) makeit.hidden = false; }
     ideas.hidden = false;
     ideas.classList.remove("pop"); void ideas.offsetWidth; ideas.classList.add("pop");
+    if (!(side && wide)) setTimeout(() => ideas.scrollIntoView({ behavior: "smooth", block: "nearest" }), 250);
   }
-  $("#nameIdeasX")?.addEventListener("click", () => { ideas.hidden = true; });
+  let ideasHome = null;   // where the card lives under the printer (set on first use)
+  $("#nameIdeasX")?.addEventListener("click", () => { ideas.hidden = true; const m = $(".makeit"); if (m) m.hidden = false; });
   $$("[data-idea]").forEach((b) => b.addEventListener("click", () => {
     const msg = waFormat("Name gift idea 🎁", [["Name to print", modelText], ["Product", b.dataset.idea]], "What would it cost?");
     window.open(waLink(msg), "_blank", "noopener");
@@ -1341,7 +1349,7 @@ function initProto() {
 
 /* ---------- Reveal sections on scroll ---------- */
 function initReveal() {
-  const items = $$(".section__head, .adda__head, .makers__copy, .hero__copy, .contact__info, .fixer__copy, .tips__copy, .review__grid, .card, .step, .mat, .tile, .faq__list details, .why__list li");
+  const items = $$(".play__title, .section__head, .adda__head, .makers__copy, .hero__copy, .contact__info, .fixer__copy, .tips__copy, .review__grid, .card, .step, .mat, .tile, .faq__list details, .why__list li");
   if (!("IntersectionObserver" in window)) return;
   items.forEach((el) => el.classList.add("reveal"));
   const io = new IntersectionObserver((entries) => {
