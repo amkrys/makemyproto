@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700;800;900&family=Red+Hat+Text:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&family=Caveat:wght@500;700&family=Kalam:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20261122b">
+  <link rel="stylesheet" href="css/style.css?v=20261122e">
 </head>
 <body data-page="index">
   <!-- @layout:nav -->
@@ -53,12 +53,14 @@
         <span class="doodle doodle--hide-m" style="left:96%;top:72%;--s:58px;--d:20;--rot:-8deg"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="22"/><circle cx="32" cy="32" r="8"/><path d="M32 10v6"/></svg></span>
         <span class="doodle" style="left:2%;top:80%;--s:50px;--d:-12;--rot:14deg"><svg viewBox="0 0 64 64"><path d="M12 52 52 12M40 12h12v12M12 40v12h12"/></svg></span>
       </div>
-      <div class="wrap intro__inner hero__copy">
+      <div class="wrap intro__grid">
+        <div class="intro__copy hero__copy">
           <h1 class="hero__title">
             <span data-en="Think it.">Socho.</span>
             <span data-en="Design it.">Design Karo.</span>
             <span class="accent" data-en="Print it.">Print Karo.</span>
           </h1>
+          <p class="intro__tag" data-en="Send an idea, a sketch or a broken part. We design it and print it, ready to hold.">Idea, sketch ya toota part bhejo. Hum design karke print kar denge, haath mein lene layak.</p>
           <div class="hero__cta">
             <a href="pricing.html#quote" class="btn btn--accent" id="heroUpload"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 16V4M6 10l6-6 6 6M4 16v4h16v-4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Upload STL, get price</a>
             <a href="#" class="btn btn--ghost" data-wa="Print request 🖨️|I want to get something 3D printed.">
@@ -79,13 +81,32 @@
             </span>
             <span class="hello__text"><b class="hand" data-en="Hi! We&#x27;re Deepak &amp;amp; Bal Krishan.">Namaste! Hum Deepak &amp; Bal Krishan hain.</b><span>Two engineers, one printer, a lot of chai →</span></span>
           </a>
+        </div>
+        <div class="intro__art">
+          <a href="services.html#work" class="snap tile polaroid tile--a" style="--r:-6deg;--x:2%;--y:4%;--d:16"><div class="tile__art"><svg viewBox="0 0 200 160"><path d="M40 130h120M60 130l20-80h40l20 80M80 50h40"/><path d="M84 70h32M88 90h24M92 110h16"/></svg></div><span class="snap__cap"><b data-en="Phone stand">Phone stand</b><i class="mono">PLA · ₹360</i></span></a>
+          <a href="services.html#fixer" class="snap tile polaroid tile--b" style="--r:5deg;--x:52%;--y:0%;--d:-22"><div class="tile__art"><svg viewBox="0 0 200 160"><circle cx="100" cy="80" r="40"/><circle cx="100" cy="80" r="14"/><path d="M100 30v-10M100 140v-10M50 80H40M160 80h-10M65 45l-7-7M142 122l-7-7M135 45l7-7M58 122l7-7"/></svg></div><span class="snap__cap"><b data-en="Spare gear">Spare gear</b><i class="mono">PETG · ₹300</i></span></a>
+          <a href="services.html#services" class="snap tile polaroid tile--d" style="--r:-2deg;--x:30%;--y:48%;--d:12"><div class="tile__art"><svg viewBox="0 0 200 160"><rect x="30" y="55" width="140" height="50" rx="8"/><path d="M52 80h96M62 70h76M62 90h40"/><path d="M60 105v14M140 105v14M48 119h104"/></svg></div><span class="snap__cap"><b data-en="Name plate">Name plate</b><i class="mono">PLA · ₹300</i></span></a>
+          <div class="chatmock" style="--d:-14">
+            <p class="chatmock__label hand" data-en="this is how it goes 👇">aise hota hai 👇</p>
+            <p class="msg msg--in" data-en="Can you make this broken clip? 📷">Ye toota clip bana doge? 📷</p>
+            <p class="msg msg--out" data-en="Yes! ₹300, ready in 2 days ✅">Haan! ₹300, 2 din mein ✅</p>
+          </div>
+          <span class="pricenote hand" style="--d:20" data-en="even one keychain is ₹300 😉">ek keychain bhi ₹300 😉</span>
+        </div>
       </div>
       <a href="#play" class="scrollcue hand"><span data-en="try the printer below">neeche printer chalake dekho</span> <svg viewBox="0 0 24 36" aria-hidden="true"><path d="M12 3c-3 9 3 17 0 28m0 0-6-7m6 7 6-7"/></svg></a>
     </section>
 
     <!-- ===== SCREEN 2: PRINTER PLAYGROUND ===== -->
     <section class="play" id="play">
-      <div class="wrap play__inner">
+      <div class="doodles doodles--play" aria-hidden="true">
+        <span class="doodle" style="left:4%;top:12%;--s:56px;--d:22;--rot:10deg"><svg viewBox="0 0 64 64"><path d="M10 22 32 10l22 12v22L32 56 10 44V22Z"/><path d="M10 22l22 12 22-12M32 34v22"/></svg></span>
+        <span class="doodle doodle--accent" style="left:46%;top:6%;--s:40px;--d:-26;--rot:-14deg"><svg viewBox="0 0 64 64"><path d="M32 6l6 18h19l-15 11 6 19-16-12-16 12 6-19L7 24h19Z"/></svg></span>
+        <span class="doodle doodle--hide-m" style="left:2%;top:74%;--s:70px;--d:-18;--rot:-6deg"><svg viewBox="0 0 80 40"><rect x="4" y="10" width="72" height="20" rx="3"/><path d="M14 10v8M24 10v5M34 10v8M44 10v5M54 10v8M64 10v5"/></svg></span>
+        <span class="doodle doodle--hide-m" style="left:94%;top:82%;--s:52px;--d:24;--rot:20deg"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="22"/><circle cx="32" cy="32" r="8"/><path d="M32 10v6"/></svg></span>
+        <span class="doodle doodle--accent doodle--hide-m" style="left:92%;top:8%;--s:44px;--d:-20;--rot:0deg"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="10"/><path d="M32 8v8M32 48v8M8 32h8M48 32h8"/></svg></span>
+      </div>
+      <div class="wrap play__grid">
         <h2 class="play__title" data-en="Take the printer for a &lt;span class=&quot;squiggle&quot;&gt;spin&lt;/span&gt;.">Printer <span class="squiggle">chalao</span>, maza aayega.</h2>
         <div class="hero__visual">
           <div class="printer is-idle" id="printer">
@@ -147,6 +168,23 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+        <div class="play__side">
+          <p class="play__kick hand" data-en="a real printer, just smaller 😄">asli printer jaisa, bas chhota 😄</p>
+          <ol class="howto">
+            <li><span class="howto__n">1</span><div><b data-en="Make it print">Print chalao</b><span class="hint-mouse" data-en="Move your mouse up and down over the printer, or click it.">Printer pe mouse upar-neeche karo, ya click karo.</span><span class="hint-touch" data-en="Tap the printer, or drag across it.">Printer pe tap karo, ya ungli se ghumao.</span></div></li>
+            <li><span class="howto__n">2</span><div><b data-en="Pick a model">Model chuno</b><span data-en="Vase, clay cup, rocket, heart… or &lt;b&gt;your own name&lt;/b&gt;.">Vase, kulhad, rocket, dil… ya <b>apna naam</b>.</span></div></li>
+            <li><span class="howto__n">3</span><div><b data-en="Change the colour">Colour badlo</b><span data-en="Tap a filament spool and it prints again.">Filament spool pe tap karo, naya print shuru.</span></div></li>
+          </ol>
+          <div class="makeit">
+            <p class="makeit__title" data-en="Liked it? Get it made for real ✨">Pasand aaya? Asli mein banwao ✨</p>
+            <div class="makeit__list">
+              <a href="#" class="makeit__chip" data-wa="Name keychain 🔑|I want a name keychain.">🔑 <span data-en="Name keychain">Name keychain</span> <i class="mono">₹300</i></a>
+              <a href="#" class="makeit__chip" data-wa="Desk name plate 🪧|I want a desk name plate.">🪧 <span data-en="Desk name plate">Desk name plate</span> <i class="mono">₹300+</i></a>
+              <a href="#" class="makeit__chip" data-wa="Name lamp 💡|I want a name lamp.">💡 <span data-en="Name lamp">Name lamp</span> <i class="mono">₹600+</i></a>
+            </div>
+            <a href="pricing.html#quote" class="link" data-en="Have your own STL? Get an instant price →">Apni STL hai? Instant price lo →</a>
           </div>
         </div>
       </div>
@@ -343,6 +381,6 @@
   </a>
   <!-- @end -->
 
-  <script src="js/main.js?v=20261122b"></script>
+  <script src="js/main.js?v=20261122e"></script>
 </body>
 </html>

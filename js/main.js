@@ -848,15 +848,28 @@ function initProgress() {
 
 /* ---------- Hero doodles drift with the mouse ---------- */
 function initDoodles() {
-  const wrap = $("#doodles"), hero = $(".hero");
-  if (!wrap || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  hero.addEventListener("pointermove", (e) => {
-    if (e.pointerType === "touch") return;
-    const r = hero.getBoundingClientRect();
-    wrap.style.setProperty("--mx", ((e.clientX - r.left) / r.width - 0.5).toFixed(3));
-    wrap.style.setProperty("--my", ((e.clientY - r.top) / r.height - 0.5).toFixed(3));
+  // every screen with doodles (and the home collage) drifts with the mouse
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  $$(".doodles").forEach((wrap) => {
+    const sec = wrap.parentElement;
+    sec.addEventListener("pointermove", (e) => {
+      if (e.pointerType === "touch") return;
+      const r = sec.getBoundingClientRect();
+      sec.style.setProperty("--mx", ((e.clientX - r.left) / r.width - 0.5).toFixed(3));
+      sec.style.setProperty("--my", ((e.clientY - r.top) / r.height - 0.5).toFixed(3));
+    });
+    sec.addEventListener("pointerleave", () => { sec.style.setProperty("--mx", 0); sec.style.setProperty("--my", 0); });
   });
-  hero.addEventListener("pointerleave", () => { wrap.style.setProperty("--mx", 0); wrap.style.setProperty("--my", 0); });
+  // phones: a gentle drift from tilting / scrolling instead of the mouse
+  if (matchMedia("(hover: none)").matches) {
+    addEventListener("scroll", () => {
+      $$(".doodles").forEach((wrap) => {
+        const sec = wrap.parentElement, r = sec.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > innerHeight) return;
+        sec.style.setProperty("--my", (-(r.top / innerHeight)).toFixed(3));
+      });
+    }, { passive: true });
+  }
 }
 
 /* ---------- "Kiske liye?" tabs ---------- */
@@ -1034,7 +1047,7 @@ function initGuide() {
     faq: ["Sawaal hai? Bindaas pucho 🙋", "Got questions? Ask away 🙋"],
   };
   const pageKey = $("#play") ? "intro" : $(".hero") ? "hero" : "page-" + (document.body.dataset.page || "");
-  let current = pageKey, quiet = false, hideT = 0, lastSaid = 0, dwellT = 0;
+  let shownKey = "", current = pageKey, quiet = false, hideT = 0, lastSaid = 0, dwellT = 0;
   const seen = new Set();
   // reading time: ~0.4 s a word + a calm buffer, between 6 and 15 seconds
   const readMs = (str, hasBtn) => Math.min(15000, Math.max(6000, str.split(/\s+/).length * 420 + 3500 + (hasBtn ? 3000 : 0)));
@@ -1052,7 +1065,7 @@ function initGuide() {
     bubble.classList.remove("show"); void bubble.offsetWidth; bubble.classList.add("show");
     window.fitGuideBubble?.();
     g.classList.remove("hop"); void g.offsetWidth; g.classList.add("hop");
-    seen.add(key); lastSaid = Date.now();
+    seen.add(key); lastSaid = Date.now(); shownKey = key;
     clearTimeout(hideT);
     hideT = setTimeout(hide, readMs(msg, !!btn));
   }
@@ -1080,6 +1093,7 @@ function initGuide() {
         const key = en.target.dataset.guide;
         if (key === current) return;
         current = key;
+        if (shownKey === "intro" && key !== "intro" && bubble.classList.contains("show")) hide();   // that tip was about getting here
         g.classList.toggle("away", key === "contact");   // Proto goes "home" to the contact form
         clearTimeout(dwellT);
         if (key === "contact" || seen.has(key)) return;  // each tip once; tap Proto to hear it again
@@ -1092,7 +1106,7 @@ function initGuide() {
   }
   // first tip: on laptops right away; on phones only once the printer is actually on screen
   const frameEl = $(".printer__frame");
-  if (pageKey !== "hero") { setTimeout(() => { if (!seen.has(pageKey)) say(pageKey); }, 2500); }
+  if (pageKey !== "hero") { setTimeout(() => { if (!seen.has(pageKey) && current === pageKey) say(pageKey); }, 2500); }
   else if (innerWidth > 860 || !frameEl || !("IntersectionObserver" in window)) setTimeout(() => say("hero"), 3000);
   else {
     const po = new IntersectionObserver((en) => {
@@ -1177,7 +1191,7 @@ function initGuideFun() {
 
   /* smart placement: when he talks, stand where the bubble covers the least real content */
   let pinned = false, tuckT = 0;
-  const IMPORTANT = ".play__title,.homecta__btns,h1,h2,h3,.hero__lead,.hero__nofile,.hero__chips,.section__head p,.section__sub,.eyebrow,.btn,.hero__cta,input,select,textarea,.printer__frame,.shelf,.spools,.printer__readout,.card,.ex,.mat,.uses__panel,.uses__tabs,.quote__result,.drop,.compare,.notebook,.maker,.note,.fix,.tile,summary,.step,.nameideas,.nametag,.review__card,.adda__card,.contact__form";
+  const IMPORTANT = ".play__title,.homecta__btns,.howto,.makeit,.snap,.chatmock,.intro__tag,h1,h2,h3,.hero__lead,.hero__nofile,.hero__chips,.section__head p,.section__sub,.eyebrow,.btn,.hero__cta,input,select,textarea,.printer__frame,.shelf,.spools,.printer__readout,.card,.ex,.mat,.uses__panel,.uses__tabs,.quote__result,.drop,.compare,.notebook,.maker,.note,.fix,.tile,summary,.step,.nameideas,.nametag,.review__card,.adda__card,.contact__form";
   function overlap(a, b) { const w = Math.min(a.right, b.right) - Math.max(a.left, b.left), h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top); return w > 0 && h > 0 ? w * h : 0; }
   function findSpot() {
     if (pinned || g.classList.contains("dragging") || g.classList.contains("away")) return;
