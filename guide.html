@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700;800;900&family=Red+Hat+Text:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&family=Caveat:wght@500;700&family=Kalam:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20261122o">
+  <link rel="stylesheet" href="css/style.css?v=20261122s">
 </head>
 <body data-page="guide">
   <!-- @layout:nav -->
@@ -70,40 +70,124 @@
     <!-- ===== FAQ ===== -->
     <section class="section" id="faq">
       <div class="wrap faq">
-        <div class="section__head">
-          <h2 data-en="Questions? Answers here.">Sawaal? Jawaab yahan.</h2>
+        <div class="faq__side">
+          <div class="section__head">
+            <h2 data-en="Questions? Answers here.">Sawaal? Jawaab yahan.</h2>
+            <p class="section__sub">Everything people usually ask before ordering, grouped by topic. Tap a question to open it.</p>
+          </div>
+          <nav class="faq__chips" aria-label="FAQ topics">
+            <a href="#faq-order" class="faq__chip">🧾 <span data-en="Ordering">Ordering</span></a>
+            <a href="#faq-price" class="faq__chip">💰 <span data-en="Pricing &amp; payment">Price aur payment</span></a>
+            <a href="#faq-files" class="faq__chip">📐 <span data-en="Files &amp; design">Files aur design</span></a>
+            <a href="#faq-quality" class="faq__chip">🧪 <span data-en="Materials &amp; quality">Material aur quality</span></a>
+            <a href="#faq-delivery" class="faq__chip">🚚 <span data-en="Delivery &amp; returns">Delivery aur returns</span></a>
+          </nav>
+          <p class="faq__more hand"><span data-en="Still have a question?">Aur kuch poochna hai?</span> <a href="#" data-wa="General question|I have a question." data-en="WhatsApp us directly →">Seedha WhatsApp karo →</a></p>
         </div>
         <div class="faq__list">
-          <p class="faq__more hand"><span data-en="Anything else?">Aur kuch poochna hai?</span> <a href="#" data-wa="General question|I have a question." data-en="WhatsApp us directly →">Seedha WhatsApp karo →</a></p>
-          <p class="hnote hnote--big hand faq__top" data-en="most asked questions 👇">sabse zyada puche gaye sawaal 👇</p>
-          <details>
-            <summary>I don't have a 3D file. Can you still help?</summary>
-            <p>Yes. Send a photo, sketch or measurements, or the broken part itself. We create the 3D model for you (design starts from ₹300 per hour, depending on complexity).</p>
-          </details>
-          <details>
-            <summary>How much does 3D printing cost?</summary>
-            <p>Printing starts at ₹5 per gram for PLA. Price depends on weight, material, infill and quantity. Use the instant quote above for an estimate. Minimum order is ₹300.</p>
-          </details>
-          <details>
-            <summary>How long does it take?</summary>
-            <p>Most small prints are ready in 2–4 days. Design projects and large quantities take longer, and we'll tell you the timeline with the quote.</p>
-          </details>
-          <details>
-            <summary>Which file formats do you accept?</summary>
-            <p>STL, 3MF, OBJ and STEP. If you have something else, send it and we'll check.</p>
-          </details>
-          <details>
-            <summary>What is the maximum size you can print?</summary>
-            <p>Up to about 25 × 25 × 25 cm in one piece. Bigger objects can be printed in parts and joined.</p>
-          </details>
-          <details>
-            <summary>How do I pay?</summary>
-            <p>UPI, bank transfer or cash. 50% advance to start, and the rest on delivery.</p>
-          </details>
-          <details>
-            <summary>Do you deliver?</summary>
-            <p>Yes, local pickup or delivery in <span data-city>Ahmedabad</span> and across Gujarat, and courier across India.</p>
-          </details>
+          <div class="faq__group" id="faq-order">
+            <h3 class="faq__cat"><span aria-hidden="true">🧾</span> <span data-en="Ordering">Ordering</span></h3>
+            <details>
+              <summary>How do I place an order?</summary>
+              <div class="faq__a"><p>Send us what you have on WhatsApp: an STL file, a photo, a sketch or just a description. We reply with a clear price and timeline. When you say yes and pay the 50% advance, we start. You can also get an instant estimate first on the <a href="pricing.html">Instant price</a> page.</p></div>
+            </details>
+            <details>
+              <summary>I don't have a 3D file. Can you still help?</summary>
+              <div class="faq__a"><p>Yes, most of our customers don't have one. Send a photo (with a ruler or coin next to it for scale), a sketch, measurements or the broken part itself. We create the 3D model for you and show it to you before printing.</p><p>Design work starts from ₹300 per hour. Simple parts like a clip or knob usually take under an hour; we always tell you the design cost before starting.</p></div>
+            </details>
+            <details>
+              <summary>Is there a minimum order?</summary>
+              <div class="faq__a"><p>Yes, ₹300 per order. That covers machine setup, checking your file and finishing. Small items like a single keychain cost ₹300, and you can often get several small items within that same ₹300.</p></div>
+            </details>
+            <details>
+              <summary>Can you print large quantities?</summary>
+              <div class="faq__a"><p>Yes. We regularly quote for 10 to a few hundred pieces, like branded keychains, enclosures or spare parts. Larger quantities get a lower price per piece. For very large runs we'll tell you honestly if injection moulding would be cheaper.</p></div>
+            </details>
+            <details>
+              <summary>Do you sign an NDA for product designs?</summary>
+              <div class="faq__a"><p>Yes, happily. Your files and ideas stay private either way; we never share or reuse them. See our <a href="terms.html#t14">Terms</a> for details.</p></div>
+            </details>
+          </div>
+          <div class="faq__group" id="faq-price">
+            <h3 class="faq__cat"><span aria-hidden="true">💰</span> <span data-en="Pricing &amp; payment">Price aur payment</span></h3>
+            <details>
+              <summary>How is the price calculated?</summary>
+              <div class="faq__a"><p>Mainly by the weight of plastic used, the material and how long it takes to print:</p><ul><li><b>PLA:</b> ₹5 per gram</li><li><b>PETG / ABS:</b> ₹6 per gram</li><li><b>TPU (flexible):</b> ₹8 per gram</li></ul><p>Infill (how solid the inside is), quantity, colour and any design or finishing work also affect it. The <a href="pricing.html#quote">instant calculator</a> uses the same formula.</p></div>
+            </details>
+            <details>
+              <summary>Why is the website estimate a range?</summary>
+              <div class="faq__a"><p>Because the exact weight depends on how we orient and support your part. The final price is confirmed after we check your file, and it's usually within the range shown. We never start before you agree to the price.</p></div>
+            </details>
+            <details>
+              <summary>How do I pay?</summary>
+              <div class="faq__a"><p>UPI, bank transfer or cash for local pickup. We take 50% in advance to start, and the rest on delivery (or before dispatch for courier orders). Bigger business orders can have a different plan agreed in writing.</p></div>
+            </details>
+            <details>
+              <summary>Do you give GST invoices?</summary>
+              <div class="faq__a"><p>We give an invoice for every order. Quoted prices don't include GST, shipping or extra services unless we say so, and applicable GST is charged as per Indian tax law. Share your GST details before ordering if you need them on the invoice.</p></div>
+            </details>
+            <details>
+              <summary>Are there student discounts?</summary>
+              <div class="faq__a"><p>Yes. Show us your college ID and we'll give student rates on projects. Tell us your submission date early so we can plan the print.</p></div>
+            </details>
+          </div>
+          <div class="faq__group" id="faq-files">
+            <h3 class="faq__cat"><span aria-hidden="true">📐</span> <span data-en="Files &amp; design">Files aur design</span></h3>
+            <details>
+              <summary>Which file formats do you accept?</summary>
+              <div class="faq__a"><p>STL, 3MF, OBJ and STEP. If you have something else (like a Fusion 360, SolidWorks or Tinkercad file), send it and we'll check. Our instant calculator reads STL files.</p></div>
+            </details>
+            <details>
+              <summary>What's the biggest thing you can print?</summary>
+              <div class="faq__a"><p>About 25 × 25 × 25 cm in one piece. Bigger objects can be split into parts and joined with pins, glue or screws. We'll design the joints so they're strong and neat.</p></div>
+            </details>
+            <details>
+              <summary>My file has errors. Can you fix it?</summary>
+              <div class="faq__a"><p>Yes. We check every file for holes, flipped faces, wrong units and walls that are too thin, and fix them before printing. Simple fixes are free; bigger redesigns are charged as design time, and we tell you first.</p></div>
+            </details>
+            <details>
+              <summary>Is my STL uploaded when I use the calculator?</summary>
+              <div class="faq__a"><p>No. The file is read only inside your own browser to estimate the price. It reaches us only if you send it to us on WhatsApp yourself.</p></div>
+            </details>
+          </div>
+          <div class="faq__group" id="faq-quality">
+            <h3 class="faq__cat"><span aria-hidden="true">🧪</span> <span data-en="Materials &amp; quality">Material aur quality</span></h3>
+            <details>
+              <summary>Which material should I choose?</summary>
+              <div class="faq__a"><ul><li><b>PLA:</b> the easy default for gifts, models and display pieces. Lots of colours.</li><li><b>PETG:</b> tougher and more water resistant, good for brackets, clips and outdoor parts.</li><li><b>ABS:</b> handles heat better, good for car parts and enclosures.</li><li><b>TPU:</b> flexible like rubber, for grips, gaskets and phone cases.</li></ul><p>Not sure? Tell us what the part will do and we'll suggest one. See the <a href="pricing.html#materials">materials comparison</a>.</p></div>
+            </details>
+            <details>
+              <summary>How accurate and strong are the parts?</summary>
+              <div class="faq__a"><p>Typical accuracy is about ±0.2–0.5 mm. If two parts must fit together, send us the key measurements and we'll design the clearance. Strength depends on material, infill and print direction; a mechanical engineer checks every functional part before it prints.</p></div>
+            </details>
+            <details>
+              <summary>Will I see layer lines?</summary>
+              <div class="faq__a"><p>Yes, 3D printed parts have fine layer lines; that's normal for this process. We remove supports and clean every part. If you need a smoother finish, ask about sanding or a finer layer height (it takes longer).</p></div>
+            </details>
+            <details>
+              <summary>Can you print food-safe or medical parts?</summary>
+              <div class="faq__a"><p>We don't recommend 3D printed parts for food contact or medical use, because tiny gaps between layers are hard to clean. Tell us your use case and we'll be honest about whether it's safe.</p></div>
+            </details>
+          </div>
+          <div class="faq__group" id="faq-delivery">
+            <h3 class="faq__cat"><span aria-hidden="true">🚚</span> <span data-en="Delivery &amp; returns">Delivery aur returns</span></h3>
+            <details>
+              <summary>How long does it take?</summary>
+              <div class="faq__a"><p>Most small prints are ready in 2–4 days after your advance. Design projects and large quantities take longer; we give you a date with the quote. In a hurry? Ask us; we'll tell you honestly if we can make it.</p></div>
+            </details>
+            <details>
+              <summary>Do you deliver?</summary>
+              <div class="faq__a"><p>Yes: local pickup or delivery in <span data-city>Ahmedabad</span>, delivery across Gujarat, and courier across India. Courier charges depend on size, weight and distance, and we show them before you pay.</p></div>
+            </details>
+            <details>
+              <summary>What if something is wrong with my part?</summary>
+              <div class="faq__a"><p>Message us with your order details and photos as soon as possible, ideally within 7 days of delivery. If it doesn't match what we agreed (size, material or design) or it arrives broken, we reprint it free. If we can't fix it, we refund that part. Full details are in sections 11 and 18 of our <a href="terms.html#t11">Terms</a>.</p></div>
+            </details>
+            <details>
+              <summary>Can I cancel an order?</summary>
+              <div class="faq__a"><p>Yes. Ask us in writing (WhatsApp or email) before production begins and we'll cancel it. Once work has started, any deduction is limited to the reasonable cost of work already done and materials used; the rest is refunded. See section 17 of our <a href="terms.html#t17">Terms</a>.</p></div>
+            </details>
+          </div>
         </div>
       </div>
     </section>
@@ -113,32 +197,53 @@
   <!-- @layout:footer -->
   <!-- ===== FOOTER ===== -->
   <footer class="footer">
-    <div class="wrap footer__inner">
-      <div>
-        <a href="index.html" class="logo logo--light">
-          <svg class="logo__nozzle" viewBox="0 0 28 36" aria-hidden="true"><rect x="3" y="2" width="22" height="14" rx="4"/><path d="M9 16h10l-3.5 7h-3Z"/><circle class="logo__drop" cx="14" cy="29" r="2.6"/></svg>
-          <span class="logo__text">make<b>me</b>proto</span>
-          <svg class="logo__fil" viewBox="0 0 200 24" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M3 2c0 10 6 15 22 15 30 0 60-5 100-5 30 0 50 2 60 6 6 2 10-4 4-6s-8 6 8 8"/></svg>
-        </a>
-        <p class="footer__tag">3D Design &amp; Printing Services<br><b data-en="Think it. Design it. Print it.">Socho. Design Karo. Print Karo.</b></p>
+    <div class="wrap footer__top">
+      <div class="footer__brand">
+          <a href="index.html" class="logo logo--light">
+            <svg class="logo__nozzle" viewBox="0 0 28 36" aria-hidden="true"><rect x="3" y="2" width="22" height="14" rx="4"/><path d="M9 16h10l-3.5 7h-3Z"/><circle class="logo__drop" cx="14" cy="29" r="2.6"/></svg>
+            <span class="logo__text">make<b>me</b>proto</span>
+            <svg class="logo__fil" viewBox="0 0 200 24" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M3 2c0 10 6 15 22 15 30 0 60-5 100-5 30 0 50 2 60 6 6 2 10-4 4-6s-8 6 8 8"/></svg>
+          </a>
+          <p class="footer__tag">3D Design &amp; Printing Services<br><b data-en="Think it. Design it. Print it.">Socho. Design Karo. Print Karo.</b></p>
+        <p class="footer__made hand">Made with ☕ + PLA by two friends in <span data-city>Ahmedabad</span>.</p>
+        <p class="footer__ps hand" data-en="P.S. If you scrolled all the way here, you definitely want something made. Let&#x27;s talk! 😄">P.S. Agar aap yahan tak scroll karke aa gaye, toh aap pakka kuch banwana chahte ho. Chalo, baat karte hain! 😄</p>
+        <div class="footer__social" aria-label="Follow MakeMeProto">
+          <a href="https://www.linkedin.com/company/makemeproto" target="_blank" rel="noopener" aria-label="MakeMeProto on LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9.5h4V21H3V9.5Zm7 0h3.8v1.6h.06c.53-1 1.84-2.06 3.79-2.06 4.05 0 4.8 2.67 4.8 6.13V21h-4v-5.1c0-1.22-.02-2.79-1.7-2.79-1.7 0-1.96 1.33-1.96 2.7V21h-4V9.5Z"/></svg></a>
+          <a href="https://instagram.com/makemeproto" target="_blank" rel="noopener" aria-label="MakeMeProto on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></svg></a>
+          <a href="mailto:contact@makemeproto.com" aria-label="Email contact@makemeproto.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        </div>
       </div>
-      <nav class="footer__links" aria-label="Footer">
-        <a href="services.html">Services</a>
-        <a href="pricing.html">Instant price &amp; materials</a>
-        <a href="guide.html">Guide &amp; FAQ</a>
-        <a href="community.html">3D Adda</a>
-        <a href="about.html">About us</a>
-        <a href="contact.html">Contact</a>
-      </nav>
-      <p class="footer__made hand">Made with ☕ + PLA by two friends in <span data-city>Ahmedabad</span>.</p>
-      <p class="footer__ps hand" data-en="P.S. If you scrolled all the way here, you definitely want something made. Let&#x27;s talk! 😄">P.S. Agar aap yahan tak scroll karke aa gaye, toh aap pakka kuch banwana chahte ho. Chalo, baat karte hain! 😄</p>
-      <div class="footer__social" aria-label="Follow MakeMeProto">
-        <a href="https://www.linkedin.com/company/makemeproto" target="_blank" rel="noopener" aria-label="MakeMeProto on LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9.5h4V21H3V9.5Zm7 0h3.8v1.6h.06c.53-1 1.84-2.06 3.79-2.06 4.05 0 4.8 2.67 4.8 6.13V21h-4v-5.1c0-1.22-.02-2.79-1.7-2.79-1.7 0-1.96 1.33-1.96 2.7V21h-4V9.5Z"/></svg></a>
-        <a href="https://instagram.com/makemeproto" target="_blank" rel="noopener" aria-label="MakeMeProto on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></svg></a>
-        <a href="mailto:contact@makemeproto.com" aria-label="Email contact@makemeproto.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <div class="footer__cols">
+        <nav class="footer__col" aria-label="Explore">
+          <p class="footer__h mono">Explore</p>
+          <a href="services.html">Services</a>
+          <a href="pricing.html">Instant price</a>
+          <a href="pricing.html#materials">Materials</a>
+          <a href="guide.html">Guide &amp; FAQ</a>
+          <a href="community.html">3D Adda</a>
+        </nav>
+        <nav class="footer__col" aria-label="Company">
+          <p class="footer__h mono">Company</p>
+          <a href="about.html">About us</a>
+          <a href="careers.html">Careers</a>
+          <a href="contact.html">Contact</a>
+        </nav>
+        <nav class="footer__col" aria-label="Legal">
+          <p class="footer__h mono">Legal</p>
+          <a href="terms.html">Terms &amp; Conditions</a>
+          <a href="privacy.html">Privacy Policy</a>
+        </nav>
+        <div class="footer__col footer__reach">
+          <p class="footer__h mono">Reach us</p>
+          <a href="#" data-wa="Hello 👋|Hi! I&#x27;d like to know more." data-phone-text>+91 84870 72210</a>
+          <a href="mailto:contact@makemeproto.com" data-email>contact@makemeproto.com</a>
+          <span data-city-full>Ahmedabad, Gujarat</span>
+        </div>
       </div>
-      <p class="footer__copy mono">© <span id="year">2026</span> MakeMeProto · <span data-city-full>Ahmedabad, Gujarat</span></p>
-      <p class="footer__love">Made in India 🇮🇳 with ❤️ by <a href="https://www.linkedin.com/in/bal-krishan-swami/" target="_blank" rel="noopener">Bal Krishan Swami</a></p>
+    </div>
+    <div class="wrap footer__bottom">
+        <p class="footer__copy mono">© <span id="year">2026</span> MakeMeProto · <span data-city-full>Ahmedabad, Gujarat</span></p>
+        <p class="footer__love">Made in India 🇮🇳 with ❤️ by <a href="https://www.linkedin.com/in/bal-krishan-swami/" target="_blank" rel="noopener">Bal Krishan Swami</a></p>
     </div>
   </footer>
   <!-- @end -->
@@ -182,6 +287,6 @@
   </a>
   <!-- @end -->
 
-  <script src="js/main.js?v=20261122o"></script>
+  <script src="js/main.js?v=20261122s"></script>
 </body>
 </html>

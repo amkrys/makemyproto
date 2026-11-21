@@ -817,6 +817,46 @@ function initContact() {
   });
 }
 
+/* ---------- Careers: "Apply" picks the role; the form opens WhatsApp with the application ---------- */
+function initCareers() {
+  const form = $("#jobForm");
+  if (!form) return;
+  const role = $("#jRole"), hint = $("#jobHint"), file = $("#jResume"), fileName = $("#jResumeName");
+  $$(".job__apply").forEach((b) => b.addEventListener("click", () => {
+    role.value = b.dataset.role;
+    $("#apply").scrollIntoView({ behavior: "smooth", block: "start" });
+    setTimeout(() => $("#jName").focus({ preventScroll: true }), 600);
+  }));
+  file.addEventListener("change", () => {
+    const f = file.files[0];
+    fileName.textContent = f ? `📎 ${f.name}: attach this in WhatsApp after it opens` : "Choose your resume (PDF). You'll attach it in WhatsApp next.";
+    fileName.classList.toggle("on", !!f);
+  });
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = $("#jName").value.trim(), phone = $("#jPhone").value.trim();
+    if (!name || !phone) {
+      hint.textContent = "Please add your name and phone number.";
+      hint.style.color = "#ffb38f";
+      (name ? $("#jPhone") : $("#jName")).focus();
+      return;
+    }
+    const f = file.files[0];
+    const msg = waFormat("Job application 💼", [
+      ["Role", role.value],
+      ["Name", name],
+      ["Phone", phone],
+      ["Email", $("#jEmail").value.trim() || null],
+      ["City", $("#jCity").value.trim() || null],
+      ["Portfolio", $("#jLink").value.trim() || null],
+      ["Why me", $("#jWhy").value.trim() || null],
+    ], f ? `📎 Attaching my resume (${f.name}) in this chat.` : "📎 I'll attach my resume in this chat.");
+    window.open(waLink(msg), "_blank", "noopener");
+    hint.style.color = "";
+    hint.textContent = "WhatsApp opened. Attach your resume there and press send. 🙌";
+  });
+}
+
 /* ---------- Colour theme switcher ---------- */
 function initThemer() {
   const root = document.documentElement;
@@ -1042,6 +1082,9 @@ function initGuide() {
     "page-guide": ["Pehli baar print kar rahe ho? Yahan se shuru karo 📒", "First print? Start here 📒"],
     "page-community": ["Printer hai? Adda join karo, free help 🧡", "Got a printer? Join the Adda, free help 🧡"],
     "page-about": ["Hum dono se milo 👋 Polaroid pe tap karo", "Meet us both 👋 Tap a polaroid"],
+    "page-careers": ["Pasand ka role chuno, apply karo 💼", "Pick a role and apply 💼"],
+    "page-terms": ["Simple bhasha mein likha hai, padh lo 📜", "Written in plain words, have a read 📜"],
+    "page-privacy": ["Aapka data safe hai, kabhi bechte nahi 🔒", "Your data is safe, we never sell it 🔒"],
     "page-contact": ["Form bharo, WhatsApp khul jaayega 💬", "Fill the form and WhatsApp opens 💬"],
     uses: ["Apna type chuno: student, startup, ghar… 👆", "Pick who you are: student, startup, home… 👆"],
     process: ["Sirf 4 steps. Main bhi aise hi bana tha 😎", "Just 4 steps. That's how I was made too 😎"],
@@ -1201,7 +1244,7 @@ function initGuideFun() {
 
   /* smart placement: when he talks, stand where the bubble covers the least real content */
   let pinned = false, tuckT = 0;
-  const IMPORTANT = ".path,.play__title,.homecta__btns,.fixer__steps,.makeit,.snap,.chatmock,.intro__tag,h1,h2,h3,.hero__lead,.hero__nofile,.hero__chips,.section__head p,.section__sub,.eyebrow,.btn,.hero__cta,input,select,textarea,.printer__frame,.shelf,.spools,.printer__readout,.card,.ex,.mat,.uses__panel,.uses__tabs,.quote__result,.drop,.compare,.notebook,.maker,.note,.fix,.tile,summary,.step,.nameideas,.nametag,.review__card,.adda__card,.contact__form";
+  const IMPORTANT = ".job,.legal__toc,.faq__chips,.path,.play__title,.homecta__btns,.fixer__steps,.makeit,.snap,.chatmock,.intro__tag,h1,h2,h3,.hero__lead,.hero__nofile,.hero__chips,.section__head p,.section__sub,.eyebrow,.btn,.hero__cta,input,select,textarea,.printer__frame,.shelf,.spools,.printer__readout,.card,.ex,.mat,.uses__panel,.uses__tabs,.quote__result,.drop,.compare,.notebook,.maker,.note,.fix,.tile,summary,.step,.nameideas,.nametag,.review__card,.adda__card,.contact__form";
   function overlap(a, b) { const w = Math.min(a.right, b.right) - Math.max(a.left, b.left), h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top); return w > 0 && h > 0 ? w * h : 0; }
   function findSpot() {
     if (pinned || g.classList.contains("dragging") || g.classList.contains("away")) return;
@@ -1410,6 +1453,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initQuote();
   initContact();
   initPriceFloat();
+  initCareers();
   initScreens();
   initUses();
   initExamples();
