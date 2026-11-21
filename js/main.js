@@ -9,7 +9,7 @@
 const CONFIG = {
   whatsapp: "918487072210",          // country code + number, digits only
   phoneText: "+91 84870 72210",      // how the number is shown on the page
-  email: "hello@makemeproto.com",
+  email: "contact@makemeproto.com",
   city: "Gurugram",
   cityFull: "Gurugram, Haryana",
   instagram: "makemeproto",          // handle without @
