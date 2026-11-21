@@ -165,3 +165,8 @@ All of this is in `initGuideFun()` in `js/main.js`; the moods are CSS classes (`
 - Each section's tip shows once, only after you've stayed on it ~2 s, with at least 5 s between tips. Tips stay up for their reading time (6–15 s), and stay while your mouse is on them. Tap Proto to hear a tip again.
 - If you drag him somewhere, he stays there.
 - The top section is sized to the screen height, so on laptops the printer, shelf, spools and main buttons are visible without scrolling.
+
+## Contributing
+
+Branches, releases and the roadmap are described in [CONTRIBUTING.md](CONTRIBUTING.md).
+`main` is production; work happens on `feature/*` branches merged into `develop`.
