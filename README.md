@@ -1,15 +1,15 @@
-<p align="center"><img src="assets/brand/makemyproto-logo-animated-1080p.gif" alt="MakeMyProto" width="560"></p>
+<p align="center"><img src="assets/brand/makemeproto-logo-animated-1080p.gif" alt="MakeMeProto" width="560"></p>
 
-# MakeMyProto website
+# MakeMeProto website
 
 **Socho. Design Karo. Print Karo.** · 3D design & 3D printing, Gurugram
 
-A one-page website for MakeMyProto (3D design & 3D printing services). Plain HTML, CSS and JavaScript, with nothing to install.
+A one-page website for MakeMeProto (3D design & 3D printing services). Plain HTML, CSS and JavaScript, with nothing to install.
 
 ## Files
 
 ```
-MakeMyProto/
+MakeMeProto/
 ├── index.html      ← all page text and sections
 ├── css/style.css   ← colours, fonts, layout
 ├── js/main.js      ← your contact details, prices, quote calculator
@@ -55,10 +55,10 @@ It's an estimate. Check every file before you confirm the final price.
 
 Any of these work. Upload the whole folder:
 
-- **Netlify Drop:** go to app.netlify.com/drop and drag the `MakeMyProto` folder onto the page. You get a live link in seconds.
+- **Netlify Drop:** go to app.netlify.com/drop and drag the `MakeMeProto` folder onto the page. You get a live link in seconds.
 - **Cloudflare Pages** or **GitHub Pages:** free, and both can use your own domain.
 
-Then connect your domain (e.g. `makemyproto.in`) in the host's "Custom domain" settings, and add the DNS records it shows you at your domain registrar.
+Then connect your domain (e.g. `makemeproto.in`) in the host's "Custom domain" settings, and add the DNS records it shows you at your domain registrar.
 
 ## Changing the look
 
@@ -95,7 +95,7 @@ To make your own palette, copy one of the `[data-theme="…"]` lines at the top 
 
 Ready-made 4K files are in `assets/brand/` (transparent, white, cream and dark PNGs, a square icon, and animated GIF/MP4). The Kalam font used for the wordmark is in `assets/brand/fonts/` (SIL Open Font License, see `OFL.txt`).
 
-The logo is a small nozzle "writing" the name: the orange line under `makemyproto` is filament from the nozzle and draws itself on load and hover. It's built from code (`.logo` in `index.html`), so it stays sharp everywhere. For social media you'll want a PNG version as well.
+The logo is a small nozzle "writing" the name: the orange line under `makemeproto` is filament from the nozzle and draws itself on load and hover. It's built from code (`.logo` in `index.html`), so it stays sharp everywhere. For social media you'll want a PNG version as well.
 
 ## Sections (in order)
 

@@ -1,5 +1,5 @@
 /* =========================================================
-   MakeMyProto: site script
+   MakeMeProto: site script
    ---------------------------------------------------------
    STEP 1: Put your real details in CONFIG below.
    Everything on the page (WhatsApp links, email, city)
@@ -9,10 +9,10 @@
 const CONFIG = {
   whatsapp: "918487072210",          // country code + number, digits only
   phoneText: "+91 84870 72210",      // how the number is shown on the page
-  email: "hello@makemyproto.in",
+  email: "hello@makemeproto.com",
   city: "Gurugram",
   cityFull: "Gurugram, Haryana",
-  instagram: "makemyproto",          // handle without @
+  instagram: "makemeproto",          // handle without @
   community: "https://chat.whatsapp.com/D55pQNBsJBY4H8kOEmGliL",                     // WhatsApp community / group invite link (leave "" to use a WhatsApp message instead)
   maxFileMb: 500,                    // biggest STL the quote calculator will read
 
@@ -37,17 +37,17 @@ const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const inr = (n) => "₹" + Math.round(n).toLocaleString("en-IN");
 /* Every WhatsApp message is laid out the same way, so they're easy to read and sort:
-     *📌 MakeMyProto · Topic*
+     *📌 MakeMeProto · Topic*
      ━━━━━━━━━━━━
      *Label:* value
-     _Sent from makemyproto website_                                         */
+     _Sent from makemeproto website_                                         */
 const waFormat = (topic, rows, note) => [
-  `*📌 MakeMyProto · ${topic}*`,
+  `*📌 MakeMeProto · ${topic}*`,
   "━━━━━━━━━━━━",
   ...rows.filter((r) => r && r[1] != null && String(r[1]).trim() !== "").map(([k, v]) => (k ? `*${k}:* ${v}` : v)),
   note ? `\n${note}` : null,
   "",
-  "_Sent from the makemyproto website_",
+  "_Sent from the makemeproto website_",
 ].filter((x) => x != null).join("\n");
 // data-wa="Topic|Message" on links becomes a formatted message too
 const waText = (raw) => {
