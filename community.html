@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>3D Adda Community | MakeMeProto</title>
+  <meta name="description" content="3D Adda: a free WhatsApp community for 3D printing help. Fix failed prints, ask questions, share your makes.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23FF5A1F'/%3E%3Crect x='8' y='5' width='16' height='11' rx='3' fill='%23141414'/%3E%3Cpath d='M12 16h8l-3 6h-2Z' fill='%23141414'/%3E%3Ccircle cx='16' cy='26' r='2.2' fill='%23fffdf8'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700;800;900&family=Red+Hat+Text:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&family=Caveat:wght@500;700&family=Kalam:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20261122a">
+</head>
+<body data-page="community">
+  <!-- @layout:nav -->
+  <!-- ===== NAV ===== -->
+  <header class="nav" id="top">
+    <div class="wrap nav__inner">
+      <a href="index.html" class="logo" aria-label="MakeMeProto home">
+        <svg class="logo__nozzle" viewBox="0 0 28 36" aria-hidden="true"><rect x="3" y="2" width="22" height="14" rx="4"/><path d="M9 16h10l-3.5 7h-3Z"/><circle class="logo__drop" cx="14" cy="29" r="2.6"/></svg>
+        <span class="logo__text">make<b>me</b>proto</span>
+        <svg class="logo__fil" viewBox="0 0 200 24" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M3 2c0 10 6 15 22 15 30 0 60-5 100-5 30 0 50 2 60 6 6 2 10-4 4-6s-8 6 8 8"/></svg>
+      </a>
+      <nav class="nav__links" id="navLinks" aria-label="Main">
+        <a href="pricing.html#quote" class="nav__quote">⚡ Instant price</a>
+        <a href="services.html">Services</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="guide.html">Guide</a>
+        <a href="community.html" class="nav__new">Community <i class="hand" aria-hidden="true">new!</i></a>
+        <a href="about.html">About us</a>
+        <a href="contact.html" class="btn btn--sm btn--ink">Contact</a>
+      </nav>
+      <button type="button" class="langbtn" id="langBtn" aria-label="Switch language between Hinglish and English">
+        <span data-lang="hi">हिं</span><span data-lang="en">EN</span>
+      </button>
+      <button class="nav__toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
+        <span></span><span></span>
+      </button>
+    </div>
+    <div class="progress" aria-hidden="true"><i id="progress"></i></div>
+  </header>
+  <!-- @end -->
+  <main>
+
+    <!-- ===== PAGE HEADER ===== -->
+    <section class="pagehead">
+      <div class="wrap">
+        <nav class="crumbs mono" aria-label="Breadcrumb"><a href="index.html">Home</a> <span aria-hidden="true">/</span> <span aria-current="page">3D Adda</span></nav>
+        <h1 class="pagehead__title" data-en="Your 3D printing hangout.">3D printing ka adda.</h1>
+        <p class="pagehead__sub">Free help for anyone with a printer: fix failed prints, ask questions, share what you made.</p>
+      </div>
+    </section>
+
+    <!-- ===== 3D ADDA: COMMUNITY ===== -->
+    <section class="section section--ink adda" id="adda">
+      <div class="wrap">
+        <div class="adda__head">
+          <p class="kicker mono"><span class="circ">01</span> / Community</p>
+          <h2>3D <span class="squiggle">Adda</span> 🧡</h2>
+          <p class="adda__lead">Free help for anyone into 3D, even if you never order from us. Your own printer acting up, a design doubt, a file that won't slice, or you're just starting out. <span data-en="Ask, and we&#x27;ll answer.">Pucho, hum batayenge.</span></p>
+          <p class="adda__note hand" data-en="no selling, no spam. just help. ✌️">no selling, no spam. bas madad. ✌️</p>
+        </div>
+
+        <div class="adda__grid">
+          <article class="adda__card">
+            <span class="adda__emoji" aria-hidden="true">🩺</span>
+            <h3>Free file check</h3>
+            <p>Send your STL. We'll tell you if it will print, what to fix, and how to orient it.</p>
+          </article>
+          <article class="adda__card">
+            <span class="adda__emoji" aria-hidden="true">🔧</span>
+            <h3>Printer doctor</h3>
+            <p>Own a printer? Warping, stringing, clogs, bed levelling. Send a photo of the fail and we'll help you fix it.</p>
+          </article>
+          <article class="adda__card">
+            <span class="adda__emoji" aria-hidden="true">✏️</span>
+            <h3>Design doubts</h3>
+            <p>Stuck in Fusion, Tinkercad or SolidWorks? Tolerances, joints, threads, snap-fits: ask away.</p>
+          </article>
+          <article class="adda__card">
+            <span class="adda__emoji" aria-hidden="true">🌱</span>
+            <h3>Starting out?</h3>
+            <p>Which printer to buy, which filament, which software. Honest beginner advice from people who've been there.</p>
+          </article>
+        </div>
+
+        <div class="adda__tools">
+          <div class="fix">
+            <p class="fix__title hand" data-en="Print failed? See a quick fix 👇">Print fail ho gaya? Quick fix dekho 👇</p>
+            <div class="fix__btns" role="group" aria-label="Pick your problem">
+              <button type="button" class="fix__btn" data-fix="fix-warp" aria-pressed="false">🌀 Corners lifting</button>
+              <button type="button" class="fix__btn" data-fix="fix-stick" aria-pressed="false">🙅 Not sticking to bed</button>
+              <button type="button" class="fix__btn" data-fix="fix-string" aria-pressed="false">🕸️ Hairy strings</button>
+              <button type="button" class="fix__btn" data-fix="fix-shift" aria-pressed="false">↔️ Layers shifted</button>
+              <button type="button" class="fix__btn" data-fix="fix-under" aria-pressed="false">🫥 Gaps & weak walls</button>
+            </div>
+            <div class="fix__out" id="fixOut" aria-live="polite"></div>
+            <p class="fix__more">Still failing? Send us a photo of the print. 📸</p>
+          </div>
+
+          <form class="adda__ask" id="addaForm">
+            <p class="adda__askTitle hand" data-en="Ask your question 🙋">Apna sawaal pucho 🙋</p>
+            <label class="field"><span>Topic</span>
+              <select id="addaTopic">
+                <option>My printer has a problem</option>
+                <option>Check my STL file</option>
+                <option>Design / CAD help</option>
+                <option>Which printer or filament to buy</option>
+                <option>Something else</option>
+              </select>
+            </label>
+            <label class="field"><span>Your question</span>
+              <textarea id="addaQ" rows="3" placeholder="e.g. My PLA print keeps lifting at the corners on an Ender 3…"></textarea>
+            </label>
+            <button class="btn btn--accent btn--block" type="submit">Ask on WhatsApp</button>
+            <a href="#" class="btn btn--ghost btn--block adda__join" id="addaJoin" data-wa="Join 3D Adda 🧡|I&#x27;d like to join the 3D Adda community.">Join the 3D Adda community →</a>
+          </form>
+        </div>
+        <template id="fix-warp"><p class="fix__name mono">Warping</p><ul class="hand"><li>Clean the bed with IPA, no fingerprints.</li><li>Bed hotter by 5–10°C, and add a brim.</li><li>Stop drafts: no fan or AC blowing on the printer.</li><li>ABS? Use an enclosure.</li></ul></template>
+        <template id="fix-stick"><p class="fix__name mono">First layer fails</p><ul class="hand"><li>Re-level the bed; nozzle should just drag a paper sheet.</li><li>Slow the first layer to ~20 mm/s.</li><li>Squish it a little more (lower Z-offset).</li><li>Glue stick on glass works wonders.</li></ul></template>
+        <template id="fix-string"><p class="fix__name mono">Stringing</p><ul class="hand"><li>Lower the nozzle temperature by 5–10°C.</li><li>Increase retraction a little.</li><li>Dry your filament, wet filament strings a lot.</li><li>Travel faster between parts.</li></ul></template>
+        <template id="fix-shift"><p class="fix__name mono">Layer shift</p><ul class="hand"><li>Check belt tension; it should twang, not flop.</li><li>Tighten pulley grub screws.</li><li>Lower print speed / acceleration.</li><li>Make sure nothing blocks the print head.</li></ul></template>
+        <template id="fix-under"><p class="fix__name mono">Under-extrusion</p><ul class="hand"><li>Partly clogged nozzle? Do a cold pull or change it.</li><li>Check the filament isn't tangled on the spool.</li><li>Raise temperature by 5°C.</li><li>Calibrate e-steps / flow rate.</li></ul></template>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- @layout:footer -->
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="wrap footer__inner">
+      <div>
+        <a href="index.html" class="logo logo--light">
+          <svg class="logo__nozzle" viewBox="0 0 28 36" aria-hidden="true"><rect x="3" y="2" width="22" height="14" rx="4"/><path d="M9 16h10l-3.5 7h-3Z"/><circle class="logo__drop" cx="14" cy="29" r="2.6"/></svg>
+          <span class="logo__text">make<b>me</b>proto</span>
+          <svg class="logo__fil" viewBox="0 0 200 24" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M3 2c0 10 6 15 22 15 30 0 60-5 100-5 30 0 50 2 60 6 6 2 10-4 4-6s-8 6 8 8"/></svg>
+        </a>
+        <p class="footer__tag">3D Design &amp; Printing Services<br><b data-en="Think it. Design it. Print it.">Socho. Design Karo. Print Karo.</b></p>
+      </div>
+      <nav class="footer__links" aria-label="Footer">
+        <a href="services.html">Services</a>
+        <a href="pricing.html#quote">Instant Quote</a>
+        <a href="pricing.html#materials">Materials</a>
+        <a href="guide.html">Guide &amp; FAQ</a>
+        <a href="community.html">3D Adda</a>
+        <a href="about.html">About us</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <p class="footer__made hand">Made with ☕ + PLA by two friends in <span data-city>Gurugram</span>.</p>
+      <p class="footer__ps hand" data-en="P.S. If you scrolled all the way here, you definitely want something made. Let&#x27;s talk! 😄">P.S. Agar aap yahan tak scroll karke aa gaye, toh aap pakka kuch banwana chahte ho. Chalo, baat karte hain! 😄</p>
+      <p class="footer__copy mono">© <span id="year">2026</span> MakeMeProto · <span data-city-full>Gurugram, Haryana</span></p>
+    </div>
+  </footer>
+  <!-- @end -->
+
+  <!-- @layout:floating -->
+  <!-- Proto, the guide who follows you around the site -->
+  <div class="guide right g-drop" id="guide">
+    <button type="button" class="guide__bot" id="guideBot" aria-label="Proto, your guide. Tap for a tip, drag to move him">
+      <span class="guide__hi hand" id="guideHi" aria-hidden="true"></span>
+      <span class="guide__zzz hand" aria-hidden="true"><i>z</i><i>z</i><i>Z</i></span>
+      <svg viewBox="0 0 120 110" class="proto__body" aria-hidden="true">
+        <g class="guide__head">
+          <path class="proto__side" d="M98 26 112 14v62l-14 14Z"/>
+          <path class="proto__top" d="M22 26 36 14h76L98 26Z"/>
+          <rect class="proto__front" x="22" y="26" width="76" height="64" rx="6"/>
+          <path class="proto__lines" d="M22 46h76M22 66h76"/>
+          <g class="guide__eye guide__eye--l" transform="translate(46 50)"><g class="proto__eye"><circle r="10" fill="#fff"/><circle class="proto__pupil" r="4.5"/></g><path class="guide__happy" d="M-8 2q8-10 16 0"/><path class="guide__shut" d="M-8 1h16"/></g>
+          <g class="guide__eye guide__eye--r" transform="translate(74 50)"><g class="proto__eye"><circle r="10" fill="#fff"/><circle class="proto__pupil" r="4.5"/></g><path class="guide__happy" d="M-8 2q8-10 16 0"/><path class="guide__shut" d="M-8 1h16"/></g>
+          <circle class="guide__blush" cx="36" cy="66" r="5"/><circle class="guide__blush" cx="84" cy="66" r="5"/>
+          <path class="proto__mouth guide__smile" d="M50 70q10 8 20 0"/>
+          <ellipse class="guide__mouthO" cx="60" cy="74" rx="6" ry="7"/>
+        </g>
+        <path class="proto__arm guide__armR" d="M98 60c10-4 14-14 12-24"/>
+        <path class="guide__arm2 guide__armL" d="M22 60c-10-4-14-14-12-24"/>
+      </svg>
+      <i class="guide__shadow"></i>
+    </button>
+    <div class="guide__bubble" id="guideBubble" role="status" aria-live="polite">
+      <button type="button" class="guide__x" id="guideX" aria-label="Hide tip">✕</button>
+      <p class="guide__text hand" id="guideText"></p>
+      <button type="button" class="guide__cta" id="guideCta" hidden></button>
+    </div>
+  </div>
+
+  <!-- Quick price button (shows after the hero) -->
+  <a href="pricing.html#quote" class="price-float" id="priceFloat">⚡ Instant price</a>
+
+  <!-- Floating WhatsApp button -->
+  <a href="#" class="wa-float" data-wa="General question|I have a 3D printing question." aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-2-1.2 7.5 7.5 0 0 1-1.4-1.7c-.1-.2 0-.4.1-.5l.4-.4.2-.4v-.4l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.1 5.1 0 0 0 1.1 2.7 11.6 11.6 0 0 0 4.4 3.9c1.6.7 2.3.8 3.1.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.3c0-.1-.2-.2-.5-.3Z"/></svg>
+  </a>
+  <!-- @end -->
+
+  <script src="js/main.js?v=20261122a"></script>
+</body>
+</html>

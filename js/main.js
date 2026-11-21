@@ -118,6 +118,12 @@ function initNav() {
     const open = links.classList.toggle("is-open");
     toggle.setAttribute("aria-expanded", String(open));
   });
+  // mark the page you're on
+  const here = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+  $$("a", links).forEach((a) => {
+    const file = (a.getAttribute("href") || "").split("#")[0].toLowerCase();
+    if (file && file === here && !a.classList.contains("nav__quote")) a.setAttribute("aria-current", "page");
+  });
   $$("a", links).forEach((a) =>
     a.addEventListener("click", () => {
       links.classList.remove("is-open");
@@ -607,6 +613,7 @@ function parseSTL(buffer) {
 /* ---------- Instant quote ---------- */
 function initQuote() {
   const drop = $("#drop"), file = $("#stlFile"), info = $("#fileInfo");
+  if (!drop || !file) return;
   const grams = $("#manualGrams"), material = $("#material"), qty = $("#qty");
   const infill = $("#infill"), infillVal = $("#infillVal");
   const out = {
@@ -746,14 +753,6 @@ function initQuote() {
     calc();
   });
 
-  // Floating "Instant price" pill: visible after the hero, hidden near the quote
-  const pill = $("#priceFloat"), heroEl = $(".hero");
-  const togglePill = () => {
-    const q = quoteSec.getBoundingClientRect(), h = heroEl.getBoundingClientRect();
-    pill.classList.toggle("show", h.bottom < 0 && (q.top > innerHeight || q.bottom < 0));
-  };
-  addEventListener("scroll", togglePill, { passive: true }); togglePill();
-
   grams.addEventListener("input", () => {
     if (grams.value) { // typing a weight replaces the file
       model = null; fileName = ""; file.value = "";
@@ -767,10 +766,25 @@ function initQuote() {
   calc();
 }
 
+/* ---------- Floating "Instant price" pill: shows once the first screen is passed, hides near the calculator ---------- */
+function initPriceFloat() {
+  const pill = $("#priceFloat");
+  if (!pill) return;
+  const top = $(".hero") || $(".pagehead"), quoteSec = $("#quote");
+  const toggle = () => {
+    const past = top ? top.getBoundingClientRect().bottom < 0 : scrollY > 400;
+    let nearQuote = false;
+    if (quoteSec) { const q = quoteSec.getBoundingClientRect(); nearQuote = q.top < innerHeight && q.bottom > 0; }
+    pill.classList.toggle("show", past && !nearQuote);
+  };
+  addEventListener("scroll", toggle, { passive: true }); toggle();
+}
+
 /* ---------- Contact form → WhatsApp ---------- */
 function initContact() {
   const form = $("#contactForm");
   const hint = $("#contactHint");
+  if (!form) return;
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const name = $("#cName").value.trim();
@@ -998,6 +1012,13 @@ function initGuide() {
         ? ["Psst! 👋 Main Proto. Printer pe tap karo, ya ye dabao 👇", "Psst! 👋 I'm Proto. Tap the printer, or tap here 👇"]
         : ["Psst! 👋 Main Proto. Printer pe mouse upar-neeche karo, ya ye dabao 👇", "Psst! 👋 I'm Proto. Move your mouse over the printer, or tap here 👇"]).concat([ { hi: "▶ Print karke dikhao", en: "▶ Show me a print", run: () => { scrollToPrinter(); setTimeout(() => P()?.print(), 400); } }]),
     services: ["Kuch bhi banwana ho, yahan se shuru karo 🛠️", "Whatever you need made, start here 🛠️"],
+    hello: ["WhatsApp sabse fast hai, try karo 💬", "WhatsApp is fastest, give it a try 💬"],
+    "page-pricing": ["STL hai? Neeche daalo, price turant ⚡", "Got an STL? Drop it below for an instant price ⚡", { hi: "📂 STL chuno", en: "📂 Choose STL", run: () => $("#stlFile")?.click() }],
+    "page-services": ["Apna kaam chuno, baaki hum sambhal lenge 🛠️", "Pick what you need, we'll handle the rest 🛠️"],
+    "page-guide": ["Pehli baar print kar rahe ho? Yahan se shuru karo 📒", "First print? Start here 📒"],
+    "page-community": ["Printer hai? Adda join karo, free help 🧡", "Got a printer? Join the Adda, free help 🧡"],
+    "page-about": ["Hum dono se milo 👋 Polaroid pe tap karo", "Meet us both 👋 Tap a polaroid"],
+    "page-contact": ["Form bharo, WhatsApp khul jaayega 💬", "Fill the form and WhatsApp opens 💬"],
     uses: ["Apna type chuno: student, startup, ghar… 👆", "Pick who you are: student, startup, home… 👆"],
     process: ["Sirf 4 steps. Main bhi aise hi bana tha 😎", "Just 4 steps. That's how I was made too 😎"],
     quote: ["STL hai? Daalo, price turant milega ⚡", "Got an STL? Drop it in for an instant price ⚡", { hi: "📂 STL chuno", en: "📂 Choose STL", run: () => $("#stlFile")?.click() }],
@@ -1011,7 +1032,8 @@ function initGuide() {
     reviews: ["Pehla review aapka ho sakta hai ⭐", "The first review could be yours ⭐"],
     faq: ["Sawaal hai? Bindaas pucho 🙋", "Got questions? Ask away 🙋"],
   };
-  let current = "hero", quiet = false, hideT = 0, lastSaid = 0, dwellT = 0;
+  const pageKey = $(".hero") ? "hero" : "page-" + (document.body.dataset.page || "");
+  let current = pageKey, quiet = false, hideT = 0, lastSaid = 0, dwellT = 0;
   const seen = new Set();
   // reading time: ~0.4 s a word + a calm buffer, between 6 and 15 seconds
   const readMs = (str, hasBtn) => Math.min(15000, Math.max(6000, str.split(/\s+/).length * 420 + 3500 + (hasBtn ? 3000 : 0)));
@@ -1047,7 +1069,7 @@ function initGuide() {
     say("hero", true);
   });
   // which section is in the middle of the screen?
-  const map = [[".hero", "hero"], ["#services", "services"], ["#uses", "uses"], ["#process", "process"], ["#quote", "quote"],
+  const map = [[".hero", "hero"], [".pagehead", pageKey], ["#make", "services"], ["#ourwork", "work"], ["#hello", "hello"], ["#services", "services"], ["#uses", "uses"], ["#process", "process"], ["#quote", "quote"],
     ["#prices", "prices"], ["#materials", "materials"], ["#fixer", "fixer"], ["#work", "work"], ["#makers", "makers"],
     ["#tips", "tips"], ["#adda", "adda"], ["#reviews", "reviews"], ["#faq", "faq"], ["#contact", "contact"]];
   if ("IntersectionObserver" in window) {
@@ -1069,7 +1091,8 @@ function initGuide() {
   }
   // first tip: on laptops right away; on phones only once the printer is actually on screen
   const frameEl = $(".printer__frame");
-  if (innerWidth > 860 || !frameEl || !("IntersectionObserver" in window)) setTimeout(() => say("hero"), 3000);
+  if (pageKey !== "hero") { setTimeout(() => { if (!seen.has(pageKey)) say(pageKey); }, 2500); }
+  else if (innerWidth > 860 || !frameEl || !("IntersectionObserver" in window)) setTimeout(() => say("hero"), 3000);
   else {
     const po = new IntersectionObserver((en) => {
       if (!en[0].isIntersecting) return;
@@ -1153,7 +1176,7 @@ function initGuideFun() {
 
   /* smart placement: when he talks, stand where the bubble covers the least real content */
   let pinned = false, tuckT = 0;
-  const IMPORTANT = "h1,h2,h3,.hero__lead,.hero__nofile,.hero__chips,.section__head p,.section__sub,.eyebrow,.btn,.hero__cta,input,select,textarea,.printer__frame,.shelf,.spools,.printer__readout,.card,.ex,.mat,.uses__panel,.uses__tabs,.quote__result,.drop,.compare,.notebook,.maker,.note,.fix,.tile,summary,.step,.nameideas,.nametag,.review__card,.adda__card,.contact__form";
+  const IMPORTANT = ".crumbs,.pagehead__sub,.homecta__btns,h1,h2,h3,.hero__lead,.hero__nofile,.hero__chips,.section__head p,.section__sub,.eyebrow,.btn,.hero__cta,input,select,textarea,.printer__frame,.shelf,.spools,.printer__readout,.card,.ex,.mat,.uses__panel,.uses__tabs,.quote__result,.drop,.compare,.notebook,.maker,.note,.fix,.tile,summary,.step,.nameideas,.nametag,.review__card,.adda__card,.contact__form";
   function overlap(a, b) { const w = Math.min(a.right, b.right) - Math.max(a.left, b.left), h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top); return w > 0 && h > 0 ? w * h : 0; }
   function findSpot() {
     if (pinned || g.classList.contains("dragging") || g.classList.contains("away")) return;
@@ -1324,6 +1347,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initPrinter();
   initQuote();
   initContact();
+  initPriceFloat();
   initUses();
   initExamples();
   initCompare();

@@ -26,6 +26,9 @@ jobs:
             node --check "$f"
           done
 
+      - name: Shared layout in sync
+        run: python3 tools/layout.py --check
+
       - name: HTML lint
         run: npx --yes htmlhint@1 "**/*.html"
 

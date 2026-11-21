@@ -17,6 +17,39 @@ This repo uses a light git-flow. `main` is always what customers see on
 `main` and `develop` are protected: no direct pushes, no force pushes, and the
 **Site checks** workflow must pass before merging.
 
+## The path every change takes
+
+```
+feature/*  →  test site  →  develop  →  release/x.y.z  →  test site  →  main  →  makemeproto.com
+  build        test 1       collect       freeze            test 2      release      live
+```
+
+1. Build on a `feature/*` branch. Nothing goes to `develop` while it is in progress.
+2. **Test 1:** publish the branch to the test site and check it on phone and laptop.
+3. When development is frozen, open a PR from the feature branch into `develop`.
+4. Cut `release/x.y.z` from `develop`, publish it to the test site (**test 2**). Only fixes on the release branch.
+5. When everything is fine, PR `release/x.y.z` → `main`. Only then does the live site change.
+
+## Test sites
+
+Test sites live in a separate repo, [`amkrys/makemeproto-preview`](https://github.com/amkrys/makemeproto-preview),
+one folder per branch: `https://amkrys.github.io/makemeproto-preview/<branch-name>/`
+(slashes become dashes, e.g. `feature-site-pages`). They are hidden from Google, show a
+"TEST SITE" banner and never include the `CNAME`, so they can't touch makemeproto.com.
+
+```bash
+# clone the preview repo next to this one once:
+git clone https://github.com/amkrys/makemeproto-preview ../makemeproto-preview
+# then, on your branch:
+tools/publish-preview.sh
+git -C ../makemeproto-preview push
+```
+
+## Shared layout
+
+The nav, footer and floating buttons are the same on every page. Edit them in `_layout/`,
+then run `python3 tools/layout.py` to copy them into every page. CI fails if a page is out of sync.
+
 ## Everyday flow
 
 ```bash
