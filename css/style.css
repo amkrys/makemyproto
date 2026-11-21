@@ -1835,3 +1835,48 @@ input[type="range"] { accent-color: var(--accent); width: 100%; }
 }
 @media (max-width: 400px) { .footer__cols { gap: 24px 20px; } }
 @media (max-width: 560px) { .footer__reach { grid-column: 1 / -1; } .footer__reach a { word-break: normal; } }
+
+/* v33/v34: first visit — Proto is born out of the logo (now with feelings) */
+.born { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; background: var(--paper);
+  background-image: radial-gradient(var(--line) 1px, transparent 1.2px); background-size: 18px 18px; cursor: default; }
+.born__stage { position: relative; display: grid; place-items: center; width: min(92vw, 900px); height: min(70vh, 520px); }
+.born__word { position: absolute; z-index: 2; margin: 0; font: 700 clamp(3.4rem, 13vw, 9rem)/1 var(--f-logo); color: var(--ink); letter-spacing: -.01em; white-space: nowrap; }
+.born__l { display: inline-block; opacity: 0; transform-origin: 50% 85%; will-change: transform, opacity; }
+.born__l--me { color: var(--accent); }
+.born__l--o { position: relative; z-index: 3; transform-origin: 50% 62%; }
+.born__op { position: absolute; left: 50%; top: 62%; width: .15em; height: .15em; margin: -.075em 0 0 -.075em; border-radius: 50%; background: var(--ink); opacity: 0; pointer-events: none; }
+.born__ring { position: absolute; left: 50%; top: 50%; width: 40vmin; height: 40vmin; margin: -20vmin 0 0 -20vmin; border-radius: 50%; border: 2px solid var(--accent); opacity: 0; pointer-events: none; }
+.born__bot { position: absolute; width: clamp(170px, 30vw, 260px); height: auto; overflow: visible; opacity: 0; will-change: transform; cursor: pointer; }
+.born__jump { transform-box: view-box; transform-origin: 60px 100px; }
+.born__shadow { fill: rgba(0,0,0,.12); opacity: 0; transform-box: fill-box; transform-origin: 50% 50%; }
+.born__front { stroke: var(--accent-ink); stroke-width: 3; stroke-linejoin: round; fill-opacity: 0; }
+.born__top { transform-box: fill-box; transform-origin: 50% 100%; transform: scaleY(0); }
+.born__side { transform-box: fill-box; transform-origin: 0 50%; transform: scaleX(0); }
+.born__bot .proto__lines { opacity: 0; }
+.born__armL, .born__armR { transform-box: view-box; }
+.born__armL { transform-origin: 22px 60px; }
+.born__armR { transform-origin: 111px 58px; }
+.born__arm { fill: none; stroke: var(--accent-ink); stroke-width: 6; stroke-linecap: round; transform-box: fill-box; transform: scale(0); }
+.born__armL .born__arm { transform-origin: 100% 100%; }
+.born__armR .born__arm { transform-origin: 0 100%; }
+.born__ball { opacity: 0; transform-box: fill-box; transform-origin: 50% 50%; transform: scaleY(.1); }
+.born__look { transform-box: view-box; }
+.born__shine { fill: #fff; }
+.born__shut, .born__happy, .born__brow { fill: none; stroke: var(--ink); stroke-width: 3; stroke-linecap: round; opacity: 0; }
+.born__brow { transform-box: fill-box; transform-origin: 50% 50%; }
+.born__blush { fill: #ff8fa3; opacity: 0; }
+.born__smile, .born__o, .born__grin { opacity: 0; }
+.born__o, .born__grin { fill: var(--ink); transform-box: fill-box; }
+.born__o { transform-origin: 50% 50%; }
+.born__grin { transform-origin: 50% 0; }
+.born__tongue { fill: #ff6b81; }
+.born__yawn { fill: var(--ink); opacity: 0; transform-box: fill-box; transform-origin: 50% 50%; }
+.born__fx { position: absolute; z-index: 4; pointer-events: none; color: var(--accent-ink); font-size: calc(clamp(1.4rem, 3vw, 2rem) * var(--s, 1)); line-height: 1; white-space: nowrap; }
+.born__fx--heart { color: #ff5c7a; }
+.born__say { position: absolute; z-index: 4; left: 50%; top: calc(50% + clamp(100px, 17vw, 150px)); transform: translateX(-50%); margin: 0; opacity: 0; white-space: nowrap;
+  font-size: clamp(1.4rem, 3.2vw, 2rem); color: var(--accent-ink); }
+.born__skip { position: absolute; z-index: 5; right: clamp(16px, 3vw, 32px); bottom: clamp(16px, 3vw, 32px); font: 600 .9rem/1 var(--f-body); color: var(--ink-2); background: var(--white);
+  border: 1.5px solid var(--line); border-radius: 999px; padding: .7em 1.2em; cursor: pointer; transition: border-color .2s, color .2s, opacity .2s; }
+.born__skip:hover { border-color: var(--ink); color: var(--ink); }
+body.is-being-born { overflow: hidden; }
+body.is-being-born .guide, body.is-being-born .wa-float, body.is-being-born .price-float { opacity: 0 !important; }
