@@ -1447,26 +1447,37 @@ function initBirth() {
 
   document.body.classList.add("is-being-born");
   const letters = "makemeproto".split("");
+  const eyeIdx = [8, 10];                       // the two o's in "proto"
+  const eyeSvg = (x) => `<g class="born__eye" transform="translate(${x} 50)">
+      <g class="born__ball"><circle r="10" fill="#fff"/><g class="born__look"><g class="born__track"><circle class="proto__pupil" r="4.5"/><circle class="born__shine" cx="-1.6" cy="-1.8" r="1.5"/></g></g></g>
+      <path class="born__shut" d="M-8 0q8 6 16 0"/><path class="born__happy" d="M-8 3q8-10 16 0"/></g>`;
   const ov = document.createElement("div");
   ov.className = "born";
   ov.setAttribute("role", "dialog");
   ov.setAttribute("aria-label", "MakeMeProto intro");
   ov.innerHTML = `
     <div class="born__stage">
-      <p class="born__word" aria-label="makemeproto">${letters.map((c, i) => `<span class="born__l${i === 4 || i === 5 ? " born__l--me" : ""}" data-i="${i}">${c}</span>`).join("")}</p>
+      <span class="born__ring" aria-hidden="true"></span>
+      <p class="born__word" aria-label="makemeproto">${letters.map((c, i) => `<span class="born__l${i === 4 || i === 5 ? " born__l--me" : ""}${eyeIdx.includes(i) ? " born__l--o" : ""}">${c}${eyeIdx.includes(i) ? '<i class="born__op"></i>' : ""}</span>`).join("")}</p>
       <svg class="born__bot" viewBox="0 0 120 110" aria-hidden="true">
-        <g class="born__armL"><path class="born__arm" d="M22 60c-10-4-14-14-12-24"/></g>
-        <g class="born__body">
-          <path class="proto__side" d="M98 26 112 14v62l-14 14Z"/>
-          <path class="proto__top" d="M22 26 36 14h76L98 26Z"/>
-          <rect class="proto__front" x="22" y="26" width="76" height="64" rx="6"/>
-          <path class="proto__lines" d="M22 46h76M22 66h76"/>
-          <g class="born__eye" transform="translate(46 50)"><circle r="10" fill="#fff"/><circle class="proto__pupil born__pupil" r="4.5"/><rect class="born__lid" x="-11" y="-11" width="22" height="22" rx="3"/></g>
-          <g class="born__eye" transform="translate(74 50)"><circle r="10" fill="#fff"/><circle class="proto__pupil born__pupil" r="4.5"/><rect class="born__lid" x="-11" y="-11" width="22" height="22" rx="3"/></g>
-          <path class="proto__mouth born__smile" d="M50 72q10 8 20 0"/>
-          <ellipse class="born__yawn" cx="60" cy="76" rx="9" ry="10"/>
+        <ellipse class="born__shadow" cx="60" cy="102" rx="40" ry="4"/>
+        <g class="born__jump">
+          <g class="born__armL"><path class="born__arm" d="M22 60c-10-4-14-14-12-24"/></g>
+          <g class="born__body">
+            <path class="proto__side born__side" d="M98 26 112 14v62l-14 14Z"/>
+            <path class="proto__top born__top" d="M22 26 36 14h76L98 26Z"/>
+            <rect class="proto__front born__front" x="22" y="26" width="76" height="64" rx="6"/>
+            <path class="proto__lines" d="M22 46h76M22 66h76"/>
+            ${eyeSvg(46)}${eyeSvg(74)}
+            <path class="born__brow" d="M37 35q9-5 18 0"/><path class="born__brow" d="M65 35q9-5 18 0"/>
+            <circle class="born__blush" cx="33" cy="69" r="5"/><circle class="born__blush" cx="87" cy="69" r="5"/>
+            <path class="proto__mouth born__smile" d="M50 72q10 8 20 0"/>
+            <ellipse class="born__o" cx="60" cy="75" rx="5" ry="6"/>
+            <ellipse class="born__yawn" cx="60" cy="76" rx="9" ry="10"/>
+            <g class="born__grin"><path d="M47 69q13 16 26 0Z"/><path class="born__tongue" d="M54 76.4q6 4 12 0q-6-3-12 0Z"/></g>
+          </g>
+          <g class="born__armR"><path class="born__arm" d="M111 58c10-4 14-14 12-24"/></g>
         </g>
-        <g class="born__armR"><path class="born__arm" d="M98 60c10-4 14-14 12-24"/></g>
       </svg>
       <p class="born__say hand" aria-live="polite"></p>
     </div>
@@ -1474,29 +1485,69 @@ function initBirth() {
   document.body.appendChild(ov);
 
   const $o = (sel) => ov.querySelector(sel), $$o = (sel) => [...ov.querySelectorAll(sel)];
-  const spans = $$o(".born__l"), bot = $o(".born__bot"), say = $o(".born__say");
-  const eyeIdx = [8, 10];                       // the two o's in "proto"
+  const stage = $o(".born__stage"), word = $o(".born__word"), spans = $$o(".born__l"), bot = $o(".born__bot"), say = $o(".born__say");
+  const jump = $o(".born__jump"), shadow = $o(".born__shadow"), front = $o(".born__front");
+  const balls = $$o(".born__ball"), looks = $$o(".born__look"), tracks = $$o(".born__track");
+  const shuts = $$o(".born__shut"), happys = $$o(".born__happy"), brows = $$o(".born__brow"), blush = $$o(".born__blush");
+  const smile = $o(".born__smile"), mouthO = $o(".born__o"), yawn = $o(".born__yawn"), grin = $o(".born__grin");
+  const armL = $o(".born__armL"), armR = $o(".born__armR");
   const anims = [];
   const A = (el, kf, opt) => { const a = el.animate(kf, { fill: "forwards", easing: "cubic-bezier(.3,1.3,.5,1)", ...opt }); anims.push(a); return a; };
+  const AA = (els, kf, opt) => els.forEach((el, k) => A(el, typeof kf === "function" ? kf(k) : kf, opt));
+  const show = (els, on, ms = 200, delay = 0) => AA([].concat(els), [{ opacity: on ? 0 : 1 }, { opacity: on ? 1 : 0 }], { duration: ms, delay, easing: "ease-out" });
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-  let done = false;
-  const talk = (hi, en) => { say.textContent = T(hi, en); A(say, [{ opacity: 0, transform: "translate(-50%, 8px) scale(.9)" }, { opacity: 1, transform: "translate(-50%, 0) scale(1)" }], { duration: 300 }); };
+  let done = false, alive = false, tracking = false;
+  const W = async (ms) => { await wait(ms); if (done) throw 0; };
+  const later = (ms, fn) => setTimeout(() => { if (!done) fn(); }, ms);
+  const talk = (hi, en) => { say.textContent = T(hi, en); A(say, [{ opacity: 0, transform: "translate(-50%, 10px) scale(.8) rotate(-4deg)" }, { opacity: 1, transform: "translate(-50%, 0) scale(1) rotate(0)" }], { duration: 380 }); };
+
+  // little floating feelings (z, !, ?, hearts, sparkles), placed in Proto's own coordinates
+  const fx = (txt, vx, vy, { dx = 0, dy = -50, rot = 0, dur = 1100, size = 1, cls = "" } = {}) => {
+    const s = stage.getBoundingClientRect(), b = bot.getBoundingClientRect();
+    const e = document.createElement("span");
+    e.className = "born__fx hand " + cls; e.textContent = txt; e.setAttribute("aria-hidden", "true");
+    e.style.left = b.left - s.left + vx * b.width / 120 + "px"; e.style.top = b.top - s.top + vy * b.height / 110 + "px"; e.style.setProperty("--s", size);
+    stage.appendChild(e);
+    e.animate([{ opacity: 0, transform: "translate(-50%,-50%) scale(.3)" },
+      { opacity: 1, transform: `translate(calc(-50% + ${dx * .3}px), calc(-50% + ${dy * .3}px)) scale(1.15) rotate(${rot / 2}deg)`, offset: .25 },
+      { opacity: 0, transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.9) rotate(${rot}deg)` }], { duration: dur, easing: "ease-out" }).onfinish = () => e.remove();
+  };
+
+  // eyes follow your mouse once he's awake and curious
+  const lookAt = (x, y) => {
+    const b = bot.getBoundingClientRect(), dx = x - (b.left + b.width / 2), dy = y - (b.top + b.height * .45), d = Math.hypot(dx, dy) || 1, m = Math.min(3.5, d / 40);
+    tracks.forEach((t) => t.setAttribute("transform", `translate(${(dx / d * m).toFixed(2)} ${(dy / d * m).toFixed(2)})`));
+  };
+  const onMove = (e) => { if (tracking) lookAt(e.clientX, e.clientY); };
+  addEventListener("pointermove", onMove);
+  // tickle him
+  bot.addEventListener("click", () => {
+    if (!alive || done) return;
+    jump.animate([{ transform: "none" }, { transform: "rotate(-9deg) scale(1.06,.94)", offset: .25 }, { transform: "rotate(8deg)", offset: .5 }, { transform: "rotate(-4deg)", offset: .75 }, { transform: "none" }], { duration: 460, composite: "add" });
+    fx(T("hehe 😆", "hehe 😆"), 60, -4, { dy: -45, size: .8 });
+  });
 
   async function finish(fast) {
     if (done) return; done = true;
     remember();
+    tracking = false; removeEventListener("pointermove", onMove);
     anims.forEach((a) => { try { a.finish(); } catch (e) {} });
+    tracks.forEach((t) => t.removeAttribute("transform"));
     const target = $("#guideBot");
     const g = $("#guide");
     if (!fast && target) {
-      // fly into the guide's corner
+      // spring off the crouch and fly into the guide's corner, leaving sparkles
       const from = bot.getBoundingClientRect(), to = target.getBoundingClientRect();
       const dx = to.left + to.width / 2 - (from.left + from.width / 2), dy = to.top + to.height / 2 - (from.top + from.height / 2);
       say.style.opacity = 0;
-      ov.animate([{ backgroundColor: getComputedStyle(ov).backgroundColor }, { backgroundColor: "transparent" }], { duration: 700, fill: "forwards" });
+      blush.forEach((b) => (b.style.opacity = 0));
+      ov.animate([{ backgroundColor: getComputedStyle(ov).backgroundColor }, { backgroundColor: "transparent" }], { duration: 800, fill: "forwards" });
       $$o(".born__skip").forEach((b) => (b.style.opacity = 0));
-      await bot.animate([{ transform: "translate(0,0) scale(1) rotate(0)" }, { transform: `translate(${dx * .5}px, ${dy * .5 - 60}px) scale(.7) rotate(-12deg)`, offset: .55 },
-        { transform: `translate(${dx}px, ${dy}px) scale(${to.width / from.width}) rotate(0)` }], { duration: 900, easing: "cubic-bezier(.5,0,.3,1)", fill: "forwards" }).finished;
+      jump.animate([{ transform: "scale(1.1,.85)" }, { transform: "scale(.9,1.15)", offset: .25 }, { transform: "none", offset: .6 }, { transform: "none" }], { duration: 950, fill: "forwards" });
+      const trail = setInterval(() => fx("✦", 60, 58, { dy: 14, dur: 650, size: .55 }), 70);
+      await bot.animate([{ transform: "translate(0,0) scale(1) rotate(0)" }, { transform: `translate(${dx * .45}px, ${dy * .45 - 90}px) scale(.75) rotate(-14deg)`, offset: .5 },
+        { transform: `translate(${dx}px, ${dy}px) scale(${to.width / from.width}) rotate(0)` }], { duration: 950, easing: "cubic-bezier(.5,0,.3,1)", fill: "forwards" }).finished;
+      clearInterval(trail);
     } else {
       await ov.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, fill: "forwards" }).finished;
     }
@@ -1509,76 +1560,164 @@ function initBirth() {
   ov.addEventListener("click", (e) => { if (e.target === ov) finish(true); });
   addEventListener("keydown", function k(e) { if (e.key === "Escape") { removeEventListener("keydown", k); finish(true); } });
 
-  (async () => {
-    // 1. the word writes itself
-    spans.forEach((sp, i) => A(sp, [{ opacity: 0, transform: "translateY(30px) scale(.6) rotate(-8deg)" }, { opacity: 1, transform: "none" }], { duration: 420, delay: 60 * i }));
-    await wait(60 * spans.length + 650);
-    if (done) return;
-    // the o's notice each other
-    eyeIdx.forEach((i) => A(spans[i], [{ transform: "none" }, { transform: "translateY(-10px) scale(1.15)" }, { transform: "none" }], { duration: 500, easing: "ease-in-out" }));
-    await wait(650);
-    if (done) return;
+  // smooth curved flight: keyframes sampled along a quadratic curve
+  const curve = (dx, dy, cx, cy, rot, s1, n = 14) => Array.from({ length: n + 1 }, (_, j) => {
+    const t = j / n, mt = 1 - t, x = 2 * mt * t * cx + t * t * dx, y = 2 * mt * t * cy + t * t * dy;
+    return { transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${(rot * t).toFixed(1)}deg) scale(${(1 + (s1 - 1) * t).toFixed(3)})` };
+  });
 
-    // 2. morph: measure where the eyes and body will be, then fly the letters there
-    bot.style.opacity = 0; bot.style.transform = "none";
-    const bb = bot.getBoundingClientRect();
-    const eyes = $$o(".born__eye").map((e) => e.getBoundingClientRect());
-    const cx = bb.left + bb.width * 0.5, cy = bb.top + bb.height * 0.53;
+  (async () => { try {
+    // 1. the word drops in, letter by letter, with a bit of squash and stretch
+    spans.forEach((sp, i) => A(sp, [
+      { opacity: 0, transform: "translateY(-70px) scale(.8,1.3)", easing: "cubic-bezier(.55,0,1,.45)" },
+      { opacity: 1, transform: "translateY(0) scale(1.3,.7)", offset: .55, easing: "cubic-bezier(.2,.8,.4,1)" },
+      { opacity: 1, transform: "translateY(-10px) scale(.92,1.08)", offset: .78, easing: "ease-in-out" },
+      { opacity: 1, transform: "none" }], { duration: 560, delay: 55 * i, easing: "linear" }));
+    await W(55 * spans.length + 450);
+
+    // 2. something is alive in there: a heartbeat, then the o's open their eyes
+    A(word, [{ transform: "none" }, { transform: "scale(1.05)", offset: .14 }, { transform: "none", offset: .3 }, { transform: "scale(1.09)", offset: .45 }, { transform: "none", offset: .7 }, { transform: "none" }], { duration: 850, easing: "ease-out" });
+    [0, 360].forEach((d) => A($o(".born__ring"), [{ opacity: .5, transform: "scale(.2)" }, { opacity: 0, transform: "scale(1.6)" }], { duration: 900, delay: d, easing: "ease-out", fill: "none" }));
+    await W(650);
+    const ops = eyeIdx.map((i) => spans[i].querySelector(".born__op"));
+    ops.forEach((p, k) => A(p, [
+      { opacity: 0, transform: "none" }, { opacity: 1, transform: "none", offset: .1 },
+      { opacity: 1, transform: "translate(-.06em,0)", offset: .25 }, { opacity: 1, transform: "translate(-.06em,0)", offset: .38 },
+      { opacity: 1, transform: "translate(.06em,0)", offset: .5 }, { opacity: 1, transform: "translate(.06em,0)", offset: .62 },
+      { opacity: 1, transform: `translate(${k ? -.07 : .07}em,.01em)`, offset: .78 }, { opacity: 1, transform: `translate(${k ? -.07 : .07}em,.01em)` }], { duration: 1400, easing: "ease-in-out" }));
+    eyeIdx.forEach((i) => A(spans[i], [{ transform: "none" }, { transform: "scaleY(.12)", offset: .5 }, { transform: "none" }], { duration: 220, delay: 170, easing: "ease-in-out" }));
+    await W(1100);
+    // they spot each other: an excited hop, the rest of the word shivers
+    eyeIdx.forEach((i) => A(spans[i], [{ transform: "none" }, { transform: "translateY(-14px) scale(.95,1.08)", offset: .4 }, { transform: "translateY(0) scale(1.1,.9)", offset: .75 }, { transform: "none" }], { duration: 420, easing: "ease-in-out" }));
+    spans.forEach((sp, i) => { if (!eyeIdx.includes(i)) A(sp, [{ transform: "none" }, { transform: `rotate(${i % 2 ? 7 : -7}deg)`, offset: .25 }, { transform: `rotate(${i % 2 ? -5 : 5}deg)`, offset: .55 }, { transform: "none" }], { duration: 420, delay: 18 * i, easing: "ease-in-out" }); });
+    await W(560);
+
+    // 3. the morph: letters swirl along curves onto Proto's outline, the o's arc up into his eyes
+    bot.style.opacity = 1;
+    const bb = bot.getBoundingClientRect(), u = bb.width / 120, P = (vx, vy) => [bb.left + vx * u, bb.top + vy * u];
+    const dest = { 0: [24, 86], 1: [22, 56], 2: [27, 28], 3: [46, 15], 4: [72, 14], 5: [98, 17], 6: [110, 28], 7: [106, 68], 9: [62, 92] };
+    let n = 0;
     spans.forEach((sp, i) => {
-      const r = sp.getBoundingClientRect(), mx = r.left + r.width / 2, my = r.top + r.height / 2;
-      const k = eyeIdx.indexOf(i);
-      if (k >= 0) {
-        const e = eyes[k], ex = e.left + e.width / 2, ey = e.top + e.height / 2, sc = e.height / (r.height * .62);
-        sp.classList.add("born__l--eye");
-        A(sp, [{ transform: "none" }, { transform: `translate(${(ex - mx) * .5}px, ${(ey - my) * .5 - 70}px) scale(${(1 + sc) / 2}) rotate(${k ? 180 : -180}deg)`, offset: .55 },
-          { transform: `translate(${ex - mx}px, ${ey - my}px) scale(${sc}) rotate(${k ? 360 : -360}deg)` }], { duration: 1000, delay: 200, easing: "cubic-bezier(.5,0,.3,1)" });
+      const r = sp.getBoundingClientRect(), e = eyeIdx.indexOf(i);
+      if (e >= 0) {
+        const ox = r.left + r.width / 2, oy = r.top + r.height * .62, [ex, ey] = P(e ? 74 : 46, 50);
+        const dx = ex - ox, dy = ey - oy, sc = 20 * u / (r.height * .55);
+        const kf = curve(dx, dy, dx * .35, dy * .35 - 150, e ? 360 : -360, sc), end = kf[kf.length - 1].transform;
+        A(sp, kf, { duration: 1150, delay: 120, easing: "cubic-bezier(.45,0,.25,1)" });
+        A(sp.querySelector(".born__op"), [{ opacity: 1 }, { opacity: 0 }], { duration: 300, delay: 450, easing: "ease-out" });
+        // they close like a sleepy newborn's eyes, then hand over to the real ones
+        A(sp, [{ transform: end, opacity: 1 }, { transform: `${end} scaleY(.12)`, opacity: 1, offset: .6 }, { transform: `${end} scaleY(.12)`, opacity: 0 }], { duration: 480, delay: 1350, easing: "ease-in-out" });
       } else {
-        const spin = (i % 2 ? 1 : -1) * (120 + i * 18);
-        A(sp, [{ transform: "none", opacity: 1 }, { transform: `translate(${(cx - mx) * .6}px, ${(cy - my) * .6 - 40}px) rotate(${spin / 2}deg) scale(.8)`, opacity: 1, offset: .5 },
-          { transform: `translate(${cx - mx}px, ${cy - my}px) rotate(${spin}deg) scale(.15)`, opacity: 0 }], { duration: 850, delay: 40 * Math.abs(i - 7), easing: "cubic-bezier(.5,0,.4,1)" });
+        const ox = r.left + r.width / 2, oy = r.top + r.height * .85, [tx, ty] = P(...dest[i]);
+        const dx = tx - ox, dy = ty - oy, k = n++, spin = (k % 2 ? 1 : -1) * (220 + k * 25);
+        const kf = curve(dx, dy, dx * .5 + (k % 2 ? 40 : -40), dy * .5 - 70 - Math.abs(dx) * .15, spin, .42), end = kf[kf.length - 1].transform;
+        A(sp, kf, { duration: 950, delay: 50 * k, easing: "cubic-bezier(.55,0,.3,1)" });
+        A(sp, [{ transform: end, opacity: 1 }, { transform: end.replace(/scale\([^)]*\)$/, "scale(.6)"), opacity: 1, offset: .3 }, { transform: end.replace(/scale\([^)]*\)$/, "scale(0)"), opacity: 0 }],
+          { duration: 420, delay: 50 * k + 1050, easing: "ease-in" });
       }
     });
-    A(bot, [{ opacity: 0, transform: "scale(.2) rotate(-25deg)" }, { opacity: 1, transform: "scale(1.12) rotate(6deg)", offset: .7 }, { opacity: 1, transform: "scale(1) rotate(0)" }], { duration: 750, delay: 550 });
-    await wait(1300);
-    if (done) return;
-    // the o's sit as eyes for a beat, then become the real eyes, which start closed (newborn)
-    await wait(350);
-    if (done) return;
-    eyeIdx.forEach((i) => A(spans[i], [{ opacity: 1 }, { opacity: 0 }], { duration: 250 }));
-    await wait(500);
-    if (done) return;
+    // the outline draws itself between the letters, then he fills in, folds out his top and side, grows arms
+    let len = 280; try { len = front.getTotalLength() || len; } catch (e) {}
+    front.style.strokeDasharray = len; front.style.strokeDashoffset = len;
+    A(front, [{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: 800, delay: 550, easing: "ease-in-out" });
+    A(front, [{ fillOpacity: 0 }, { fillOpacity: 1 }], { duration: 420, delay: 1250, easing: "ease-out" });
+    A(front, [{ strokeOpacity: 1 }, { strokeOpacity: 0 }], { duration: 400, delay: 1750, easing: "ease-out" });
+    A(shadow, [{ opacity: 0, transform: "scaleX(.2)" }, { opacity: 1, transform: "none" }], { duration: 500, delay: 1100, easing: "ease-out" });
+    A($o(".born__top"), [{ transform: "scaleY(0)" }, { transform: "scaleY(1.15)", offset: .7 }, { transform: "none" }], { duration: 380, delay: 1350 });
+    A($o(".born__side"), [{ transform: "scaleX(0)" }, { transform: "scaleX(1.15)", offset: .7 }, { transform: "none" }], { duration: 380, delay: 1450 });
+    show($o(".born__bot .proto__lines"), true, 300, 1600);
+    show(shuts, true, 220, 1650);
+    AA($$o(".born__arm"), [{ transform: "scale(0)" }, { transform: "scale(1.2)", offset: .7 }, { transform: "none" }], { duration: 400, delay: 1750 });
+    A(jump, [{ transform: "none" }, { transform: "scale(1.08,.9)", offset: .3 }, { transform: "scale(.96,1.05)", offset: .65 }, { transform: "none" }], { duration: 450, delay: 1900, easing: "ease-in-out" });
+    await W(2300);
 
-    // 3. eyes open for the first time: flutter, then wide
-    const lids = $$o(".born__lid");
-    lids.forEach((l) => A(l, [{ transform: "scaleY(1)" }, { transform: "scaleY(.55)", offset: .3 }, { transform: "scaleY(1)", offset: .45 }, { transform: "scaleY(.35)", offset: .75 }, { transform: "scaleY(0)" }],
-      { duration: 1100, easing: "ease-in-out" }));
-    await wait(1200);
-    if (done) return;
-    // 4. big yawn and stretch
+    // 4. fast asleep, snoring softly
+    A(mouthO, [{ opacity: 0, transform: "scale(.4)" }, { opacity: 1, transform: "scale(.6)", offset: .15 }, { opacity: 1, transform: "scale(1)", offset: .55 }, { opacity: 1, transform: "scale(.6)" }], { duration: 1200, easing: "ease-in-out" });
+    A(jump, [{ transform: "none" }, { transform: "scale(1.02,1.04)", offset: .55 }, { transform: "none" }], { duration: 1200, easing: "ease-in-out" });
+    [["z", 0, .75], ["z", 330, 1], ["Z", 660, 1.3]].forEach(([z, d, s]) => later(d, () => fx(z, 98, 16, { dx: 26, dy: -60, rot: 15, dur: 1300, size: s })));
+    await W(1250);
+
+    // 5. one eye peeks first… then both flutter open
+    show(mouthO, false, 200);
+    A(balls[0], [{ opacity: 1, transform: "scaleY(.1)" }, { opacity: 1, transform: "scaleY(.55)", offset: .25 }, { opacity: 1, transform: "scaleY(.55)", offset: .75 }, { opacity: 1, transform: "scaleY(.1)" }], { duration: 850, easing: "ease-in-out" });
+    A(shuts[0], [{ opacity: 1 }, { opacity: 0, offset: .2 }, { opacity: 0, offset: .8 }, { opacity: 1 }], { duration: 850 });
+    A(looks[0], [{ transform: "none" }, { transform: "translate(-3px,0)", offset: .35 }, { transform: "translate(3px,0)", offset: .6 }, { transform: "none" }], { duration: 850, easing: "ease-in-out" });
+    await W(900);
+    alive = true;
+    AA(balls, [{ opacity: 1, transform: "scaleY(.1)" }, { opacity: 1, transform: "scaleY(.7)", offset: .3 }, { opacity: 1, transform: "scaleY(.25)", offset: .5 }, { opacity: 1, transform: "none" }], { duration: 650, easing: "ease-out" });
+    show(shuts, false, 150);
+    await W(700);
+
+    // 6. a huge yawn and a stretch (with a tiny tear)
     talk("Uaaaah… 🥱", "Yaaawn… 🥱");
-    A($o(".born__smile"), [{ opacity: 1 }, { opacity: 0 }], { duration: 150 });
-    A($o(".born__yawn"), [{ transform: "scale(0)", opacity: 1 }, { transform: "scale(1.3, 1.5)", opacity: 1, offset: .5 }, { transform: "scale(1.15, 1.3)", opacity: 1, offset: .8 }, { transform: "scale(0)", opacity: 0 }], { duration: 1500, easing: "ease-in-out" });
-    lids.forEach((l) => A(l, [{ transform: "scaleY(0)" }, { transform: "scaleY(.8)", offset: .45 }, { transform: "scaleY(.8)", offset: .75 }, { transform: "scaleY(0)" }], { duration: 1500, easing: "ease-in-out" }));
-    A($o(".born__armL"), [{ transform: "rotate(0)" }, { transform: "rotate(40deg)", offset: .5 }, { transform: "rotate(30deg)", offset: .8 }, { transform: "rotate(0)" }], { duration: 1500, easing: "ease-in-out" });
-    A($o(".born__armR"), [{ transform: "rotate(0)" }, { transform: "rotate(-40deg)", offset: .5 }, { transform: "rotate(-30deg)", offset: .8 }, { transform: "rotate(0)" }], { duration: 1500, easing: "ease-in-out" });
-    A($o(".born__body"), [{ transform: "scale(1)" }, { transform: "scale(1.05, .92)", offset: .5 }, { transform: "scale(1)" }], { duration: 1500, easing: "ease-in-out" });
-    await wait(1550);
-    if (done) return;
-    A($o(".born__smile"), [{ opacity: 0 }, { opacity: 1 }], { duration: 200 });
+    AA(balls, [{ transform: "none" }, { transform: "scaleY(.12)", offset: .2 }, { transform: "scaleY(.12)", offset: .8 }, { transform: "none" }], { duration: 1400, easing: "ease-in-out" });
+    AA(shuts, [{ opacity: 0 }, { opacity: 1, offset: .2 }, { opacity: 1, offset: .8 }, { opacity: 0 }], { duration: 1400 });
+    AA(brows, [{ opacity: 0, transform: "none" }, { opacity: 1, transform: "translateY(-3px)", offset: .3 }, { opacity: 1, transform: "translateY(-3px)", offset: .75 }, { opacity: 0, transform: "none" }], { duration: 1400, easing: "ease-in-out" });
+    A(yawn, [{ transform: "scale(0)", opacity: 1 }, { transform: "scale(1.3,1.5)", opacity: 1, offset: .5 }, { transform: "scale(1.15,1.3)", opacity: 1, offset: .8 }, { transform: "scale(0)", opacity: 0 }], { duration: 1400, easing: "ease-in-out" });
+    A(armL, [{ transform: "rotate(0)" }, { transform: "rotate(30deg)", offset: .5 }, { transform: "rotate(22deg)", offset: .8 }, { transform: "rotate(0)" }], { duration: 1400, easing: "ease-in-out" });
+    A(armR, [{ transform: "rotate(0)" }, { transform: "rotate(-30deg)", offset: .5 }, { transform: "rotate(-22deg)", offset: .8 }, { transform: "rotate(0)" }], { duration: 1400, easing: "ease-in-out" });
+    A(jump, [{ transform: "none" }, { transform: "scale(.95,1.1)", offset: .45 }, { transform: "scale(.97,1.08)", offset: .72 }, { transform: "scale(1.06,.93)", offset: .88 }, { transform: "none" }], { duration: 1400, easing: "ease-in-out" });
+    later(1000, () => fx("💧", 84, 46, { dx: 6, dy: 32, dur: 900, size: .45 }));
+    await W(1450);
+    // shakes off the sleep
+    A(jump, [{ transform: "none" }, { transform: "rotate(-6deg)", offset: .2 }, { transform: "rotate(6deg)", offset: .45 }, { transform: "rotate(-4deg)", offset: .7 }, { transform: "none" }], { duration: 420, easing: "ease-in-out" });
+    await W(450);
 
-    // 5. first look at the world
-    talk("Arre wah… duniya! 👀", "Whoa… the world! 👀");
-    $$o(".born__pupil").forEach((p) => A(p, [{ transform: "translate(0,0)" }, { transform: "translate(-4px,-1px)", offset: .25 }, { transform: "translate(-4px,-1px)", offset: .45 },
-      { transform: "translate(4px,-1px)", offset: .7 }, { transform: "translate(4px,-1px)", offset: .85 }, { transform: "translate(0,0)" }], { duration: 1500, easing: "ease-in-out" }));
-    A(bot, [{ transform: "rotate(0)" }, { transform: "rotate(-6deg)", offset: .3 }, { transform: "rotate(6deg)", offset: .7 }, { transform: "rotate(0)" }], { duration: 1500, easing: "ease-in-out" });
-    await wait(1550);
-    if (done) return;
-    lids.forEach((l) => A(l, [{ transform: "scaleY(0)" }, { transform: "scaleY(1)", offset: .5 }, { transform: "scaleY(0)" }], { duration: 260 }));
+    // 7. surprise! the world exists
+    talk("Arre?! 😮", "Whoa?! 😮");
+    AA(balls, [{ transform: "none" }, { transform: "scale(1.3)", offset: .4 }, { transform: "scale(1.18)" }], { duration: 300, easing: "ease-out" });
+    AA(brows, [{ opacity: 0, transform: "translateY(3px)" }, { opacity: 1, transform: "translateY(-5px)" }], { duration: 250 });
+    A(mouthO, [{ opacity: 0, transform: "scale(.3)" }, { opacity: 1, transform: "scale(1.1)" }], { duration: 260 });
+    A(jump, [{ transform: "none" }, { transform: "translateY(-16px) scale(.95,1.06)", offset: .4 }, { transform: "translateY(0) scale(1.05,.95)", offset: .8 }, { transform: "none" }], { duration: 450, easing: "ease-in-out" });
+    shadow.animate([{ transform: "none" }, { transform: "scale(.7)", offset: .4 }, { transform: "none", offset: .8 }], { duration: 450 });
+    fx("!", 60, -6, { dy: -30, dur: 900, size: 1.6 });
+    await W(800);
+
+    // 8. curious: looks around (and follows your mouse from now on)
+    tracking = true;
+    talk("Ye kya jagah hai? 👀", "Where am I? 👀");
+    AA(balls, [{ transform: "scale(1.18)" }, { transform: "none" }], { duration: 300, easing: "ease-out" });
+    AA(brows, (k) => [{ transform: "translateY(-5px)" }, { transform: k ? "translateY(-1px) rotate(9deg)" : "translateY(-6px) rotate(-10deg)" }], { duration: 300 });
+    A(mouthO, [{ transform: "scale(1.1)" }, { transform: "scale(.6)" }], { duration: 300 });
+    AA(looks, [{ transform: "none" }, { transform: "translate(-4px,-1px)", offset: .2 }, { transform: "translate(-4px,-1px)", offset: .45 }, { transform: "translate(4px,-1px)", offset: .65 }, { transform: "translate(4px,-1px)", offset: .85 }, { transform: "none" }], { duration: 1400, easing: "ease-in-out" });
+    A(jump, [{ transform: "none" }, { transform: "rotate(-7deg)", offset: .2 }, { transform: "rotate(-7deg)", offset: .45 }, { transform: "rotate(7deg)", offset: .65 }, { transform: "rotate(7deg)", offset: .85 }, { transform: "none" }], { duration: 1400, easing: "ease-in-out" });
+    later(250, () => fx("?", 18, 6, { dx: -20, dy: -40, rot: -20 }));
+    later(950, () => fx("?", 104, 6, { dx: 20, dy: -40, rot: 20 }));
+    await W(1450);
+
+    // 9. …and spots you. Shy, blushing, happy.
+    talk("Arre, aap! 🥰", "Oh, hi you! 🥰");
+    AA(balls, [{ transform: "none" }, { transform: "scaleY(.1)" }], { duration: 200, easing: "ease-in" });
+    show(happys, true, 200, 120);
+    show(blush, true, 400);
+    show(brows, false, 300);
+    show(mouthO, false, 150);
+    show(smile, true, 250, 100);
+    A(jump, [{ transform: "none" }, { transform: "rotate(-4deg) translateX(-3px)", offset: .25 }, { transform: "rotate(4deg) translateX(3px)", offset: .55 }, { transform: "rotate(-2deg)", offset: .8 }, { transform: "none" }], { duration: 800, easing: "ease-in-out" });
+    fx("♥", 24, 12, { dx: -30, dy: -60, rot: -20, size: 1.1, cls: "born__fx--heart" });
+    later(260, () => fx("♥", 98, 8, { dx: 30, dy: -55, rot: 20, size: .8, cls: "born__fx--heart" }));
+    await W(950);
+
+    // 10. a big wave hello, with a grin and a happy hop
     talk("Namaste! Main Proto 👋", "Hi! I'm Proto 👋");
-    A(bot, [{ transform: "translateY(0)" }, { transform: "translateY(-22px)", offset: .4 }, { transform: "translateY(0)" }], { duration: 550, easing: "cubic-bezier(.3,1.6,.5,1)" });
-    await wait(1300);
+    show(happys, false, 150);
+    AA(balls, [{ transform: "scaleY(.1)" }, { transform: "scale(1.08)", offset: .6 }, { transform: "none" }], { duration: 260 });
+    show(smile, false, 120);
+    A(grin, [{ opacity: 0, transform: "scaleY(.3)" }, { opacity: 1, transform: "none" }], { duration: 250 });
+    A(armR, [{ transform: "rotate(0)" }, { transform: "rotate(35deg)", offset: .18 }, { transform: "rotate(-8deg)", offset: .34 }, { transform: "rotate(35deg)", offset: .5 }, { transform: "rotate(-8deg)", offset: .66 }, { transform: "rotate(35deg)", offset: .82 }, { transform: "rotate(0)" }], { duration: 1300, easing: "ease-in-out" });
+    A(jump, [{ transform: "none" }, { transform: "scale(1.06,.92)", offset: .1 }, { transform: "translateY(-26px) scale(.94,1.07)", offset: .28 }, { transform: "translateY(0) scale(1.07,.92)", offset: .45 }, { transform: "none", offset: .56 }, { transform: "none" }], { duration: 1300, easing: "ease-in-out" });
+    shadow.animate([{ transform: "none" }, { transform: "none", offset: .1 }, { transform: "scale(.55)", offset: .28 }, { transform: "none", offset: .45 }], { duration: 1300 });
+    [[10, 20, -40, -30], [110, 30, 40, -30], [60, -10, 0, -50]].forEach(([x, y, dx, dy], j) => later(350 + j * 140, () => fx("✦", x, y, { dx, dy, size: .9, dur: 900 })));
+    await W(1350);
+
+    // 11. off to work: crouch, then fly to his corner (finish)
+    talk("Chalo, ghumata hoon! ✨", "Come, I'll show you around! ✨");
+    A(grin, [{ opacity: 1 }, { opacity: 0 }], { duration: 150 });
+    show(smile, true, 150);
+    A(jump, [{ transform: "none" }, { transform: "scale(1.1,.85)" }], { duration: 300, delay: 350, easing: "ease-in" });
+    await W(700);
     finish(false);
-  })();
+  } catch (e) { /* skipped */ } })();
   return true;
 }
 
