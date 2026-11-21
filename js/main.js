@@ -149,7 +149,7 @@ function initPrinter() {
   const layerNo = $("#layerNo");
   const status = $("#printStatus");
   const temp = $("#nozzleTemp");
-  const hero = $(".hero");
+  const hero = $("#play") || $(".hero");
   const visual = $(".hero__visual");
   const playBtn = $("#printPlay");
   const nameInput = $("#printName");
@@ -770,7 +770,7 @@ function initQuote() {
 function initPriceFloat() {
   const pill = $("#priceFloat");
   if (!pill) return;
-  const top = $(".hero") || $(".pagehead"), quoteSec = $("#quote");
+  const top = $("#play") || $(".hero") || $("main > section"), quoteSec = $("#quote");
   const toggle = () => {
     const past = top ? top.getBoundingClientRect().bottom < 0 : scrollY > 400;
     let nearQuote = false;
@@ -1012,6 +1012,7 @@ function initGuide() {
         ? ["Psst! 👋 Main Proto. Printer pe tap karo, ya ye dabao 👇", "Psst! 👋 I'm Proto. Tap the printer, or tap here 👇"]
         : ["Psst! 👋 Main Proto. Printer pe mouse upar-neeche karo, ya ye dabao 👇", "Psst! 👋 I'm Proto. Move your mouse over the printer, or tap here 👇"]).concat([ { hi: "▶ Print karke dikhao", en: "▶ Show me a print", run: () => { scrollToPrinter(); setTimeout(() => P()?.print(), 400); } }]),
     services: ["Kuch bhi banwana ho, yahan se shuru karo 🛠️", "Whatever you need made, start here 🛠️"],
+    intro: ["Neeche ek printer hai, khud chalake dekho 👇", "There's a printer just below, try it yourself 👇", { hi: "🖨️ Printer dikhao", en: "🖨️ Show me", run: () => $("#play")?.scrollIntoView({ behavior: "smooth" }) }],
     hello: ["WhatsApp sabse fast hai, try karo 💬", "WhatsApp is fastest, give it a try 💬"],
     "page-pricing": ["STL hai? Neeche daalo, price turant ⚡", "Got an STL? Drop it below for an instant price ⚡", { hi: "📂 STL chuno", en: "📂 Choose STL", run: () => $("#stlFile")?.click() }],
     "page-services": ["Apna kaam chuno, baaki hum sambhal lenge 🛠️", "Pick what you need, we'll handle the rest 🛠️"],
@@ -1032,7 +1033,7 @@ function initGuide() {
     reviews: ["Pehla review aapka ho sakta hai ⭐", "The first review could be yours ⭐"],
     faq: ["Sawaal hai? Bindaas pucho 🙋", "Got questions? Ask away 🙋"],
   };
-  const pageKey = $(".hero") ? "hero" : "page-" + (document.body.dataset.page || "");
+  const pageKey = $("#play") ? "intro" : $(".hero") ? "hero" : "page-" + (document.body.dataset.page || "");
   let current = pageKey, quiet = false, hideT = 0, lastSaid = 0, dwellT = 0;
   const seen = new Set();
   // reading time: ~0.4 s a word + a calm buffer, between 6 and 15 seconds
@@ -1069,7 +1070,7 @@ function initGuide() {
     say("hero", true);
   });
   // which section is in the middle of the screen?
-  const map = [[".hero", "hero"], [".pagehead", pageKey], ["#make", "services"], ["#ourwork", "work"], ["#hello", "hello"], ["#services", "services"], ["#uses", "uses"], ["#process", "process"], ["#quote", "quote"],
+  const map = [[".intro", "intro"], ["#play", "hero"], ["#make", "services"], ["#ourwork", "work"], ["#hello", "hello"], ["#services", "services"], ["#uses", "uses"], ["#process", "process"], ["#quote", "quote"],
     ["#prices", "prices"], ["#materials", "materials"], ["#fixer", "fixer"], ["#work", "work"], ["#makers", "makers"],
     ["#tips", "tips"], ["#adda", "adda"], ["#reviews", "reviews"], ["#faq", "faq"], ["#contact", "contact"]];
   if ("IntersectionObserver" in window) {
@@ -1176,7 +1177,7 @@ function initGuideFun() {
 
   /* smart placement: when he talks, stand where the bubble covers the least real content */
   let pinned = false, tuckT = 0;
-  const IMPORTANT = ".crumbs,.pagehead__sub,.homecta__btns,h1,h2,h3,.hero__lead,.hero__nofile,.hero__chips,.section__head p,.section__sub,.eyebrow,.btn,.hero__cta,input,select,textarea,.printer__frame,.shelf,.spools,.printer__readout,.card,.ex,.mat,.uses__panel,.uses__tabs,.quote__result,.drop,.compare,.notebook,.maker,.note,.fix,.tile,summary,.step,.nameideas,.nametag,.review__card,.adda__card,.contact__form";
+  const IMPORTANT = ".play__title,.homecta__btns,h1,h2,h3,.hero__lead,.hero__nofile,.hero__chips,.section__head p,.section__sub,.eyebrow,.btn,.hero__cta,input,select,textarea,.printer__frame,.shelf,.spools,.printer__readout,.card,.ex,.mat,.uses__panel,.uses__tabs,.quote__result,.drop,.compare,.notebook,.maker,.note,.fix,.tile,summary,.step,.nameideas,.nametag,.review__card,.adda__card,.contact__form";
   function overlap(a, b) { const w = Math.min(a.right, b.right) - Math.max(a.left, b.left), h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top); return w > 0 && h > 0 ? w * h : 0; }
   function findSpot() {
     if (pinned || g.classList.contains("dragging") || g.classList.contains("away")) return;

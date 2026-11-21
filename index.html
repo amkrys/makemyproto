@@ -42,8 +42,8 @@
   <!-- @end -->
   <main>
 
-    <!-- ===== HERO ===== -->
-    <section class="hero">
+    <!-- ===== SCREEN 1: INTRO ===== -->
+    <section class="hero intro" id="intro">
       <div class="doodles" id="doodles" aria-hidden="true">
         <span class="doodle" style="left:3%;top:8%;--s:64px;--d:18;--rot:-12deg"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="10"/><path d="M32 8v8M32 48v8M8 32h8M48 32h8M15 15l6 6M43 43l6 6M49 15l-6 6M21 43l-6 6"/></svg></span>
         <span class="doodle doodle--accent" style="left:44%;top:4%;--s:54px;--d:-24;--rot:8deg"><svg viewBox="0 0 64 64"><path d="M10 22 32 10l22 12v22L32 56 10 44V22Z"/><path d="M10 22l22 12 22-12M32 34v22"/></svg></span>
@@ -53,15 +53,12 @@
         <span class="doodle doodle--hide-m" style="left:96%;top:72%;--s:58px;--d:20;--rot:-8deg"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="22"/><circle cx="32" cy="32" r="8"/><path d="M32 10v6"/></svg></span>
         <span class="doodle" style="left:2%;top:80%;--s:50px;--d:-12;--rot:14deg"><svg viewBox="0 0 64 64"><path d="M12 52 52 12M40 12h12v12M12 40v12h12"/></svg></span>
       </div>
-      <div class="wrap hero__grid">
-        <div class="hero__copy">
-          <p class="eyebrow"><span class="dot"></span> 3D Design &amp; Printing<span class="eyebrow__city"> · <span data-city>Gurugram</span></span></p>
+      <div class="wrap intro__inner hero__copy">
           <h1 class="hero__title">
             <span data-en="Think it.">Socho.</span>
             <span data-en="Design it.">Design Karo.</span>
             <span class="accent" data-en="Print it.">Print Karo.</span>
           </h1>
-          <p class="hero__lead">Send us an idea, a sketch, a photo or a <span class="hl">broken part</span>. We design it in 3D and print it <span class="circle-word">layer by layer</span>, ready to hold in your hand.</p>
           <div class="hero__cta">
             <a href="pricing.html#quote" class="btn btn--accent" id="heroUpload"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 16V4M6 10l6-6 6 6M4 16v4h16v-4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Upload STL, get price</a>
             <a href="#" class="btn btn--ghost" data-wa="Print request 🖨️|I want to get something 3D printed.">
@@ -82,8 +79,14 @@
             </span>
             <span class="hello__text"><b class="hand" data-en="Hi! We&#x27;re Deepak &amp;amp; Bal Krishan.">Namaste! Hum Deepak &amp; Bal Krishan hain.</b><span>Two engineers, one printer, a lot of chai →</span></span>
           </a>
-        </div>
+      </div>
+      <a href="#play" class="scrollcue hand"><span data-en="try the printer below">neeche printer chalake dekho</span> <svg viewBox="0 0 24 36" aria-hidden="true"><path d="M12 3c-3 9 3 17 0 28m0 0-6-7m6 7 6-7"/></svg></a>
+    </section>
 
+    <!-- ===== SCREEN 2: PRINTER PLAYGROUND ===== -->
+    <section class="play" id="play">
+      <div class="wrap play__inner">
+        <h2 class="play__title" data-en="Take the printer for a &lt;span class=&quot;squiggle&quot;&gt;spin&lt;/span&gt;.">Printer <span class="squiggle">chalao</span>, maza aayega.</h2>
         <div class="hero__visual">
           <div class="printer is-idle" id="printer">
             <p class="scribble scribble--hero hand" aria-hidden="true">
@@ -147,30 +150,12 @@
           </div>
         </div>
       </div>
-
-      <a href="#make" class="scrollcue hand"><span data-en="there&#x27;s lots more, scroll down">aur bhi bahut kuch hai, neeche dekho</span> <svg viewBox="0 0 24 36" aria-hidden="true"><path d="M12 3c-3 9 3 17 0 28m0 0-6-7m6 7 6-7"/></svg></a>
-
-      <div class="tapes" aria-hidden="true">
-      <div class="ticker ticker--b">
-        <div class="ticker__track">
-          <span data-en="Think">Socho</span><span data-en="Design">Design karo</span><span data-en="Print">Print karo</span><span data-en="Hold it">Haath mein lo</span><span data-en="Think">Socho</span><span data-en="Design">Design karo</span><span data-en="Print">Print karo</span><span data-en="Hold it">Haath mein lo</span>
-          <span data-en="Think">Socho</span><span data-en="Design">Design karo</span><span data-en="Print">Print karo</span><span data-en="Hold it">Haath mein lo</span><span data-en="Think">Socho</span><span data-en="Design">Design karo</span><span data-en="Print">Print karo</span><span data-en="Hold it">Haath mein lo</span>
-        </div>
-      </div>
-      <div class="ticker">
-        <div class="ticker__track">
-          <span>Prototypes</span><span>Replacement parts</span><span>Custom gifts</span><span>Student projects</span><span>Jigs &amp; fixtures</span><span>Enclosures</span><span>Name plates</span><span>Architectural models</span>
-          <span>Prototypes</span><span>Replacement parts</span><span>Custom gifts</span><span>Student projects</span><span>Jigs &amp; fixtures</span><span>Enclosures</span><span>Name plates</span><span>Architectural models</span>
-        </div>
-      </div>
-      </div>
     </section>
 
     <!-- ===== WHAT WE MAKE (short) ===== -->
     <section class="section" id="make">
       <div class="wrap">
         <div class="section__head">
-          <p class="kicker mono"><span class="circ">01</span> / Services</p>
           <h2 data-en="What should we &lt;span class=&quot;squiggle&quot;&gt;make&lt;/span&gt;?">Kya <span class="squiggle">banwana</span> hai?</h2>
           <p class="section__sub">Design from scratch, or print a file you already have. One printer, done carefully.</p>
         </div>
@@ -212,7 +197,6 @@
     <section class="section section--ink" id="process">
       <div class="wrap">
         <div class="section__head">
-          <p class="kicker mono"><span class="circ">02</span> / How it works</p>
           <h2 data-en="4 steps. From idea to &lt;span class=&quot;squiggle&quot;&gt;your hands&lt;/span&gt;.">4 steps. Idea se <span class="squiggle">haath</span> tak.</h2>
         </div>
         <ol class="steps">
@@ -263,7 +247,6 @@
     <section class="section section--paper2" id="ourwork">
       <div class="wrap">
         <div class="section__head">
-          <p class="kicker mono"><span class="circ">03</span> / Our work</p>
           <h2 data-en="What we can make.">Kya kya ban sakta hai.</h2>
           <p class="hnote hnote--big hand" data-en="real photos coming soon, the printer is warming up 🔥">real photos jaldi aa rahe hain, abhi printer garam ho raha hai 🔥</p>
         </div>
