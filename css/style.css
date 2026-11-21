@@ -1810,3 +1810,4 @@ input[type="range"] { accent-color: var(--accent); width: 100%; }
 }
 /* careers form has no Proto cube above it, so no reserved space */
 #apply .contact__formwrap { padding-top: 0; }
+.legal__sec .legal__no { color: var(--accent-ink); font-weight: 600; font-size: .85em; margin-right: 2px; }
