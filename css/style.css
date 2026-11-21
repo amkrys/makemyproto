@@ -601,7 +601,7 @@ input[type="range"] { accent-color: var(--accent); width: 100%; }
 .themer__list button:hover::after, .themer__list button:focus-visible::after { opacity: 1; }
 
 /* ---------- Scroll progress: the page "prints" as you scroll ---------- */
-.progress { position: absolute; left: 0; right: 0; bottom: -2px; height: 4px; pointer-events: none; }
+.progress { position: absolute; left: 0; right: 0; bottom: -2px; height: 4px; pointer-events: none; overflow: hidden; }
 .progress i { display: block; height: 100%; width: calc(var(--p, 0) * 100%);
   background: repeating-linear-gradient(90deg, var(--accent) 0 10px, color-mix(in srgb, var(--accent) 70%, white) 10px 12px);
   border-radius: 0 3px 3px 0; position: relative; }
