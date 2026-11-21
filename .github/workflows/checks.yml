@@ -30,7 +30,7 @@ jobs:
         run: python3 tools/layout.py --check
 
       - name: HTML lint
-        run: npx --yes htmlhint@1 "**/*.html"
+        run: npx --yes htmlhint@1 "*.html"  # _layout/ holds page fragments, not full pages
 
       - name: Internal links and files
         uses: lycheeverse/lychee-action@v2
