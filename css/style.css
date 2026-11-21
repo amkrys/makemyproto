@@ -1614,24 +1614,15 @@ input[type="range"] { accent-color: var(--accent); width: 100%; }
   background: var(--paper-2); border-block: 1.5px dashed var(--line); }
 .play__grid { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); grid-template-areas: "title visual" "side visual";
   grid-template-rows: auto 1fr; column-gap: clamp(40px, 6vw, 96px); align-items: start; }
-.play__title { grid-area: title; font-size: clamp(2rem, min(4vw, 6.4vh), 3.2rem); margin: clamp(12px, 5vh, 64px) 0 12px; }
+.play__title { grid-area: title; margin: clamp(12px, 5vh, 64px) 0 .45em; }
 .play .hero__visual { grid-area: visual; align-self: center; }
 .play__side { grid-area: side; }
-.play__side .section__sub { margin: 0 0 clamp(22px, 3.6vh, 34px); max-width: 44ch; }
+.play__lead { color: var(--ink-2); margin: 0 0 6px; max-width: 44ch; }
 .play .scribble--hero { display: none; }
-.howto { list-style: none; margin: 0 0 clamp(24px, 4vh, 36px); padding: 0; display: grid; gap: clamp(14px, 2.4vh, 22px); }
-.howto li { display: flex; gap: 16px; align-items: flex-start; }
-.howto__n { flex: none; font: 600 1.05rem/1 var(--f-mono); color: var(--accent); border: 1.5px solid var(--accent); border-radius: 50%; width: 34px; height: 34px; display: grid; place-items: center; }
-.howto li div { display: grid; gap: 3px; line-height: 1.45; }
-.howto b { font-size: 1.06rem; }
-.howto span { color: var(--ink-2); font-size: .95rem; }
 .makeit { border-top: 1.5px dashed var(--line); padding-top: clamp(18px, 3vh, 26px); }
-.makeit__title { font-family: var(--f-hand); font-weight: 700; font-size: 1.35rem; color: var(--accent-ink); margin: 0 0 12px; }
+.makeit__title { margin: 0 0 12px; }
 .makeit__list { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
-.makeit__chip { display: inline-flex; align-items: center; gap: 8px; padding: .6em 1.1em; border-radius: 999px; border: 2px solid var(--ink); background: transparent;
-  text-decoration: none; color: var(--ink); font-size: .92rem; font-weight: 600; transition: background .2s, color .2s, transform .2s; }
-.makeit__chip i { font-style: normal; font-size: .76rem; color: var(--accent-ink); }
-.makeit__chip:hover { background: var(--ink); color: var(--paper); transform: translateY(-2px); }
+.makeit__chip i { font-style: normal; font-size: .76rem; color: var(--accent-ink); margin-left: 2px; }
 .makeit__chip:hover i { color: var(--accent); }
 @media (hover: none) { .howto .hint-mouse { display: none; } }
 @media (hover: hover) { .howto .hint-touch { display: none; } }
@@ -1651,7 +1642,7 @@ input[type="range"] { accent-color: var(--accent); width: 100%; }
   .play__grid { grid-template-columns: 1fr; grid-template-areas: "title" "visual" "side"; }
   .play__title { text-align: center; margin: 4px 0 14px; }
   .play__side { max-width: 520px; width: 100%; margin: 28px auto 0; }
-  .play__side .section__sub { text-align: center; margin-inline: auto; }
+  .play__lead { margin-inline: auto; }
 }
 @media (max-width: 700px) {
   .intro__art { grid-template-columns: 1fr; }
@@ -1668,34 +1659,7 @@ input[type="range"] { accent-color: var(--accent); width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { .doodle, .snap, .chatmock { transform: rotate(var(--r, var(--rot, 0deg))); } }
 
-/* v26: price examples as a chalk "menu board" so they don't look like the material cards */
-#prices .exs { display: grid; grid-template-columns: 1fr 1fr; gap: 0 clamp(28px, 4vw, 56px); background: var(--ink); color: var(--paper); border-radius: 22px;
-  padding: clamp(22px, 3vw, 40px); box-shadow: 0 0 0 10px #6b4a2b, 0 18px 40px -18px rgba(0,0,0,.5); background-image: radial-gradient(rgba(255,255,255,.05) 1px, transparent 1.2px); background-size: 14px 14px; }
-#prices .ex { all: unset; display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "icon name price" "icon meta try" "note note note"; column-gap: 14px; row-gap: 2px;
-  padding: 16px 0; border-bottom: 1.5px dashed rgba(244,241,234,.22); align-items: center; }
-#prices .ex:nth-last-child(-n+2) { border-bottom: 0; }
-#prices .ex__icon { grid-area: icon; width: 40px; height: 40px; }
-#prices .ex__icon svg { width: 100%; height: 100%; fill: none; stroke: var(--accent); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
-#prices .ex h3 { grid-area: name; margin: 0; font-family: var(--f-hand); font-weight: 700; font-size: 1.5rem; color: var(--paper); line-height: 1.1; }
-#prices .ex__meta { grid-area: meta; margin: 0; font-size: .78rem; color: rgba(244,241,234,.6); }
-#prices .ex__price { grid-area: price; margin: 0; font-family: var(--f-hand); font-weight: 700; font-size: 1.6rem; color: #ffd36b; white-space: nowrap; text-align: right; }
-#prices .ex__try { grid-area: try; justify-self: end; color: var(--paper); font-size: .82rem; text-decoration: underline; text-underline-offset: 3px; background: none; border: 0; cursor: pointer; padding: 0; }
-#prices .ex__try:hover { color: var(--accent); }
-#prices .ex__note { grid-area: note; margin: 6px 0 0 54px; color: #ffb38f; font-size: 1.05rem; }
-#prices .ex__note:empty { display: none; }
-@media (max-width: 760px) {
-  #prices .exs { grid-template-columns: 1fr !important; gap: 0 !important; box-shadow: 0 0 0 6px #6b4a2b; }
-  #prices .ex:nth-last-child(2) { border-bottom: 1.5px dashed rgba(244,241,234,.22); }
-}
-#prices .exs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-#prices .ex { grid-template-columns: auto minmax(0, 1fr) auto; }
 .snap__cap { flex-direction: column; align-items: flex-start; gap: 4px; }
-@media (max-width: 760px) {
-  #prices .exs { grid-template-columns: minmax(0, 1fr) !important; padding: 18px 18px 8px; }
-  #prices .ex h3 { font-size: 1.3rem; }
-  #prices .ex__price { font-size: 1.3rem; }
-  #prices .ex__note { margin-left: 0; }
-}
 
 /* v27: after printing a name, the "make it for real" card takes the place of the generic chips (left column on laptops) */
 .play__side .nameideas { margin: 0; border: 0; border-top: 1.5px dashed var(--line); border-radius: 0; background: none; padding: clamp(18px, 3vh, 26px) 0 0; }
@@ -1734,3 +1698,18 @@ input[type="range"] { accent-color: var(--accent); width: 100%; }
   .path__emoji { width: 50px; height: 50px; font-size: 1.7rem; }
 }
 .nav__links a.nav__quote[aria-current="page"] { color: var(--accent-ink); }
+
+/* v29: cleaner "4 steps" — number, heading, short line; one note at the end */
+.steps { margin-top: 0; }
+.step::before { margin-bottom: 26px; }
+.aside-note { font-size: 1.3rem; margin-top: 36px; }
+
+/* v29: footer — social icons and the "made in India" line */
+.footer__social { grid-column: 1 / -1; display: flex; gap: 12px; }
+.footer__social a { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; color: var(--paper); border: 1.5px solid #3a3a38;
+  transition: background .2s, border-color .2s, color .2s, transform .2s; }
+.footer__social a:hover { background: var(--accent); border-color: var(--accent); color: var(--white); transform: translateY(-2px) rotate(-6deg); }
+.footer__social svg { width: 20px; height: 20px; }
+.footer__love { grid-column: 1 / -1; margin: -12px 0 0; text-align: center; font-size: .9rem; color: #a29d91; }
+.footer__love a { color: var(--paper); text-decoration: none; border-bottom: 1px dashed currentColor; }
+.footer__love a:hover { color: var(--accent); }

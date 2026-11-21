@@ -783,7 +783,8 @@ function initPriceFloat() {
     const past = top ? top.getBoundingClientRect().bottom < 0 : scrollY > 400;
     let nearQuote = false;
     if (quoteSec) { const q = quoteSec.getBoundingClientRect(); nearQuote = q.top < innerHeight && q.bottom > 0; }
-    pill.classList.toggle("show", past && !nearQuote);
+    const foot = $(".footer"), atFooter = foot ? foot.getBoundingClientRect().top < innerHeight - 40 : false;   // don't cover the footer
+    pill.classList.toggle("show", past && !nearQuote && !atFooter);
   };
   addEventListener("scroll", toggle, { passive: true }); toggle();
 }
@@ -1200,7 +1201,7 @@ function initGuideFun() {
 
   /* smart placement: when he talks, stand where the bubble covers the least real content */
   let pinned = false, tuckT = 0;
-  const IMPORTANT = ".path,.play__title,.homecta__btns,.howto,.makeit,.snap,.chatmock,.intro__tag,h1,h2,h3,.hero__lead,.hero__nofile,.hero__chips,.section__head p,.section__sub,.eyebrow,.btn,.hero__cta,input,select,textarea,.printer__frame,.shelf,.spools,.printer__readout,.card,.ex,.mat,.uses__panel,.uses__tabs,.quote__result,.drop,.compare,.notebook,.maker,.note,.fix,.tile,summary,.step,.nameideas,.nametag,.review__card,.adda__card,.contact__form";
+  const IMPORTANT = ".path,.play__title,.homecta__btns,.fixer__steps,.makeit,.snap,.chatmock,.intro__tag,h1,h2,h3,.hero__lead,.hero__nofile,.hero__chips,.section__head p,.section__sub,.eyebrow,.btn,.hero__cta,input,select,textarea,.printer__frame,.shelf,.spools,.printer__readout,.card,.ex,.mat,.uses__panel,.uses__tabs,.quote__result,.drop,.compare,.notebook,.maker,.note,.fix,.tile,summary,.step,.nameideas,.nametag,.review__card,.adda__card,.contact__form";
   function overlap(a, b) { const w = Math.min(a.right, b.right) - Math.max(a.left, b.left), h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top); return w > 0 && h > 0 ? w * h : 0; }
   function findSpot() {
     if (pinned || g.classList.contains("dragging") || g.classList.contains("away")) return;
