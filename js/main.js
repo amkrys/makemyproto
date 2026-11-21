@@ -122,7 +122,7 @@ function initNav() {
   const here = (location.pathname.split("/").pop() || "index.html").toLowerCase();
   $$("a", links).forEach((a) => {
     const file = (a.getAttribute("href") || "").split("#")[0].toLowerCase();
-    if (file && file === here && !a.classList.contains("nav__quote")) a.setAttribute("aria-current", "page");
+    if (file && file === here) a.setAttribute("aria-current", "page");
   });
   $$("a", links).forEach((a) =>
     a.addEventListener("click", () => {
@@ -1033,6 +1033,7 @@ function initGuide() {
         ? ["Psst! 👋 Main Proto. Printer pe tap karo, ya ye dabao 👇", "Psst! 👋 I'm Proto. Tap the printer, or tap here 👇"]
         : ["Psst! 👋 Main Proto. Printer pe mouse upar-neeche karo, ya ye dabao 👇", "Psst! 👋 I'm Proto. Move your mouse over the printer, or tap here 👇"]).concat([ { hi: "▶ Print karke dikhao", en: "▶ Show me a print", run: () => { scrollToPrinter(); setTimeout(() => P()?.print(), 400); } }]),
     services: ["Kuch bhi banwana ho, yahan se shuru karo 🛠️", "Whatever you need made, start here 🛠️"],
+    make: ["Jo aap pe fit baithe, wahi chuno 👆", "Tap the one that sounds like you 👆"],
     intro: ["Neeche ek printer hai, khud chalake dekho 👇", "There's a printer just below, try it yourself 👇", { hi: "🖨️ Printer dikhao", en: "🖨️ Show me", run: () => $("#play")?.scrollIntoView({ behavior: "smooth" }) }],
     hello: ["WhatsApp sabse fast hai, try karo 💬", "WhatsApp is fastest, give it a try 💬"],
     "page-pricing": ["STL hai? Neeche daalo, price turant ⚡", "Got an STL? Drop it below for an instant price ⚡", { hi: "📂 STL chuno", en: "📂 Choose STL", run: () => $("#stlFile")?.click() }],
@@ -1091,7 +1092,7 @@ function initGuide() {
     say("hero", true);
   });
   // which section is in the middle of the screen?
-  const map = [[".intro", "intro"], ["#play", "hero"], ["#make", "services"], ["#ourwork", "work"], ["#hello", "hello"], ["#services", "services"], ["#uses", "uses"], ["#process", "process"], ["#quote", "quote"],
+  const map = [[".intro", "intro"], ["#play", "hero"], ["#make", "make"], ["#ourwork", "work"], ["#hello", "hello"], ["#services", "services"], ["#uses", "uses"], ["#process", "process"], ["#quote", "quote"],
     ["#prices", "prices"], ["#materials", "materials"], ["#fixer", "fixer"], ["#work", "work"], ["#makers", "makers"],
     ["#tips", "tips"], ["#adda", "adda"], ["#reviews", "reviews"], ["#faq", "faq"], ["#contact", "contact"]];
   if ("IntersectionObserver" in window) {
@@ -1199,7 +1200,7 @@ function initGuideFun() {
 
   /* smart placement: when he talks, stand where the bubble covers the least real content */
   let pinned = false, tuckT = 0;
-  const IMPORTANT = ".play__title,.homecta__btns,.howto,.makeit,.snap,.chatmock,.intro__tag,h1,h2,h3,.hero__lead,.hero__nofile,.hero__chips,.section__head p,.section__sub,.eyebrow,.btn,.hero__cta,input,select,textarea,.printer__frame,.shelf,.spools,.printer__readout,.card,.ex,.mat,.uses__panel,.uses__tabs,.quote__result,.drop,.compare,.notebook,.maker,.note,.fix,.tile,summary,.step,.nameideas,.nametag,.review__card,.adda__card,.contact__form";
+  const IMPORTANT = ".path,.play__title,.homecta__btns,.howto,.makeit,.snap,.chatmock,.intro__tag,h1,h2,h3,.hero__lead,.hero__nofile,.hero__chips,.section__head p,.section__sub,.eyebrow,.btn,.hero__cta,input,select,textarea,.printer__frame,.shelf,.spools,.printer__readout,.card,.ex,.mat,.uses__panel,.uses__tabs,.quote__result,.drop,.compare,.notebook,.maker,.note,.fix,.tile,summary,.step,.nameideas,.nametag,.review__card,.adda__card,.contact__form";
   function overlap(a, b) { const w = Math.min(a.right, b.right) - Math.max(a.left, b.left), h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top); return w > 0 && h > 0 ? w * h : 0; }
   function findSpot() {
     if (pinned || g.classList.contains("dragging") || g.classList.contains("away")) return;

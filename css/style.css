@@ -1715,3 +1715,22 @@ input[type="range"] { accent-color: var(--accent); width: 100%; }
 .handlink svg { width: 28px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .25s; }
 .handlink:hover { color: var(--ink); transform: rotate(0deg); }
 .handlink:hover svg { transform: translateX(5px); }
+
+/* v29: home "where do we start?" chooser — big tap targets by situation (the full service cards live on Services) */
+.paths { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(16px, 2.2vw, 26px); }
+.path { display: grid; grid-template-columns: auto 1fr; grid-template-areas: "emoji title" "emoji go"; column-gap: 16px; row-gap: 4px; align-items: center;
+  padding: clamp(18px, 2.4vw, 26px); border-radius: 20px; background: var(--c, var(--paper-2)); border: 2px solid transparent; text-decoration: none; color: var(--ink);
+  transform: rotate(var(--r, 0deg)); transition: transform .25s cubic-bezier(.3,1.4,.5,1), border-color .2s, box-shadow .25s; }
+.path:hover, .path:focus-visible { transform: rotate(0deg) translateY(-4px); border-color: var(--ink); box-shadow: 5px 5px 0 var(--ink); }
+.path__emoji { grid-area: emoji; font-size: clamp(2rem, 3.2vw, 2.6rem); line-height: 1; width: clamp(56px, 5vw, 64px); height: clamp(56px, 5vw, 64px); display: grid; place-items: center;
+  background: var(--white); border-radius: 50%; transition: transform .3s cubic-bezier(.3,1.6,.5,1); }
+.path:hover .path__emoji { transform: rotate(-10deg) scale(1.08); }
+.path b { grid-area: title; font-size: clamp(1.05rem, 1.4vw, 1.2rem); line-height: 1.2; }
+.path__go { grid-area: go; font-size: 1.15rem; line-height: 1.15; color: var(--accent-ink); }
+@media (max-width: 900px) { .paths { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) {
+  .paths { grid-template-columns: 1fr; gap: 12px; }
+  .path { padding: 14px 16px; column-gap: 14px; }
+  .path__emoji { width: 50px; height: 50px; font-size: 1.7rem; }
+}
+.nav__links a.nav__quote[aria-current="page"] { color: var(--accent-ink); }

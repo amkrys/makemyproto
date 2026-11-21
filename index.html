@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700;800;900&family=Red+Hat+Text:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&family=Caveat:wght@500;700&family=Kalam:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20261122j">
+  <link rel="stylesheet" href="css/style.css?v=20261122k">
 </head>
 <body data-page="index">
   <!-- @layout:nav -->
@@ -22,9 +22,8 @@
         <svg class="logo__fil" viewBox="0 0 200 24" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M3 2c0 10 6 15 22 15 30 0 60-5 100-5 30 0 50 2 60 6 6 2 10-4 4-6s-8 6 8 8"/></svg>
       </a>
       <nav class="nav__links" id="navLinks" aria-label="Main">
-        <a href="pricing.html#quote" class="nav__quote">⚡ Instant price</a>
+        <a href="pricing.html" class="nav__quote">⚡ Instant price</a>
         <a href="services.html">Services</a>
-        <a href="pricing.html">Pricing</a>
         <a href="guide.html">Guide</a>
         <a href="community.html" class="nav__new">Community <i class="hand" aria-hidden="true">new!</i></a>
         <a href="about.html">About us</a>
@@ -190,44 +189,46 @@
       </div>
     </section>
 
-    <!-- ===== WHAT WE MAKE (short) ===== -->
+    <!-- ===== WHERE TO START: pick your situation ===== -->
     <section class="section" id="make">
       <div class="wrap">
         <div class="section__head">
-          <h2 data-en="What should we &lt;span class=&quot;squiggle&quot;&gt;make&lt;/span&gt;?">Kya <span class="squiggle">banwana</span> hai?</h2>
-          <p class="section__sub">Design from scratch, or print a file you already have. One printer, done carefully.</p>
+          <h2 data-en="Where do we &lt;span class=&quot;squiggle&quot;&gt;start&lt;/span&gt;?">Kahan se <span class="squiggle">shuru</span> karein?</h2>
+          <p class="section__sub">Pick what sounds like you. One tap takes you to the right place.</p>
         </div>
-        <div class="cards cards--4">
-          <article class="card">
-            <div class="card__icon"><svg viewBox="0 0 48 48"><path d="M8 34 24 42l16-8V14L24 6 8 14v20Z"/><path d="M8 14l16 8 16-8M24 22v20"/></svg></div>
-            <span class="sticker hand" style="--tilt:8deg">No file?<br>No problem!</span>
-            <h3>3D Modeling &amp; CAD</h3>
-            <p>Sketch, photo or measurements to a print-ready 3D model (STL / STEP).</p>
-            <p class="card__price mono">From ₹300 / hour</p>
-          </article>
-          <article class="card card--hl">
-            <div class="card__icon"><svg viewBox="0 0 48 48"><rect x="6" y="6" width="36" height="36" rx="3"/><path d="M14 14h20M24 14v8"/><path d="m21 22 3 4 3-4"/><path d="M15 36h18M17 32h14"/></svg></div>
-            <span class="cnote hand" style="--tilt:-4deg" aria-hidden="true" data-en="Got an STL? Send it →">STL hai? seedha bhejo →</span>
-            <h3>3D Printing</h3>
-            <p>Already have an STL? Send it. We print in PLA, PETG, ABS or TPU.</p>
-            <p class="card__price mono">₹5–8 / gram</p>
-          </article>
-          <article class="card">
-            <div class="card__icon"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="8"/><path d="M24 6v6M24 36v6M6 24h6M36 24h6M11 11l4 4M33 33l4 4M37 11l-4 4M15 33l-4 4"/></svg></div>
-            <span class="cnote hand" style="--tilt:-5deg" aria-hidden="true" data-en="don&#x27;t throw it out! ♻️">mat phenko! ♻️</span>
-            <h3>Replacement Parts</h3>
-            <p>Broken knob, clip, bracket or gear? Send a photo and we recreate it.</p>
-            <p class="card__price mono">From ₹300</p>
-          </article>
-          <article class="card">
-            <div class="card__icon"><svg viewBox="0 0 48 48"><rect x="8" y="18" width="32" height="22" rx="2"/><path d="M8 26h32M24 18v22"/><path d="M24 18c-4-8-12-6-10-1 1 2 6 1 10 1Zm0 0c4-8 12-6 10-1-1 2-6 1-10 1Z"/></svg></div>
-            <span class="cnote hand" style="--tilt:4deg" aria-hidden="true">birthday? anniversary? 🎂</span>
-            <h3>Custom Gifts</h3>
-            <p>Name plates, keychains, desk items, trophies and corporate gifts with your logo.</p>
-            <p class="card__price mono">From ₹300</p>
-          </article>
+        <div class="paths">
+          <a class="path" href="pricing.html#quote" style="--c:#ffe2d4;--r:-1.5deg">
+            <span class="path__emoji" aria-hidden="true">📂</span>
+            <b data-en="I have an STL file">Mere paas STL hai</b>
+            <span class="path__go hand" data-en="get an instant price →">instant price lo →</span>
+          </a>
+          <a class="path" href="#" data-wa="Design request ✏️|I only have an idea / photo. Can you design it?" style="--c:#d7f3e9;--r:1deg">
+            <span class="path__emoji" aria-hidden="true">💡</span>
+            <b data-en="Just an idea or a photo">Sirf idea ya photo hai</b>
+            <span class="path__go hand" data-en="we'll design it, WhatsApp us →">design hum karenge, WhatsApp karo →</span>
+          </a>
+          <a class="path" href="services.html#fixer" style="--c:#fff1c9;--r:-.8deg">
+            <span class="path__emoji" aria-hidden="true">🔧</span>
+            <b data-en="Something broke">Kuch toot gaya</b>
+            <span class="path__go hand" data-en="see how we remake parts →">part dobara banwao →</span>
+          </a>
+          <a class="path" href="services.html#services" style="--c:#f4e3ff;--r:1.4deg">
+            <span class="path__emoji" aria-hidden="true">🎁</span>
+            <b data-en="I need a gift">Gift chahiye</b>
+            <span class="path__go hand" data-en="names, keychains, trophies →">naam, keychain, trophy →</span>
+          </a>
+          <a class="path" href="services.html#uses" style="--c:#dfe6ff;--r:-1.2deg">
+            <span class="path__emoji" aria-hidden="true">🎓</span>
+            <b data-en="College project">College project</b>
+            <span class="path__go hand" data-en="robot parts, models, student rates →">robot parts, models, student rates →</span>
+          </a>
+          <a class="path" href="services.html#services" style="--c:#ece7dc;--r:.8deg">
+            <span class="path__emoji" aria-hidden="true">🚀</span>
+            <b data-en="A product prototype">Product ka prototype</b>
+            <span class="path__go hand" data-en="v1, v2, v3… fast →">v1, v2, v3… fatafat →</span>
+          </a>
         </div>
-        <p class="more"><a href="services.html" class="handlink"><span data-en="All services, prototypes &amp;amp; student projects">Saari services, prototypes &amp; student projects</span> <svg viewBox="0 0 30 18" aria-hidden="true"><path d="M2 10c8-3 16-3 24-1m0 0-6-6m6 6-7 5"/></svg></a></p>
+        <p class="more"><a href="services.html" class="handlink"><span data-en="See every service in detail">Saari services detail mein dekho</span> <svg viewBox="0 0 30 18" aria-hidden="true"><path d="M2 10c8-3 16-3 24-1m0 0-6-6m6 6-7 5"/></svg></a></p>
       </div>
     </section>
 
@@ -312,8 +313,7 @@
       </div>
       <nav class="footer__links" aria-label="Footer">
         <a href="services.html">Services</a>
-        <a href="pricing.html#quote">Instant Quote</a>
-        <a href="pricing.html#materials">Materials</a>
+        <a href="pricing.html">Instant price &amp; materials</a>
         <a href="guide.html">Guide &amp; FAQ</a>
         <a href="community.html">3D Adda</a>
         <a href="about.html">About us</a>
@@ -365,6 +365,6 @@
   </a>
   <!-- @end -->
 
-  <script src="js/main.js?v=20261122j"></script>
+  <script src="js/main.js?v=20261122k"></script>
 </body>
 </html>
