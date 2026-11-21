@@ -2,7 +2,7 @@
 
 # MakeMeProto website
 
-**Socho. Design Karo. Print Karo.** · 3D design & 3D printing, Gurugram
+**Socho. Design Karo. Print Karo.** · 3D design & 3D printing, Ahmedabad
 
 A one-page website for MakeMeProto (3D design & 3D printing services). Plain HTML, CSS and JavaScript, with nothing to install.
 
@@ -10,10 +10,18 @@ A one-page website for MakeMeProto (3D design & 3D printing services). Plain HTM
 
 ```
 MakeMeProto/
-├── index.html      ← all page text and sections
-├── css/style.css   ← colours, fonts, layout
-├── js/main.js      ← your contact details, prices, quote calculator
-├── assets/brand/   ← 4K logos, icon, animated logo, Kalam font
+├── index.html        ← home: hero + printer, what we make, how it works, why us, work, contact strip
+├── pricing.html      ← instant STL quote, price examples, materials
+├── services.html     ← all services, "who are you?" tabs, broken-part repair, full work gallery
+├── guide.html        ← design tips + FAQ
+├── community.html    ← 3D Adda
+├── about.html        ← the two makers, rules, why us
+├── contact.html      ← contact form + details
+├── _layout/          ← shared nav, footer and floating buttons (edit here, then run tools/layout.py)
+├── css/style.css     ← colours, fonts, layout
+├── js/main.js        ← your contact details, prices, quote calculator
+├── tools/            ← layout.py (sync shared layout), publish-preview.sh (test site)
+├── assets/brand/     ← 4K logos, icon, animated logo, Kalam font
 └── README.md
 ```
 

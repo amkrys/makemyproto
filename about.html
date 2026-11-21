@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About Us | MakeMeProto</title>
+  <meta name="description" content="MakeMeProto is run by two engineers, Deepak Dadheech and Bal Krishan Swami. Meet the makers and our rules.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23FF5A1F'/%3E%3Crect x='8' y='5' width='16' height='11' rx='3' fill='%23141414'/%3E%3Cpath d='M12 16h8l-3 6h-2Z' fill='%23141414'/%3E%3Ccircle cx='16' cy='26' r='2.2' fill='%23fffdf8'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700;800;900&family=Red+Hat+Text:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&family=Caveat:wght@500;700&family=Kalam:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20261122o">
+</head>
+<body data-page="about">
+  <!-- @layout:nav -->
+  <!-- ===== NAV ===== -->
+  <header class="nav" id="top">
+    <div class="wrap nav__inner">
+      <a href="index.html" class="logo" aria-label="MakeMeProto home">
+        <svg class="logo__nozzle" viewBox="0 0 28 36" aria-hidden="true"><rect x="3" y="2" width="22" height="14" rx="4"/><path d="M9 16h10l-3.5 7h-3Z"/><circle class="logo__drop" cx="14" cy="29" r="2.6"/></svg>
+        <span class="logo__text">make<b>me</b>proto</span>
+        <svg class="logo__fil" viewBox="0 0 200 24" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M3 2c0 10 6 15 22 15 30 0 60-5 100-5 30 0 50 2 60 6 6 2 10-4 4-6s-8 6 8 8"/></svg>
+      </a>
+      <nav class="nav__links" id="navLinks" aria-label="Main">
+        <a href="pricing.html" class="nav__quote">⚡ Instant price</a>
+        <a href="services.html">Services</a>
+        <a href="guide.html">Guide</a>
+        <a href="community.html" class="nav__new">Community <i class="hand" aria-hidden="true">new!</i></a>
+        <a href="about.html">About us</a>
+        <a href="contact.html" class="btn btn--sm btn--ink">Contact</a>
+      </nav>
+      <button type="button" class="langbtn" id="langBtn" aria-label="Switch language between Hinglish and English">
+        <span data-lang="hi">हिं</span><span data-lang="en">EN</span>
+      </button>
+      <button class="nav__toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
+        <span></span><span></span>
+      </button>
+    </div>
+    <div class="progress" aria-hidden="true"><i id="progress"></i></div>
+  </header>
+  <!-- @end -->
+  <main>
+
+    <h1 class="sr-only">About MakeMeProto</h1>
+
+    <!-- ===== MAKERS ===== -->
+    <section class="section section--paper2 makers" id="makers">
+      <div class="wrap makers__grid">
+        <div class="makers__copy">
+          <h2 data-en="Two friends. One printer. &lt;span class=&quot;squiggle&quot;&gt;Lots&lt;/span&gt; of chai.">Do dost. Ek printer. <span class="squiggle">Bahut</span> saari chai.</h2>
+          <p class="makers__lead">MakeMeProto started on a desk in <span data-city>Ahmedabad</span>. One of us designs, one of us prints, and both of us get a little too excited every time a print comes off the bed in one piece.</p>
+          <p>We're not a big factory. When you message us, you talk to the same two people who design, print and pack your part, so nothing gets lost in between.</p>
+          <p class="signature hand">— Deepak &amp; Bal Krishan</p>
+        </div>
+
+        <div class="makers__cards">
+          <figure class="maker polaroid" style="--tilt:-3deg" tabindex="0" aria-label="Deepak Dadheech, tap to flip"><div class="maker__inner"><div class="maker__front">
+            <div class="maker__art" style="--bg:#cfeee2">
+              <svg viewBox="0 0 160 160" aria-hidden="true"><circle cx="80" cy="74" r="42" fill="#f3c9a8"/><path d="M38 70c0-40 84-40 84 0-8-18-26-22-42-22s-34 4-42 22Z" fill="#141414"/><circle cx="66" cy="78" r="4" fill="#141414"/><circle cx="94" cy="78" r="4" fill="#141414"/><path d="M66 94q14 10 28 0" stroke="#141414" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M30 160c4-28 24-40 50-40s46 12 50 40" fill="#141414"/><path d="M104 132l14-10 6 6-14 10" fill="var(--accent)"/></svg>
+            </div>
+            <figcaption><b class="hand">Deepak Dadheech</b><span>Mechanical engineer · the printer whisperer</span><i class="mono">Assistant Professor, Anant National University</i><a class="maker__li" href="https://www.linkedin.com/in/deepak-dadheech-0546a116a/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9.5h4V21H3V9.5Zm7 0h3.8v1.6h.06c.53-1 1.84-2.06 3.79-2.06 4.05 0 4.8 2.67 4.8 6.13V21h-4v-5.1c0-1.22-.02-2.79-1.7-2.79-1.7 0-1.96 1.33-1.96 2.7V21h-4V9.5Z"/></svg> Connect on LinkedIn</a></figcaption>
+          <span class="maker__flip hand" aria-hidden="true" data-en="tap to flip ↻">tap karo ↻</span></div><div class="maker__back" style="--bg:#cfeee2"><p class="hand maker__ask" data-en="Ask Deepak about 👇">Deepak se poocho 👇</p><ul><li data-en="Which material to use">Kaunsa material lein?</li><li>Strength &amp; fit</li><li>Printer tuning</li><li>Finishing &amp; sanding</li></ul><a href="#" class="btn btn--ink maker__msg" data-wa="Question for Deepak|I have a question about materials / printing.">Message Deepak →</a><span class="maker__flip hand" aria-hidden="true" data-en="back ↻">wapas ↻</span></div></div></figure>
+          <figure class="maker polaroid" style="--tilt:2.5deg" tabindex="0" aria-label="Bal Krishan Swami, tap to flip"><div class="maker__inner"><div class="maker__front">
+            <div class="maker__art" style="--bg:#ffd9c7">
+              <svg viewBox="0 0 160 160" aria-hidden="true"><circle cx="80" cy="74" r="42" fill="#e8b892"/><path d="M40 64c4-34 76-38 80 0-14-12-60-14-80 0Z" fill="#141414"/><rect x="56" y="70" width="20" height="16" rx="6" fill="none" stroke="#141414" stroke-width="3.5"/><rect x="84" y="70" width="20" height="16" rx="6" fill="none" stroke="#141414" stroke-width="3.5"/><path d="M76 78h8" stroke="#141414" stroke-width="3.5"/><path d="M66 98q14 10 28 0" stroke="#141414" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M30 160c4-28 24-40 50-40s46 12 50 40" fill="var(--accent)"/></svg>
+            </div>
+            <figcaption><b class="hand">Bal Krishan Swami</b><span>Software engineer · design &amp; pixels</span><i class="mono">Software Technologist, Philips · Ex-Samsung Research</i><a class="maker__li" href="https://www.linkedin.com/in/bal-krishan-swami/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9.5h4V21H3V9.5Zm7 0h3.8v1.6h.06c.53-1 1.84-2.06 3.79-2.06 4.05 0 4.8 2.67 4.8 6.13V21h-4v-5.1c0-1.22-.02-2.79-1.7-2.79-1.7 0-1.96 1.33-1.96 2.7V21h-4V9.5Z"/></svg> Connect on LinkedIn</a></figcaption>
+          <span class="maker__flip hand" aria-hidden="true" data-en="tap to flip ↻">tap karo ↻</span></div><div class="maker__back" style="--bg:#ffd9c7"><p class="hand maker__ask" data-en="Ask Bal Krishan about 👇">Bal Krishan se poocho 👇</p><ul><li>3D design / CAD</li><li data-en="Fixing STL files">STL fix karna</li><li>Custom name gifts</li><li>Orders &amp; website</li></ul><a href="#" class="btn btn--ink maker__msg" data-wa="Question for Bal Krishan|I have a question about 3D design.">Message Bal Krishan →</a><span class="maker__flip hand" aria-hidden="true" data-en="back ↻">wapas ↻</span></div></div></figure>
+        </div>
+
+        <ul class="rules">
+          <li class="note" style="--tilt:-2deg;--n:#fff1a8"><button type="button" class="note__btn" aria-label="Rule #1: Measure twice, print once. Tap to see why"><span class="note__front"><b class="hand">Rule #1</b> Measure twice, print once.<i class="hand" data-en="why? ↻">kyun? ↻</i></span><span class="note__back hand" data-en="One wrong mm and the part won&#x27;t fit. So calipers first, printer later. 📏">Ek galat mm aur part fit nahi hoga. Isliye calipers pehle, printer baad mein. 📏</span></button></li>
+          <li class="note" style="--tilt:1.5deg;--n:#ffd9c7"><button type="button" class="note__btn" aria-label="Rule #2: Every part gets a fit check before it leaves. Tap to see why"><span class="note__front"><b class="hand">Rule #2</b> Every part gets a fit check before it leaves.<i class="hand" data-en="why? ↻">kyun? ↻</i></span><span class="note__back hand" data-en="Every part that reaches your hands has been checked in ours first. ✋">Jo part aapke haath jaata hai, woh pehle humare haath mein check hota hai. ✋</span></button></li>
+          <li class="note" style="--tilt:-1deg;--n:#cfeee2"><button type="button" class="note__btn" aria-label="Rule #3: Price first, print later. No surprises. Tap to see why"><span class="note__front"><b class="hand">Rule #3</b> Price first, print later. No surprises.<i class="hand" data-en="why? ↻">kyun? ↻</i></span><span class="note__back hand" data-en="Price on WhatsApp first. You say yes, then we print. No hidden charges. 🤝">WhatsApp pe price pehle. Aap haan bolo, tab print. Koi hidden charge nahi. 🤝</span></button></li>
+          <li class="note" style="--tilt:2deg;--n:#e3e0ff"><button type="button" class="note__btn" aria-label="Rule #4: Chai break when the print hits 50%. Tap to see why"><span class="note__front"><b class="hand">Rule #4</b> Chai break when the print hits 50%.<i class="hand" data-en="why? ↻">kyun? ↻</i></span><span class="note__back hand" data-en="This is the most serious rule of all. ☕😄">Ye wala rule sabse serious hai. ☕😄</span></button></li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- @layout:footer -->
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="wrap footer__inner">
+      <div>
+        <a href="index.html" class="logo logo--light">
+          <svg class="logo__nozzle" viewBox="0 0 28 36" aria-hidden="true"><rect x="3" y="2" width="22" height="14" rx="4"/><path d="M9 16h10l-3.5 7h-3Z"/><circle class="logo__drop" cx="14" cy="29" r="2.6"/></svg>
+          <span class="logo__text">make<b>me</b>proto</span>
+          <svg class="logo__fil" viewBox="0 0 200 24" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M3 2c0 10 6 15 22 15 30 0 60-5 100-5 30 0 50 2 60 6 6 2 10-4 4-6s-8 6 8 8"/></svg>
+        </a>
+        <p class="footer__tag">3D Design &amp; Printing Services<br><b data-en="Think it. Design it. Print it.">Socho. Design Karo. Print Karo.</b></p>
+      </div>
+      <nav class="footer__links" aria-label="Footer">
+        <a href="services.html">Services</a>
+        <a href="pricing.html">Instant price &amp; materials</a>
+        <a href="guide.html">Guide &amp; FAQ</a>
+        <a href="community.html">3D Adda</a>
+        <a href="about.html">About us</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <p class="footer__made hand">Made with ☕ + PLA by two friends in <span data-city>Ahmedabad</span>.</p>
+      <p class="footer__ps hand" data-en="P.S. If you scrolled all the way here, you definitely want something made. Let&#x27;s talk! 😄">P.S. Agar aap yahan tak scroll karke aa gaye, toh aap pakka kuch banwana chahte ho. Chalo, baat karte hain! 😄</p>
+      <div class="footer__social" aria-label="Follow MakeMeProto">
+        <a href="https://www.linkedin.com/company/makemeproto" target="_blank" rel="noopener" aria-label="MakeMeProto on LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9.5h4V21H3V9.5Zm7 0h3.8v1.6h.06c.53-1 1.84-2.06 3.79-2.06 4.05 0 4.8 2.67 4.8 6.13V21h-4v-5.1c0-1.22-.02-2.79-1.7-2.79-1.7 0-1.96 1.33-1.96 2.7V21h-4V9.5Z"/></svg></a>
+        <a href="https://instagram.com/makemeproto" target="_blank" rel="noopener" aria-label="MakeMeProto on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></svg></a>
+        <a href="mailto:contact@makemeproto.com" aria-label="Email contact@makemeproto.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+      <p class="footer__copy mono">© <span id="year">2026</span> MakeMeProto · <span data-city-full>Ahmedabad, Gujarat</span></p>
+      <p class="footer__love">Made in India 🇮🇳 with ❤️ by <a href="https://www.linkedin.com/in/bal-krishan-swami/" target="_blank" rel="noopener">Bal Krishan Swami</a></p>
+    </div>
+  </footer>
+  <!-- @end -->
+
+  <!-- @layout:floating -->
+  <!-- Proto, the guide who follows you around the site -->
+  <div class="guide right g-drop" id="guide">
+    <button type="button" class="guide__bot" id="guideBot" aria-label="Proto, your guide. Tap for a tip, drag to move him">
+      <span class="guide__hi hand" id="guideHi" aria-hidden="true"></span>
+      <span class="guide__zzz hand" aria-hidden="true"><i>z</i><i>z</i><i>Z</i></span>
+      <svg viewBox="0 0 120 110" class="proto__body" aria-hidden="true">
+        <g class="guide__head">
+          <path class="proto__side" d="M98 26 112 14v62l-14 14Z"/>
+          <path class="proto__top" d="M22 26 36 14h76L98 26Z"/>
+          <rect class="proto__front" x="22" y="26" width="76" height="64" rx="6"/>
+          <path class="proto__lines" d="M22 46h76M22 66h76"/>
+          <g class="guide__eye guide__eye--l" transform="translate(46 50)"><g class="proto__eye"><circle r="10" fill="#fff"/><circle class="proto__pupil" r="4.5"/></g><path class="guide__happy" d="M-8 2q8-10 16 0"/><path class="guide__shut" d="M-8 1h16"/></g>
+          <g class="guide__eye guide__eye--r" transform="translate(74 50)"><g class="proto__eye"><circle r="10" fill="#fff"/><circle class="proto__pupil" r="4.5"/></g><path class="guide__happy" d="M-8 2q8-10 16 0"/><path class="guide__shut" d="M-8 1h16"/></g>
+          <circle class="guide__blush" cx="36" cy="66" r="5"/><circle class="guide__blush" cx="84" cy="66" r="5"/>
+          <path class="proto__mouth guide__smile" d="M50 70q10 8 20 0"/>
+          <ellipse class="guide__mouthO" cx="60" cy="74" rx="6" ry="7"/>
+        </g>
+        <path class="proto__arm guide__armR" d="M98 60c10-4 14-14 12-24"/>
+        <path class="guide__arm2 guide__armL" d="M22 60c-10-4-14-14-12-24"/>
+      </svg>
+      <i class="guide__shadow"></i>
+    </button>
+    <div class="guide__bubble" id="guideBubble" role="status" aria-live="polite">
+      <button type="button" class="guide__x" id="guideX" aria-label="Hide tip">✕</button>
+      <p class="guide__text hand" id="guideText"></p>
+      <button type="button" class="guide__cta" id="guideCta" hidden></button>
+    </div>
+  </div>
+
+  <!-- Quick price button (shows after the hero) -->
+  <a href="pricing.html#quote" class="price-float" id="priceFloat">⚡ Instant price</a>
+
+  <!-- Floating WhatsApp button -->
+  <a href="#" class="wa-float" data-wa="General question|I have a 3D printing question." aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-2-1.2 7.5 7.5 0 0 1-1.4-1.7c-.1-.2 0-.4.1-.5l.4-.4.2-.4v-.4l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.1 5.1 0 0 0 1.1 2.7 11.6 11.6 0 0 0 4.4 3.9c1.6.7 2.3.8 3.1.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.3c0-.1-.2-.2-.5-.3Z"/></svg>
+  </a>
+  <!-- @end -->
+
+  <script src="js/main.js?v=20261122o"></script>
+</body>
+</html>

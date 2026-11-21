@@ -26,11 +26,14 @@ jobs:
             node --check "$f"
           done
 
+      - name: Shared layout in sync
+        run: python3 tools/layout.py --check
+
       - name: HTML lint
-        run: npx --yes htmlhint@1 "**/*.html"
+        run: npx --yes htmlhint@1 "*.html"  # _layout/ holds page fragments, not full pages
 
       - name: Internal links and files
         uses: lycheeverse/lychee-action@v2
         with:
-          args: --offline --no-progress --include-fragments './**/*.html'
+          args: --offline --no-progress --include-fragments './*.html'
           fail: true

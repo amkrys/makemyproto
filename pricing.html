@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pricing &amp; Instant Quote | MakeMeProto</title>
+  <meta name="description" content="Get an instant 3D printing price: upload an STL or enter a weight. PLA from ₹5/gram, PETG, ABS and TPU. Minimum order ₹300.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23FF5A1F'/%3E%3Crect x='8' y='5' width='16' height='11' rx='3' fill='%23141414'/%3E%3Cpath d='M12 16h8l-3 6h-2Z' fill='%23141414'/%3E%3Ccircle cx='16' cy='26' r='2.2' fill='%23fffdf8'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700;800;900&family=Red+Hat+Text:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&family=Caveat:wght@500;700&family=Kalam:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20261122o">
+</head>
+<body data-page="pricing">
+  <!-- @layout:nav -->
+  <!-- ===== NAV ===== -->
+  <header class="nav" id="top">
+    <div class="wrap nav__inner">
+      <a href="index.html" class="logo" aria-label="MakeMeProto home">
+        <svg class="logo__nozzle" viewBox="0 0 28 36" aria-hidden="true"><rect x="3" y="2" width="22" height="14" rx="4"/><path d="M9 16h10l-3.5 7h-3Z"/><circle class="logo__drop" cx="14" cy="29" r="2.6"/></svg>
+        <span class="logo__text">make<b>me</b>proto</span>
+        <svg class="logo__fil" viewBox="0 0 200 24" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M3 2c0 10 6 15 22 15 30 0 60-5 100-5 30 0 50 2 60 6 6 2 10-4 4-6s-8 6 8 8"/></svg>
+      </a>
+      <nav class="nav__links" id="navLinks" aria-label="Main">
+        <a href="pricing.html" class="nav__quote">⚡ Instant price</a>
+        <a href="services.html">Services</a>
+        <a href="guide.html">Guide</a>
+        <a href="community.html" class="nav__new">Community <i class="hand" aria-hidden="true">new!</i></a>
+        <a href="about.html">About us</a>
+        <a href="contact.html" class="btn btn--sm btn--ink">Contact</a>
+      </nav>
+      <button type="button" class="langbtn" id="langBtn" aria-label="Switch language between Hinglish and English">
+        <span data-lang="hi">हिं</span><span data-lang="en">EN</span>
+      </button>
+      <button class="nav__toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
+        <span></span><span></span>
+      </button>
+    </div>
+    <div class="progress" aria-hidden="true"><i id="progress"></i></div>
+  </header>
+  <!-- @end -->
+  <main>
+
+    <h1 class="sr-only">Pricing and instant 3D printing quote</h1>
+
+    <!-- ===== QUOTE CALCULATOR ===== -->
+    <section class="section" id="quote">
+      <div class="wrap">
+        <div class="section__head">
+          <h2 data-en="How much? Find out &lt;span class=&quot;squiggle&quot;&gt;now&lt;/span&gt;.">Kitna lagega? <span class="squiggle">Abhi</span> pata karo.</h2>
+          <p class="section__sub">Upload an STL file (<span class="hl">it stays on your device</span>) or enter an approximate weight. You get an estimate in seconds.</p>
+        </div>
+
+        <div class="quote">
+          <form class="quote__form" id="quoteForm" novalidate>
+            <div class="drop" id="drop">
+              <input type="file" id="stlFile" accept=".stl" hidden>
+              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 32V10M15 19l9-9 9 9"/><path d="M8 30v8h32v-8"/></svg>
+              <p><b>Drop your STL file here</b><br><span>or <label for="stlFile" class="link">browse</label> · up to 500 MB</span></p>
+              <p class="drop__file mono" id="fileInfo" hidden></p>
+              <p class="drop__note hand" aria-hidden="true" data-en="just drag it in, done! ✨">bas drag karo, ho gaya! ✨</p>
+            </div>
+            <p class="sample">No file handy? <button type="button" class="link" id="sampleBtn">Try a sample (phone stand)</button></p>
+
+            <div class="or mono"><span>OR</span></div>
+
+            <label class="field">
+              <span>Approximate weight (grams)</span>
+              <input type="number" id="manualGrams" min="1" step="1" placeholder="e.g. 50" inputmode="numeric">
+            </label>
+
+            <div class="field-row">
+              <label class="field">
+                <span>Material</span>
+                <select id="material" aria-describedby="matNote">
+                  <option value="PLA">PLA: everyday, gifts, models</option>
+                  <option value="PETG">PETG: strong, water resistant</option>
+                  <option value="ABS">ABS: heat resistant, functional</option>
+                  <option value="TPU">TPU: flexible, rubber-like</option>
+                </select>
+                <small class="hnote hand" id="matNote" data-en="not sure? pick PLA 😉">confused? PLA le lo 😉</small>
+              </label>
+              <label class="field">
+                <span>Quantity</span>
+                <input type="number" id="qty" min="1" value="1" step="1" inputmode="numeric">
+              </label>
+            </div>
+
+            <div class="field">
+              <span>Filament colour <b class="mono" id="colorVal">Not sure</b></span>
+              <div class="colors" role="radiogroup" aria-label="Filament colour">
+                <label title="Not sure yet"><input type="radio" name="color" value="Not sure" checked><i class="colors__any">?</i></label>
+                <label title="Black"><input type="radio" name="color" value="Black"><i style="--c:#141414"></i></label>
+                <label title="White"><input type="radio" name="color" value="White"><i style="--c:#f3efe6"></i></label>
+                <label title="Grey"><input type="radio" name="color" value="Grey"><i style="--c:#8d8a84"></i></label>
+                <label title="Red"><input type="radio" name="color" value="Red"><i style="--c:#e23b2e"></i></label>
+                <label title="Orange"><input type="radio" name="color" value="Orange"><i style="--c:#FF5A1F"></i></label>
+                <label title="Yellow"><input type="radio" name="color" value="Yellow"><i style="--c:#F2B705"></i></label>
+                <label title="Green"><input type="radio" name="color" value="Green"><i style="--c:#1FBF8F"></i></label>
+                <label title="Blue"><input type="radio" name="color" value="Blue"><i style="--c:#3557FF"></i></label>
+                <label title="Purple"><input type="radio" name="color" value="Purple"><i style="--c:#7A3FE6"></i></label>
+              </div>
+              <small class="field__help">Colour doesn't change the price. We'll confirm what's in stock.</small>
+            </div>
+
+            <label class="field">
+              <span>Strength (infill) <b class="mono" id="infillVal">20%</b></span>
+              <input type="range" id="infill" min="10" max="100" step="5" value="20">
+              <small class="hnote hand" data-en="more infill = stronger (and a bit heavier) 💪 · 15–20% is plenty for display pieces">zyada infill = zyada strong (aur thoda heavy) 💪 · showpiece ke liye 15–20% kaafi hai</small>
+            </label>
+          </form>
+
+          <aside class="quote__result" aria-live="polite">
+            <p class="sticky hand" aria-hidden="true" data-en="Don&#x27;t know the weight?&lt;br&gt;No worries, just send a photo 🙂">Weight nahi pata?<br>No tension, bas photo bhejo 🙂</p>
+            <p class="mono quote__label">Estimated price</p>
+            <p class="quote__price" id="price">₹ —</p>
+            <p class="quote__cheer hand" id="cheer" aria-hidden="true" data-en="that&#x27;s it! 🎉">bas itna hi! 🎉</p>
+            <p class="quote__note" id="priceNote">Upload a file or enter a weight to see your estimate.</p>
+            <dl class="quote__stats mono">
+              <div><dt>Weight</dt><dd id="statWeight">—</dd></div>
+              <div><dt>Print time</dt><dd id="statTime">—</dd></div>
+              <div><dt>Size</dt><dd id="statSize">—</dd></div>
+              <div><dt>Volume</dt><dd id="statVol">—</dd></div>
+            </dl>
+            <a href="#" class="btn btn--accent btn--block" id="quoteWa">Send this quote on WhatsApp</a>
+            <p class="quote__fine">This is an estimate. Final price is confirmed after we check your file. Minimum order ₹300. Design work is quoted separately.</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PRICE EXAMPLES ===== -->
+    <section class="section section--paper2" id="prices">
+      <div class="wrap">
+        <div class="section__head">
+          <h2 data-en="What will it &lt;span class=&quot;squiggle&quot;&gt;cost&lt;/span&gt;?">Kitne ka <span class="squiggle">padega</span>?</h2>
+          <p>Real examples worked out with the same formula as the calculator above (20% infill). Weights are typical; yours may differ.</p>
+        </div>
+        <div class="exs">
+          <article class="ex">
+            <div class="ex__icon"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 14h12a8 8 0 0 1 0 16h-6l-6 6v-6h0a8 8 0 0 1 0-16Z"/><circle cx="18" cy="22" r="2"/></svg></div>
+            <h3>Keychain</h3>
+            <p class="ex__meta mono">~8 g · PLA</p>
+            <p class="ex__price" data-grams="8" data-mat="PLA" data-qty="1">₹—</p>
+            <p class="ex__note hand" data-en="One costs ₹300, and so do five 😉">Ek ka bhi ₹300, paanch ka bhi ₹300 😉</p>
+            <button type="button" class="ex__try link" data-grams="8" data-mat="PLA">Calculate this →</button>
+          </article>
+          <article class="ex">
+            <div class="ex__icon"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="14"/><circle cx="24" cy="24" r="5"/><path d="M24 10v6"/></svg></div>
+            <h3>Replacement knob</h3>
+            <p class="ex__meta mono">~25 g · PETG</p>
+            <p class="ex__price" data-grams="25" data-mat="PETG" data-qty="1">₹—</p>
+            
+            <button type="button" class="ex__try link" data-grams="25" data-mat="PETG">Calculate this →</button>
+          </article>
+          <article class="ex">
+            <div class="ex__icon"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 40h22M18 40l10-28h6l-8 28"/><rect x="24" y="8" width="12" height="20" rx="2" transform="rotate(20 30 18)"/></svg></div>
+            <h3>Phone stand</h3>
+            <p class="ex__meta mono">~80 g · PLA</p>
+            <p class="ex__price" data-grams="80" data-mat="PLA" data-qty="1">₹—</p>
+            
+            <button type="button" class="ex__try link" data-grams="80" data-mat="PLA">Calculate this →</button>
+          </article>
+          <article class="ex">
+            <div class="ex__icon"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="16" width="36" height="16" rx="3"/><path d="M12 24h24"/></svg></div>
+            <h3>Name plate</h3>
+            <p class="ex__meta mono">~60 g · PLA</p>
+            <p class="ex__price" data-grams="60" data-mat="PLA" data-qty="1">₹—</p>
+            
+            <button type="button" class="ex__try link" data-grams="60" data-mat="PLA">Calculate this →</button>
+          </article>
+          <article class="ex">
+            <div class="ex__icon"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 20h32v20H8Z"/><path d="M18 20V10h12v10M8 30h32"/></svg></div>
+            <h3>Desk organiser</h3>
+            <p class="ex__meta mono">~200 g · PLA</p>
+            <p class="ex__price" data-grams="200" data-mat="PLA" data-qty="1">₹—</p>
+            
+            <button type="button" class="ex__try link" data-grams="200" data-mat="PLA">Calculate this →</button>
+          </article>
+          <article class="ex">
+            <div class="ex__icon"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 40V22l10-8 10 8v18M28 40V16l12-6v30M6 40h36"/><path d="M14 30h6v10h-6Z"/></svg></div>
+            <h3>Architecture model</h3>
+            <p class="ex__meta mono">~400 g · PLA</p>
+            <p class="ex__price" data-grams="400" data-mat="PLA" data-qty="1">₹—</p>
+            
+            <button type="button" class="ex__try link" data-grams="400" data-mat="PLA">Calculate this →</button>
+          </article>
+        </div>
+        <p class="exs__foot hand" data-en="+ 3D design (if you don&#x27;t have a file) starts from ₹300/hour. You always get the price first. 🤝">+ 3D design (if you don't have a file) starts from ₹300/hour. Price pehle batayenge, hamesha. 🤝</p>
+      </div>
+    </section>
+
+    <!-- ===== MATERIALS ===== -->
+    <section class="section" id="materials">
+      <div class="wrap">
+        <div class="section__head">
+          <h2 data-en="The right material for the job.">Sahi material, sahi kaam.</h2>
+          <p class="section__sub">Not sure which one? Tell us what the part will do and we'll suggest the right material.</p>
+        </div>
+        <div class="mats">
+          <article class="mat">
+            <p class="annot annot--mat hand" aria-hidden="true"><span data-en="not sure? start with this one!">confused? isi se shuru karo!</span><svg viewBox="0 0 50 44"><path d="M4 8c20-4 34 6 36 30m0 0-7-7m7 7 5-9"/></svg></p>
+            <div class="mat__swatch" style="--c:#FF5A1F"></div>
+            <h3>PLA</h3>
+            <p>Easy, accurate, many colours. Best for gifts, models, prototypes and display pieces.</p>
+            <ul class="mono">
+              <li><span>Strength</span><i style="--v:3"></i></li>
+              <li><span>Heat</span><i style="--v:1"></i></li>
+              <li><span>Flexibility</span><i style="--v:1"></i></li>
+            </ul>
+            <p class="mat__price mono">₹5 / g</p>
+          </article>
+          <article class="mat">
+            <div class="mat__swatch" style="--c:#1FBF8F"></div>
+            <h3>PETG</h3>
+            <p>Tough and water resistant. Good for brackets, outdoor parts and food-contact containers.</p>
+            <ul class="mono">
+              <li><span>Strength</span><i style="--v:4"></i></li>
+              <li><span>Heat</span><i style="--v:2"></i></li>
+              <li><span>Flexibility</span><i style="--v:2"></i></li>
+            </ul>
+            <p class="mat__price mono">₹6 / g</p>
+          </article>
+          <article class="mat">
+            <div class="mat__swatch" style="--c:#3B6CFF"></div>
+            <h3>ABS</h3>
+            <p>Heat resistant and machinable. For car parts, enclosures, jigs and functional parts.</p>
+            <ul class="mono">
+              <li><span>Strength</span><i style="--v:4"></i></li>
+              <li><span>Heat</span><i style="--v:4"></i></li>
+              <li><span>Flexibility</span><i style="--v:2"></i></li>
+            </ul>
+            <p class="mat__price mono">₹6 / g</p>
+          </article>
+          <article class="mat">
+            <div class="mat__swatch" style="--c:#141414"></div>
+            <h3>TPU</h3>
+            <p>Flexible like rubber. Phone cases, gaskets, grips, bumpers and wearable parts.</p>
+            <p class="mat__aside hand" data-en="psst… this one bends!">psst… isse bend kar sakte ho!</p>
+            <ul class="mono">
+              <li><span>Strength</span><i style="--v:3"></i></li>
+              <li><span>Heat</span><i style="--v:2"></i></li>
+              <li><span>Flexibility</span><i style="--v:5"></i></li>
+            </ul>
+            <p class="mat__price mono">₹8 / g</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- @layout:footer -->
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="wrap footer__inner">
+      <div>
+        <a href="index.html" class="logo logo--light">
+          <svg class="logo__nozzle" viewBox="0 0 28 36" aria-hidden="true"><rect x="3" y="2" width="22" height="14" rx="4"/><path d="M9 16h10l-3.5 7h-3Z"/><circle class="logo__drop" cx="14" cy="29" r="2.6"/></svg>
+          <span class="logo__text">make<b>me</b>proto</span>
+          <svg class="logo__fil" viewBox="0 0 200 24" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M3 2c0 10 6 15 22 15 30 0 60-5 100-5 30 0 50 2 60 6 6 2 10-4 4-6s-8 6 8 8"/></svg>
+        </a>
+        <p class="footer__tag">3D Design &amp; Printing Services<br><b data-en="Think it. Design it. Print it.">Socho. Design Karo. Print Karo.</b></p>
+      </div>
+      <nav class="footer__links" aria-label="Footer">
+        <a href="services.html">Services</a>
+        <a href="pricing.html">Instant price &amp; materials</a>
+        <a href="guide.html">Guide &amp; FAQ</a>
+        <a href="community.html">3D Adda</a>
+        <a href="about.html">About us</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <p class="footer__made hand">Made with ☕ + PLA by two friends in <span data-city>Ahmedabad</span>.</p>
+      <p class="footer__ps hand" data-en="P.S. If you scrolled all the way here, you definitely want something made. Let&#x27;s talk! 😄">P.S. Agar aap yahan tak scroll karke aa gaye, toh aap pakka kuch banwana chahte ho. Chalo, baat karte hain! 😄</p>
+      <div class="footer__social" aria-label="Follow MakeMeProto">
+        <a href="https://www.linkedin.com/company/makemeproto" target="_blank" rel="noopener" aria-label="MakeMeProto on LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9.5h4V21H3V9.5Zm7 0h3.8v1.6h.06c.53-1 1.84-2.06 3.79-2.06 4.05 0 4.8 2.67 4.8 6.13V21h-4v-5.1c0-1.22-.02-2.79-1.7-2.79-1.7 0-1.96 1.33-1.96 2.7V21h-4V9.5Z"/></svg></a>
+        <a href="https://instagram.com/makemeproto" target="_blank" rel="noopener" aria-label="MakeMeProto on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></svg></a>
+        <a href="mailto:contact@makemeproto.com" aria-label="Email contact@makemeproto.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+      <p class="footer__copy mono">© <span id="year">2026</span> MakeMeProto · <span data-city-full>Ahmedabad, Gujarat</span></p>
+      <p class="footer__love">Made in India 🇮🇳 with ❤️ by <a href="https://www.linkedin.com/in/bal-krishan-swami/" target="_blank" rel="noopener">Bal Krishan Swami</a></p>
+    </div>
+  </footer>
+  <!-- @end -->
+
+  <!-- Drop an STL anywhere on the page -->
+  <div class="dropall" id="dropAll" aria-hidden="true">
+    <div class="dropall__card">
+      <svg viewBox="0 0 48 48"><path d="M24 32V10M15 19l9-9 9 9"/><path d="M8 30v8h32v-8"/></svg>
+      <b class="hand" data-en="Drop it! 📦">Chhod do! 📦</b>
+      <span>Drop your STL anywhere. Price in seconds.</span>
+    </div>
+  </div>
+
+  <!-- @layout:floating -->
+  <!-- Proto, the guide who follows you around the site -->
+  <div class="guide right g-drop" id="guide">
+    <button type="button" class="guide__bot" id="guideBot" aria-label="Proto, your guide. Tap for a tip, drag to move him">
+      <span class="guide__hi hand" id="guideHi" aria-hidden="true"></span>
+      <span class="guide__zzz hand" aria-hidden="true"><i>z</i><i>z</i><i>Z</i></span>
+      <svg viewBox="0 0 120 110" class="proto__body" aria-hidden="true">
+        <g class="guide__head">
+          <path class="proto__side" d="M98 26 112 14v62l-14 14Z"/>
+          <path class="proto__top" d="M22 26 36 14h76L98 26Z"/>
+          <rect class="proto__front" x="22" y="26" width="76" height="64" rx="6"/>
+          <path class="proto__lines" d="M22 46h76M22 66h76"/>
+          <g class="guide__eye guide__eye--l" transform="translate(46 50)"><g class="proto__eye"><circle r="10" fill="#fff"/><circle class="proto__pupil" r="4.5"/></g><path class="guide__happy" d="M-8 2q8-10 16 0"/><path class="guide__shut" d="M-8 1h16"/></g>
+          <g class="guide__eye guide__eye--r" transform="translate(74 50)"><g class="proto__eye"><circle r="10" fill="#fff"/><circle class="proto__pupil" r="4.5"/></g><path class="guide__happy" d="M-8 2q8-10 16 0"/><path class="guide__shut" d="M-8 1h16"/></g>
+          <circle class="guide__blush" cx="36" cy="66" r="5"/><circle class="guide__blush" cx="84" cy="66" r="5"/>
+          <path class="proto__mouth guide__smile" d="M50 70q10 8 20 0"/>
+          <ellipse class="guide__mouthO" cx="60" cy="74" rx="6" ry="7"/>
+        </g>
+        <path class="proto__arm guide__armR" d="M98 60c10-4 14-14 12-24"/>
+        <path class="guide__arm2 guide__armL" d="M22 60c-10-4-14-14-12-24"/>
+      </svg>
+      <i class="guide__shadow"></i>
+    </button>
+    <div class="guide__bubble" id="guideBubble" role="status" aria-live="polite">
+      <button type="button" class="guide__x" id="guideX" aria-label="Hide tip">✕</button>
+      <p class="guide__text hand" id="guideText"></p>
+      <button type="button" class="guide__cta" id="guideCta" hidden></button>
+    </div>
+  </div>
+
+  <!-- Quick price button (shows after the hero) -->
+  <a href="pricing.html#quote" class="price-float" id="priceFloat">⚡ Instant price</a>
+
+  <!-- Floating WhatsApp button -->
+  <a href="#" class="wa-float" data-wa="General question|I have a 3D printing question." aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-2-1.2 7.5 7.5 0 0 1-1.4-1.7c-.1-.2 0-.4.1-.5l.4-.4.2-.4v-.4l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.1 5.1 0 0 0 1.1 2.7 11.6 11.6 0 0 0 4.4 3.9c1.6.7 2.3.8 3.1.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.3c0-.1-.2-.2-.5-.3Z"/></svg>
+  </a>
+  <!-- @end -->
+
+  <script src="js/main.js?v=20261122o"></script>
+</body>
+</html>

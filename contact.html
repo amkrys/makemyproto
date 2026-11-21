@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contact | MakeMeProto</title>
+  <meta name="description" content="Contact MakeMeProto on WhatsApp, email or Instagram. Tell us what you want to make and get a price.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23FF5A1F'/%3E%3Crect x='8' y='5' width='16' height='11' rx='3' fill='%23141414'/%3E%3Cpath d='M12 16h8l-3 6h-2Z' fill='%23141414'/%3E%3Ccircle cx='16' cy='26' r='2.2' fill='%23fffdf8'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700;800;900&family=Red+Hat+Text:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&family=Caveat:wght@500;700&family=Kalam:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20261122o">
+</head>
+<body data-page="contact">
+  <!-- @layout:nav -->
+  <!-- ===== NAV ===== -->
+  <header class="nav" id="top">
+    <div class="wrap nav__inner">
+      <a href="index.html" class="logo" aria-label="MakeMeProto home">
+        <svg class="logo__nozzle" viewBox="0 0 28 36" aria-hidden="true"><rect x="3" y="2" width="22" height="14" rx="4"/><path d="M9 16h10l-3.5 7h-3Z"/><circle class="logo__drop" cx="14" cy="29" r="2.6"/></svg>
+        <span class="logo__text">make<b>me</b>proto</span>
+        <svg class="logo__fil" viewBox="0 0 200 24" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M3 2c0 10 6 15 22 15 30 0 60-5 100-5 30 0 50 2 60 6 6 2 10-4 4-6s-8 6 8 8"/></svg>
+      </a>
+      <nav class="nav__links" id="navLinks" aria-label="Main">
+        <a href="pricing.html" class="nav__quote">⚡ Instant price</a>
+        <a href="services.html">Services</a>
+        <a href="guide.html">Guide</a>
+        <a href="community.html" class="nav__new">Community <i class="hand" aria-hidden="true">new!</i></a>
+        <a href="about.html">About us</a>
+        <a href="contact.html" class="btn btn--sm btn--ink">Contact</a>
+      </nav>
+      <button type="button" class="langbtn" id="langBtn" aria-label="Switch language between Hinglish and English">
+        <span data-lang="hi">हिं</span><span data-lang="en">EN</span>
+      </button>
+      <button class="nav__toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
+        <span></span><span></span>
+      </button>
+    </div>
+    <div class="progress" aria-hidden="true"><i id="progress"></i></div>
+  </header>
+  <!-- @end -->
+  <main>
+
+    <h1 class="sr-only">Contact MakeMeProto</h1>
+
+    <!-- ===== CONTACT ===== -->
+    <section class="section section--ink" id="contact">
+      <div class="wrap contact">
+        <div class="contact__info">
+          <h2 data-en="Let&#x27;s &lt;span class=&quot;squiggle&quot;&gt;make&lt;/span&gt; it.">Chalo, <span class="squiggle">banate</span> hain.</h2>
+          <p>Tell us what you want to make. A real human (one of us two) usually replies within a <span class="circle-word circle-word--light">few hours</span>.</p>
+          <ul class="contact__list">
+            <li><span class="mono">WhatsApp</span><a href="#" data-wa="Hello 👋|Hi! I&#x27;d like to know more." data-phone-text>+91 XXXXX XXXXX</a></li>
+            <li><span class="mono">Email</span><a href="#" data-email>contact@makemeproto.com</a></li>
+            <li><span class="mono">Location</span><span data-city-full>Ahmedabad, Gujarat</span></li>
+            <li><span class="mono">Community</span><a href="https://chat.whatsapp.com/D55pQNBsJBY4H8kOEmGliL" target="_blank" rel="noopener">Join 3D Adda on WhatsApp</a></li>
+            <li><span class="mono">Instagram</span><a href="#" data-insta target="_blank" rel="noopener">@makemeproto</a></li>
+          </ul>
+        </div>
+
+        <div class="contact__formwrap">
+        <div class="proto" id="proto" aria-hidden="true">
+          <span class="proto__bubble hand" id="protoBubble" data-en="Hi! I&#x27;m Proto 👋">Hi! Main Proto hoon 👋</span>
+          <svg viewBox="0 0 120 110" class="proto__body">
+            <path class="proto__side" d="M98 26 112 14v62l-14 14Z"/>
+            <path class="proto__top" d="M22 26 36 14h76L98 26Z"/>
+            <rect class="proto__front" x="22" y="26" width="76" height="64" rx="6"/>
+            <path class="proto__lines" d="M22 46h76M22 66h76"/>
+            <g transform="translate(46 50)"><g class="proto__eye"><circle r="10" fill="#fff"/><circle class="proto__pupil" r="4.5"/></g></g>
+            <g transform="translate(74 50)"><g class="proto__eye"><circle r="10" fill="#fff"/><circle class="proto__pupil" r="4.5"/></g></g>
+            <path class="proto__mouth" d="M50 70q10 8 20 0"/>
+            <path class="proto__arm" d="M98 60c10-4 14-14 12-24"/>
+          </svg>
+        </div>
+        <form class="contact__form" id="contactForm">
+          <label class="field"><span>Your name</span><input type="text" id="cName" required autocomplete="name"></label>
+          <label class="field"><span>Phone</span><input type="tel" id="cPhone" required autocomplete="tel" inputmode="tel"></label>
+          <label class="field">
+            <span>What do you need?</span>
+            <select id="cService">
+              <option>3D printing (I have a file)</option>
+              <option>3D design + printing</option>
+              <option>Prototype for my product</option>
+              <option>Replacement part</option>
+              <option>Custom gift</option>
+              <option>Student project</option>
+              <option>Something else</option>
+            </select>
+          </label>
+          <label class="field"><span>Tell us more</span><textarea id="cMsg" rows="4" placeholder="Size, quantity, deadline, anything that helps…"></textarea></label>
+          <button type="submit" class="btn btn--accent btn--block">Send on WhatsApp</button>
+          <p class="contact__hint" id="contactHint">Opens WhatsApp with your message ready to send.</p>
+          <p class="hnote hand contact__promise" data-en="real humans reply here, no bots 🤞">hum sach mein reply karte hain, bot nahi hain 🤞</p>
+        </form>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- @layout:footer -->
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="wrap footer__inner">
+      <div>
+        <a href="index.html" class="logo logo--light">
+          <svg class="logo__nozzle" viewBox="0 0 28 36" aria-hidden="true"><rect x="3" y="2" width="22" height="14" rx="4"/><path d="M9 16h10l-3.5 7h-3Z"/><circle class="logo__drop" cx="14" cy="29" r="2.6"/></svg>
+          <span class="logo__text">make<b>me</b>proto</span>
+          <svg class="logo__fil" viewBox="0 0 200 24" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M3 2c0 10 6 15 22 15 30 0 60-5 100-5 30 0 50 2 60 6 6 2 10-4 4-6s-8 6 8 8"/></svg>
+        </a>
+        <p class="footer__tag">3D Design &amp; Printing Services<br><b data-en="Think it. Design it. Print it.">Socho. Design Karo. Print Karo.</b></p>
+      </div>
+      <nav class="footer__links" aria-label="Footer">
+        <a href="services.html">Services</a>
+        <a href="pricing.html">Instant price &amp; materials</a>
+        <a href="guide.html">Guide &amp; FAQ</a>
+        <a href="community.html">3D Adda</a>
+        <a href="about.html">About us</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <p class="footer__made hand">Made with ☕ + PLA by two friends in <span data-city>Ahmedabad</span>.</p>
+      <p class="footer__ps hand" data-en="P.S. If you scrolled all the way here, you definitely want something made. Let&#x27;s talk! 😄">P.S. Agar aap yahan tak scroll karke aa gaye, toh aap pakka kuch banwana chahte ho. Chalo, baat karte hain! 😄</p>
+      <div class="footer__social" aria-label="Follow MakeMeProto">
+        <a href="https://www.linkedin.com/company/makemeproto" target="_blank" rel="noopener" aria-label="MakeMeProto on LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9.5h4V21H3V9.5Zm7 0h3.8v1.6h.06c.53-1 1.84-2.06 3.79-2.06 4.05 0 4.8 2.67 4.8 6.13V21h-4v-5.1c0-1.22-.02-2.79-1.7-2.79-1.7 0-1.96 1.33-1.96 2.7V21h-4V9.5Z"/></svg></a>
+        <a href="https://instagram.com/makemeproto" target="_blank" rel="noopener" aria-label="MakeMeProto on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></svg></a>
+        <a href="mailto:contact@makemeproto.com" aria-label="Email contact@makemeproto.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+      <p class="footer__copy mono">© <span id="year">2026</span> MakeMeProto · <span data-city-full>Ahmedabad, Gujarat</span></p>
+      <p class="footer__love">Made in India 🇮🇳 with ❤️ by <a href="https://www.linkedin.com/in/bal-krishan-swami/" target="_blank" rel="noopener">Bal Krishan Swami</a></p>
+    </div>
+  </footer>
+  <!-- @end -->
+
+  <!-- @layout:floating -->
+  <!-- Proto, the guide who follows you around the site -->
+  <div class="guide right g-drop" id="guide">
+    <button type="button" class="guide__bot" id="guideBot" aria-label="Proto, your guide. Tap for a tip, drag to move him">
+      <span class="guide__hi hand" id="guideHi" aria-hidden="true"></span>
+      <span class="guide__zzz hand" aria-hidden="true"><i>z</i><i>z</i><i>Z</i></span>
+      <svg viewBox="0 0 120 110" class="proto__body" aria-hidden="true">
+        <g class="guide__head">
+          <path class="proto__side" d="M98 26 112 14v62l-14 14Z"/>
+          <path class="proto__top" d="M22 26 36 14h76L98 26Z"/>
+          <rect class="proto__front" x="22" y="26" width="76" height="64" rx="6"/>
+          <path class="proto__lines" d="M22 46h76M22 66h76"/>
+          <g class="guide__eye guide__eye--l" transform="translate(46 50)"><g class="proto__eye"><circle r="10" fill="#fff"/><circle class="proto__pupil" r="4.5"/></g><path class="guide__happy" d="M-8 2q8-10 16 0"/><path class="guide__shut" d="M-8 1h16"/></g>
+          <g class="guide__eye guide__eye--r" transform="translate(74 50)"><g class="proto__eye"><circle r="10" fill="#fff"/><circle class="proto__pupil" r="4.5"/></g><path class="guide__happy" d="M-8 2q8-10 16 0"/><path class="guide__shut" d="M-8 1h16"/></g>
+          <circle class="guide__blush" cx="36" cy="66" r="5"/><circle class="guide__blush" cx="84" cy="66" r="5"/>
+          <path class="proto__mouth guide__smile" d="M50 70q10 8 20 0"/>
+          <ellipse class="guide__mouthO" cx="60" cy="74" rx="6" ry="7"/>
+        </g>
+        <path class="proto__arm guide__armR" d="M98 60c10-4 14-14 12-24"/>
+        <path class="guide__arm2 guide__armL" d="M22 60c-10-4-14-14-12-24"/>
+      </svg>
+      <i class="guide__shadow"></i>
+    </button>
+    <div class="guide__bubble" id="guideBubble" role="status" aria-live="polite">
+      <button type="button" class="guide__x" id="guideX" aria-label="Hide tip">✕</button>
+      <p class="guide__text hand" id="guideText"></p>
+      <button type="button" class="guide__cta" id="guideCta" hidden></button>
+    </div>
+  </div>
+
+  <!-- Quick price button (shows after the hero) -->
+  <a href="pricing.html#quote" class="price-float" id="priceFloat">⚡ Instant price</a>
+
+  <!-- Floating WhatsApp button -->
+  <a href="#" class="wa-float" data-wa="General question|I have a 3D printing question." aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-2-1.2 7.5 7.5 0 0 1-1.4-1.7c-.1-.2 0-.4.1-.5l.4-.4.2-.4v-.4l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.1 5.1 0 0 0 1.1 2.7 11.6 11.6 0 0 0 4.4 3.9c1.6.7 2.3.8 3.1.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.3c0-.1-.2-.2-.5-.3Z"/></svg>
+  </a>
+  <!-- @end -->
+
+  <script src="js/main.js?v=20261122o"></script>
+</body>
+</html>

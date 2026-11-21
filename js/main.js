@@ -10,8 +10,8 @@ const CONFIG = {
   whatsapp: "918487072210",          // country code + number, digits only
   phoneText: "+91 84870 72210",      // how the number is shown on the page
   email: "contact@makemeproto.com",
-  city: "Gurugram",
-  cityFull: "Gurugram, Haryana",
+  city: "Ahmedabad",
+  cityFull: "Ahmedabad, Gujarat",
   instagram: "makemeproto",          // handle without @
   community: "https://chat.whatsapp.com/D55pQNBsJBY4H8kOEmGliL",                     // WhatsApp community / group invite link (leave "" to use a WhatsApp message instead)
   maxFileMb: 500,                    // biggest STL the quote calculator will read
@@ -118,6 +118,12 @@ function initNav() {
     const open = links.classList.toggle("is-open");
     toggle.setAttribute("aria-expanded", String(open));
   });
+  // mark the page you're on
+  const here = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+  $$("a", links).forEach((a) => {
+    const file = (a.getAttribute("href") || "").split("#")[0].toLowerCase();
+    if (file && file === here) a.setAttribute("aria-current", "page");
+  });
   $$("a", links).forEach((a) =>
     a.addEventListener("click", () => {
       links.classList.remove("is-open");
@@ -143,7 +149,7 @@ function initPrinter() {
   const layerNo = $("#layerNo");
   const status = $("#printStatus");
   const temp = $("#nozzleTemp");
-  const hero = $(".hero");
+  const hero = $("#play") || $(".hero");
   const visual = $(".hero__visual");
   const playBtn = $("#printPlay");
   const nameInput = $("#printName");
@@ -319,10 +325,18 @@ function initPrinter() {
   function showIdeas() {
     if (!ideas || modelKey !== "name" || !modelText) return;
     $("#nameIdeasName").textContent = modelText;
+    // laptops: the card replaces the generic "get it made" chips next to the printer, so it's on screen
+    // phones: it sits under the printer and scrolls into view
+    ideasHome ??= ideas.parentElement;
+    const side = $(".play__side"), makeit = $(".makeit"), wide = matchMedia("(min-width: 861px)").matches;
+    if (side && wide) { side.appendChild(ideas); if (makeit) makeit.hidden = true; }
+    else if (ideasHome && ideas.parentElement !== ideasHome) { ideasHome.appendChild(ideas); if (makeit) makeit.hidden = false; }
     ideas.hidden = false;
     ideas.classList.remove("pop"); void ideas.offsetWidth; ideas.classList.add("pop");
+    if (!(side && wide)) setTimeout(() => ideas.scrollIntoView({ behavior: "smooth", block: "nearest" }), 250);
   }
-  $("#nameIdeasX")?.addEventListener("click", () => { ideas.hidden = true; });
+  let ideasHome = null;   // where the card lives under the printer (set on first use)
+  $("#nameIdeasX")?.addEventListener("click", () => { ideas.hidden = true; const m = $(".makeit"); if (m) m.hidden = false; });
   $$("[data-idea]").forEach((b) => b.addEventListener("click", () => {
     const msg = waFormat("Name gift idea 🎁", [["Name to print", modelText], ["Product", b.dataset.idea]], "What would it cost?");
     window.open(waLink(msg), "_blank", "noopener");
@@ -607,6 +621,7 @@ function parseSTL(buffer) {
 /* ---------- Instant quote ---------- */
 function initQuote() {
   const drop = $("#drop"), file = $("#stlFile"), info = $("#fileInfo");
+  if (!drop || !file) return;
   const grams = $("#manualGrams"), material = $("#material"), qty = $("#qty");
   const infill = $("#infill"), infillVal = $("#infillVal");
   const out = {
@@ -746,14 +761,6 @@ function initQuote() {
     calc();
   });
 
-  // Floating "Instant price" pill: visible after the hero, hidden near the quote
-  const pill = $("#priceFloat"), heroEl = $(".hero");
-  const togglePill = () => {
-    const q = quoteSec.getBoundingClientRect(), h = heroEl.getBoundingClientRect();
-    pill.classList.toggle("show", h.bottom < 0 && (q.top > innerHeight || q.bottom < 0));
-  };
-  addEventListener("scroll", togglePill, { passive: true }); togglePill();
-
   grams.addEventListener("input", () => {
     if (grams.value) { // typing a weight replaces the file
       model = null; fileName = ""; file.value = "";
@@ -767,10 +774,26 @@ function initQuote() {
   calc();
 }
 
+/* ---------- Floating "Instant price" pill: shows once the first screen is passed, hides near the calculator ---------- */
+function initPriceFloat() {
+  const pill = $("#priceFloat");
+  if (!pill) return;
+  const top = $("#play") || $(".hero") || $("main > section"), quoteSec = $("#quote");
+  const toggle = () => {
+    const past = top ? top.getBoundingClientRect().bottom < 0 : scrollY > 400;
+    let nearQuote = false;
+    if (quoteSec) { const q = quoteSec.getBoundingClientRect(); nearQuote = q.top < innerHeight && q.bottom > 0; }
+    const foot = $(".footer"), atFooter = foot ? foot.getBoundingClientRect().top < innerHeight - 40 : false;   // don't cover the footer
+    pill.classList.toggle("show", past && !nearQuote && !atFooter);
+  };
+  addEventListener("scroll", toggle, { passive: true }); toggle();
+}
+
 /* ---------- Contact form → WhatsApp ---------- */
 function initContact() {
   const form = $("#contactForm");
   const hint = $("#contactHint");
+  if (!form) return;
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const name = $("#cName").value.trim();
@@ -834,15 +857,28 @@ function initProgress() {
 
 /* ---------- Hero doodles drift with the mouse ---------- */
 function initDoodles() {
-  const wrap = $("#doodles"), hero = $(".hero");
-  if (!wrap || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  hero.addEventListener("pointermove", (e) => {
-    if (e.pointerType === "touch") return;
-    const r = hero.getBoundingClientRect();
-    wrap.style.setProperty("--mx", ((e.clientX - r.left) / r.width - 0.5).toFixed(3));
-    wrap.style.setProperty("--my", ((e.clientY - r.top) / r.height - 0.5).toFixed(3));
+  // every screen with doodles (and the home collage) drifts with the mouse
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  $$(".doodles").forEach((wrap) => {
+    const sec = wrap.parentElement;
+    sec.addEventListener("pointermove", (e) => {
+      if (e.pointerType === "touch") return;
+      const r = sec.getBoundingClientRect();
+      sec.style.setProperty("--mx", ((e.clientX - r.left) / r.width - 0.5).toFixed(3));
+      sec.style.setProperty("--my", ((e.clientY - r.top) / r.height - 0.5).toFixed(3));
+    });
+    sec.addEventListener("pointerleave", () => { sec.style.setProperty("--mx", 0); sec.style.setProperty("--my", 0); });
   });
-  hero.addEventListener("pointerleave", () => { wrap.style.setProperty("--mx", 0); wrap.style.setProperty("--my", 0); });
+  // phones: a gentle drift from tilting / scrolling instead of the mouse
+  if (matchMedia("(hover: none)").matches) {
+    addEventListener("scroll", () => {
+      $$(".doodles").forEach((wrap) => {
+        const sec = wrap.parentElement, r = sec.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > innerHeight) return;
+        sec.style.setProperty("--my", (-(r.top / innerHeight)).toFixed(3));
+      });
+    }, { passive: true });
+  }
 }
 
 /* ---------- "Kiske liye?" tabs ---------- */
@@ -998,6 +1034,15 @@ function initGuide() {
         ? ["Psst! 👋 Main Proto. Printer pe tap karo, ya ye dabao 👇", "Psst! 👋 I'm Proto. Tap the printer, or tap here 👇"]
         : ["Psst! 👋 Main Proto. Printer pe mouse upar-neeche karo, ya ye dabao 👇", "Psst! 👋 I'm Proto. Move your mouse over the printer, or tap here 👇"]).concat([ { hi: "▶ Print karke dikhao", en: "▶ Show me a print", run: () => { scrollToPrinter(); setTimeout(() => P()?.print(), 400); } }]),
     services: ["Kuch bhi banwana ho, yahan se shuru karo 🛠️", "Whatever you need made, start here 🛠️"],
+    make: ["Jo aap pe fit baithe, wahi chuno 👆", "Tap the one that sounds like you 👆"],
+    intro: ["Neeche ek printer hai, khud chalake dekho 👇", "There's a printer just below, try it yourself 👇", { hi: "🖨️ Printer dikhao", en: "🖨️ Show me", run: () => $("#play")?.scrollIntoView({ behavior: "smooth" }) }],
+    hello: ["WhatsApp sabse fast hai, try karo 💬", "WhatsApp is fastest, give it a try 💬"],
+    "page-pricing": ["STL hai? Neeche daalo, price turant ⚡", "Got an STL? Drop it below for an instant price ⚡", { hi: "📂 STL chuno", en: "📂 Choose STL", run: () => $("#stlFile")?.click() }],
+    "page-services": ["Apna kaam chuno, baaki hum sambhal lenge 🛠️", "Pick what you need, we'll handle the rest 🛠️"],
+    "page-guide": ["Pehli baar print kar rahe ho? Yahan se shuru karo 📒", "First print? Start here 📒"],
+    "page-community": ["Printer hai? Adda join karo, free help 🧡", "Got a printer? Join the Adda, free help 🧡"],
+    "page-about": ["Hum dono se milo 👋 Polaroid pe tap karo", "Meet us both 👋 Tap a polaroid"],
+    "page-contact": ["Form bharo, WhatsApp khul jaayega 💬", "Fill the form and WhatsApp opens 💬"],
     uses: ["Apna type chuno: student, startup, ghar… 👆", "Pick who you are: student, startup, home… 👆"],
     process: ["Sirf 4 steps. Main bhi aise hi bana tha 😎", "Just 4 steps. That's how I was made too 😎"],
     quote: ["STL hai? Daalo, price turant milega ⚡", "Got an STL? Drop it in for an instant price ⚡", { hi: "📂 STL chuno", en: "📂 Choose STL", run: () => $("#stlFile")?.click() }],
@@ -1011,7 +1056,8 @@ function initGuide() {
     reviews: ["Pehla review aapka ho sakta hai ⭐", "The first review could be yours ⭐"],
     faq: ["Sawaal hai? Bindaas pucho 🙋", "Got questions? Ask away 🙋"],
   };
-  let current = "hero", quiet = false, hideT = 0, lastSaid = 0, dwellT = 0;
+  const pageKey = $("#play") ? "intro" : $(".hero") ? "hero" : "page-" + (document.body.dataset.page || "");
+  let shownKey = "", current = pageKey, quiet = false, hideT = 0, lastSaid = 0, dwellT = 0;
   const seen = new Set();
   // reading time: ~0.4 s a word + a calm buffer, between 6 and 15 seconds
   const readMs = (str, hasBtn) => Math.min(15000, Math.max(6000, str.split(/\s+/).length * 420 + 3500 + (hasBtn ? 3000 : 0)));
@@ -1029,7 +1075,7 @@ function initGuide() {
     bubble.classList.remove("show"); void bubble.offsetWidth; bubble.classList.add("show");
     window.fitGuideBubble?.();
     g.classList.remove("hop"); void g.offsetWidth; g.classList.add("hop");
-    seen.add(key); lastSaid = Date.now();
+    seen.add(key); lastSaid = Date.now(); shownKey = key;
     clearTimeout(hideT);
     hideT = setTimeout(hide, readMs(msg, !!btn));
   }
@@ -1047,7 +1093,7 @@ function initGuide() {
     say("hero", true);
   });
   // which section is in the middle of the screen?
-  const map = [[".hero", "hero"], ["#services", "services"], ["#uses", "uses"], ["#process", "process"], ["#quote", "quote"],
+  const map = [[".intro", "intro"], ["#play", "hero"], ["#make", "make"], ["#ourwork", "work"], ["#hello", "hello"], ["#services", "services"], ["#uses", "uses"], ["#process", "process"], ["#quote", "quote"],
     ["#prices", "prices"], ["#materials", "materials"], ["#fixer", "fixer"], ["#work", "work"], ["#makers", "makers"],
     ["#tips", "tips"], ["#adda", "adda"], ["#reviews", "reviews"], ["#faq", "faq"], ["#contact", "contact"]];
   if ("IntersectionObserver" in window) {
@@ -1057,6 +1103,7 @@ function initGuide() {
         const key = en.target.dataset.guide;
         if (key === current) return;
         current = key;
+        if (shownKey === "intro" && key !== "intro" && bubble.classList.contains("show")) hide();   // that tip was about getting here
         g.classList.toggle("away", key === "contact");   // Proto goes "home" to the contact form
         clearTimeout(dwellT);
         if (key === "contact" || seen.has(key)) return;  // each tip once; tap Proto to hear it again
@@ -1069,7 +1116,8 @@ function initGuide() {
   }
   // first tip: on laptops right away; on phones only once the printer is actually on screen
   const frameEl = $(".printer__frame");
-  if (innerWidth > 860 || !frameEl || !("IntersectionObserver" in window)) setTimeout(() => say("hero"), 3000);
+  if (pageKey !== "hero") { setTimeout(() => { if (!seen.has(pageKey) && current === pageKey) say(pageKey); }, 2500); }
+  else if (innerWidth > 860 || !frameEl || !("IntersectionObserver" in window)) setTimeout(() => say("hero"), 3000);
   else {
     const po = new IntersectionObserver((en) => {
       if (!en[0].isIntersecting) return;
@@ -1153,7 +1201,7 @@ function initGuideFun() {
 
   /* smart placement: when he talks, stand where the bubble covers the least real content */
   let pinned = false, tuckT = 0;
-  const IMPORTANT = "h1,h2,h3,.hero__lead,.hero__nofile,.hero__chips,.section__head p,.section__sub,.eyebrow,.btn,.hero__cta,input,select,textarea,.printer__frame,.shelf,.spools,.printer__readout,.card,.ex,.mat,.uses__panel,.uses__tabs,.quote__result,.drop,.compare,.notebook,.maker,.note,.fix,.tile,summary,.step,.nameideas,.nametag,.review__card,.adda__card,.contact__form";
+  const IMPORTANT = ".path,.play__title,.homecta__btns,.fixer__steps,.makeit,.snap,.chatmock,.intro__tag,h1,h2,h3,.hero__lead,.hero__nofile,.hero__chips,.section__head p,.section__sub,.eyebrow,.btn,.hero__cta,input,select,textarea,.printer__frame,.shelf,.spools,.printer__readout,.card,.ex,.mat,.uses__panel,.uses__tabs,.quote__result,.drop,.compare,.notebook,.maker,.note,.fix,.tile,summary,.step,.nameideas,.nametag,.review__card,.adda__card,.contact__form";
   function overlap(a, b) { const w = Math.min(a.right, b.right) - Math.max(a.left, b.left), h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top); return w > 0 && h > 0 ? w * h : 0; }
   function findSpot() {
     if (pinned || g.classList.contains("dragging") || g.classList.contains("away")) return;
@@ -1301,9 +1349,46 @@ function initProto() {
   } else proto.classList.add("is-up");
 }
 
+/* ---------- Home: glide between screen 1 (intro) and screen 2 (printer) on laptops ----------
+   Scroll down from the intro → glides to the printer. Scroll up at the printer → glides back to the top.
+   Everywhere else the page scrolls normally. Phones and small screens are never touched. */
+function initScreens() {
+  const play = $("#play"), intro = $(".intro");
+  if (!play || !intro) return;
+  const fits = matchMedia("(min-width: 861px) and (min-height: 640px) and (pointer: fine)");
+  const navH = () => $(".nav")?.offsetHeight || 72;
+  const playTop = () => Math.round(play.getBoundingClientRect().top + scrollY - navH());
+  let busy = false;
+  const glide = (y) => {
+    busy = true;
+    scrollTo({ top: y, behavior: "smooth" });
+    const t0 = performance.now();
+    const done = () => (Math.abs(scrollY - y) < 2 || performance.now() - t0 > 1000) ? setTimeout(() => { busy = false; settle = true; }, 120) : requestAnimationFrame(done);
+    requestAnimationFrame(done);
+  };
+  // a trackpad swipe keeps sending wheel events (momentum) after we glide: ignore them until the swipe ends
+  let lastWheel = 0, settle = false;
+  addEventListener("wheel", (e) => {
+    if (!fits.matches || e.ctrlKey || Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
+    const now = performance.now(), gap = now - lastWheel; lastWheel = now;
+    const pt = playTop(), y = scrollY;
+    if (busy) { e.preventDefault(); settle = true; return; }
+    if (settle) { if (gap < 220) { e.preventDefault(); return; } settle = false; }
+    if (e.deltaY > 0 && y < pt - 4) { e.preventDefault(); glide(pt); }                  // intro → printer
+    else if (e.deltaY < 0 && y > 4 && y <= pt + 4) { e.preventDefault(); glide(0); }    // printer → intro
+  }, { passive: false });
+  addEventListener("keydown", (e) => {
+    if (!fits.matches || busy || e.target.closest("input, textarea, select, [contenteditable]")) return;
+    const pt = playTop(), y = scrollY;
+    const down = ["PageDown", "ArrowDown", " "].includes(e.key) && !e.shiftKey, up = ["PageUp", "ArrowUp"].includes(e.key) || (e.key === " " && e.shiftKey);
+    if (down && y < pt - 4) { e.preventDefault(); glide(pt); }
+    else if (up && y > 4 && y <= pt + 4) { e.preventDefault(); glide(0); }
+  });
+}
+
 /* ---------- Reveal sections on scroll ---------- */
 function initReveal() {
-  const items = $$(".section__head, .adda__head, .makers__copy, .hero__copy, .contact__info, .fixer__copy, .tips__copy, .review__grid, .card, .step, .mat, .tile, .faq__list details, .why__list li");
+  const items = $$(".play__title, .section__head, .adda__head, .makers__copy, .hero__copy, .contact__info, .fixer__copy, .tips__copy, .review__grid, .card, .step, .mat, .tile, .faq__list details, .why__list li");
   if (!("IntersectionObserver" in window)) return;
   items.forEach((el) => el.classList.add("reveal"));
   const io = new IntersectionObserver((entries) => {
@@ -1324,6 +1409,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initPrinter();
   initQuote();
   initContact();
+  initPriceFloat();
+  initScreens();
   initUses();
   initExamples();
   initCompare();
