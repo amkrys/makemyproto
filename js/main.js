@@ -1159,7 +1159,9 @@ function initGuide() {
   }
   // first tip: on laptops right away; on phones only once the printer is actually on screen
   const frameEl = $(".printer__frame");
-  if (pageKey !== "hero") { setTimeout(() => { if (!seen.has(pageKey) && current === pageKey) say(pageKey); }, 2500); }
+  const firstTip = () => setTimeout(() => { if (!seen.has(pageKey) && current === pageKey) say(pageKey); }, 2500);
+  if (document.body.classList.contains("is-being-born")) addEventListener("mmp:born", () => { if (pageKey !== "hero") firstTip(); }, { once: true });
+  else if (pageKey !== "hero") firstTip();
   else if (innerWidth > 860 || !frameEl || !("IntersectionObserver" in window)) setTimeout(() => say("hero"), 3000);
   else {
     const po = new IntersectionObserver((en) => {
@@ -1429,6 +1431,157 @@ function initScreens() {
   });
 }
 
+/* ---------- First visit: Proto is "born" out of the logo ----------
+   The word "makemeproto" appears; the two o's of "proto" fly into place as his eyes while every other
+   letter swirls into his body. He opens his eyes for the first time, yawns and stretches, looks around
+   at the world, then flies to his corner and becomes the guide.
+   Plays once per visitor (localStorage), never with reduced motion, and can always be skipped.
+   Replay any time with ?intro in the address. */
+function initBirth() {
+  let seen = false;
+  try { seen = localStorage.getItem("mmp-born") === "1"; } catch (e) {}
+  const force = /[?&]intro\b/.test(location.search);
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if ((seen && !force) || (reduce && !force) || !Element.prototype.animate) return false;
+  const remember = () => { try { localStorage.setItem("mmp-born", "1"); } catch (e) {} };
+
+  document.body.classList.add("is-being-born");
+  const letters = "makemeproto".split("");
+  const ov = document.createElement("div");
+  ov.className = "born";
+  ov.setAttribute("role", "dialog");
+  ov.setAttribute("aria-label", "MakeMeProto intro");
+  ov.innerHTML = `
+    <div class="born__stage">
+      <p class="born__word" aria-label="makemeproto">${letters.map((c, i) => `<span class="born__l${i === 4 || i === 5 ? " born__l--me" : ""}" data-i="${i}">${c}</span>`).join("")}</p>
+      <svg class="born__bot" viewBox="0 0 120 110" aria-hidden="true">
+        <g class="born__armL"><path class="born__arm" d="M22 60c-10-4-14-14-12-24"/></g>
+        <g class="born__body">
+          <path class="proto__side" d="M98 26 112 14v62l-14 14Z"/>
+          <path class="proto__top" d="M22 26 36 14h76L98 26Z"/>
+          <rect class="proto__front" x="22" y="26" width="76" height="64" rx="6"/>
+          <path class="proto__lines" d="M22 46h76M22 66h76"/>
+          <g class="born__eye" transform="translate(46 50)"><circle r="10" fill="#fff"/><circle class="proto__pupil born__pupil" r="4.5"/><rect class="born__lid" x="-11" y="-11" width="22" height="22" rx="3"/></g>
+          <g class="born__eye" transform="translate(74 50)"><circle r="10" fill="#fff"/><circle class="proto__pupil born__pupil" r="4.5"/><rect class="born__lid" x="-11" y="-11" width="22" height="22" rx="3"/></g>
+          <path class="proto__mouth born__smile" d="M50 72q10 8 20 0"/>
+          <ellipse class="born__yawn" cx="60" cy="76" rx="9" ry="10"/>
+        </g>
+        <g class="born__armR"><path class="born__arm" d="M98 60c10-4 14-14 12-24"/></g>
+      </svg>
+      <p class="born__say hand" aria-live="polite"></p>
+    </div>
+    <button type="button" class="born__skip">${T("Skip karo ›", "Skip ›")}</button>`;
+  document.body.appendChild(ov);
+
+  const $o = (sel) => ov.querySelector(sel), $$o = (sel) => [...ov.querySelectorAll(sel)];
+  const spans = $$o(".born__l"), bot = $o(".born__bot"), say = $o(".born__say");
+  const eyeIdx = [8, 10];                       // the two o's in "proto"
+  const anims = [];
+  const A = (el, kf, opt) => { const a = el.animate(kf, { fill: "forwards", easing: "cubic-bezier(.3,1.3,.5,1)", ...opt }); anims.push(a); return a; };
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  let done = false;
+  const talk = (hi, en) => { say.textContent = T(hi, en); A(say, [{ opacity: 0, transform: "translate(-50%, 8px) scale(.9)" }, { opacity: 1, transform: "translate(-50%, 0) scale(1)" }], { duration: 300 }); };
+
+  async function finish(fast) {
+    if (done) return; done = true;
+    remember();
+    anims.forEach((a) => { try { a.finish(); } catch (e) {} });
+    const target = $("#guideBot");
+    const g = $("#guide");
+    if (!fast && target) {
+      // fly into the guide's corner
+      const from = bot.getBoundingClientRect(), to = target.getBoundingClientRect();
+      const dx = to.left + to.width / 2 - (from.left + from.width / 2), dy = to.top + to.height / 2 - (from.top + from.height / 2);
+      say.style.opacity = 0;
+      ov.animate([{ backgroundColor: getComputedStyle(ov).backgroundColor }, { backgroundColor: "transparent" }], { duration: 700, fill: "forwards" });
+      $$o(".born__skip").forEach((b) => (b.style.opacity = 0));
+      await bot.animate([{ transform: "translate(0,0) scale(1) rotate(0)" }, { transform: `translate(${dx * .5}px, ${dy * .5 - 60}px) scale(.7) rotate(-12deg)`, offset: .55 },
+        { transform: `translate(${dx}px, ${dy}px) scale(${to.width / from.width}) rotate(0)` }], { duration: 900, easing: "cubic-bezier(.5,0,.3,1)", fill: "forwards" }).finished;
+    } else {
+      await ov.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, fill: "forwards" }).finished;
+    }
+    ov.remove();
+    document.body.classList.remove("is-being-born");
+    g?.classList.remove("hop"); void g?.offsetWidth; g?.classList.add("hop");
+    window.dispatchEvent(new Event("mmp:born"));
+  }
+  $o(".born__skip").addEventListener("click", () => finish(true));
+  ov.addEventListener("click", (e) => { if (e.target === ov) finish(true); });
+  addEventListener("keydown", function k(e) { if (e.key === "Escape") { removeEventListener("keydown", k); finish(true); } });
+
+  (async () => {
+    // 1. the word writes itself
+    spans.forEach((sp, i) => A(sp, [{ opacity: 0, transform: "translateY(30px) scale(.6) rotate(-8deg)" }, { opacity: 1, transform: "none" }], { duration: 420, delay: 60 * i }));
+    await wait(60 * spans.length + 650);
+    if (done) return;
+    // the o's notice each other
+    eyeIdx.forEach((i) => A(spans[i], [{ transform: "none" }, { transform: "translateY(-10px) scale(1.15)" }, { transform: "none" }], { duration: 500, easing: "ease-in-out" }));
+    await wait(650);
+    if (done) return;
+
+    // 2. morph: measure where the eyes and body will be, then fly the letters there
+    bot.style.opacity = 0; bot.style.transform = "none";
+    const bb = bot.getBoundingClientRect();
+    const eyes = $$o(".born__eye").map((e) => e.getBoundingClientRect());
+    const cx = bb.left + bb.width * 0.5, cy = bb.top + bb.height * 0.53;
+    spans.forEach((sp, i) => {
+      const r = sp.getBoundingClientRect(), mx = r.left + r.width / 2, my = r.top + r.height / 2;
+      const k = eyeIdx.indexOf(i);
+      if (k >= 0) {
+        const e = eyes[k], ex = e.left + e.width / 2, ey = e.top + e.height / 2, sc = e.height / (r.height * .62);
+        sp.classList.add("born__l--eye");
+        A(sp, [{ transform: "none" }, { transform: `translate(${(ex - mx) * .5}px, ${(ey - my) * .5 - 70}px) scale(${(1 + sc) / 2}) rotate(${k ? 180 : -180}deg)`, offset: .55 },
+          { transform: `translate(${ex - mx}px, ${ey - my}px) scale(${sc}) rotate(${k ? 360 : -360}deg)` }], { duration: 1000, delay: 200, easing: "cubic-bezier(.5,0,.3,1)" });
+      } else {
+        const spin = (i % 2 ? 1 : -1) * (120 + i * 18);
+        A(sp, [{ transform: "none", opacity: 1 }, { transform: `translate(${(cx - mx) * .6}px, ${(cy - my) * .6 - 40}px) rotate(${spin / 2}deg) scale(.8)`, opacity: 1, offset: .5 },
+          { transform: `translate(${cx - mx}px, ${cy - my}px) rotate(${spin}deg) scale(.15)`, opacity: 0 }], { duration: 850, delay: 40 * Math.abs(i - 7), easing: "cubic-bezier(.5,0,.4,1)" });
+      }
+    });
+    A(bot, [{ opacity: 0, transform: "scale(.2) rotate(-25deg)" }, { opacity: 1, transform: "scale(1.12) rotate(6deg)", offset: .7 }, { opacity: 1, transform: "scale(1) rotate(0)" }], { duration: 750, delay: 550 });
+    await wait(1300);
+    if (done) return;
+    // the o's sit as eyes for a beat, then become the real eyes, which start closed (newborn)
+    await wait(350);
+    if (done) return;
+    eyeIdx.forEach((i) => A(spans[i], [{ opacity: 1 }, { opacity: 0 }], { duration: 250 }));
+    await wait(500);
+    if (done) return;
+
+    // 3. eyes open for the first time: flutter, then wide
+    const lids = $$o(".born__lid");
+    lids.forEach((l) => A(l, [{ transform: "scaleY(1)" }, { transform: "scaleY(.55)", offset: .3 }, { transform: "scaleY(1)", offset: .45 }, { transform: "scaleY(.35)", offset: .75 }, { transform: "scaleY(0)" }],
+      { duration: 1100, easing: "ease-in-out" }));
+    await wait(1200);
+    if (done) return;
+    // 4. big yawn and stretch
+    talk("Uaaaah… 🥱", "Yaaawn… 🥱");
+    A($o(".born__smile"), [{ opacity: 1 }, { opacity: 0 }], { duration: 150 });
+    A($o(".born__yawn"), [{ transform: "scale(0)", opacity: 1 }, { transform: "scale(1.3, 1.5)", opacity: 1, offset: .5 }, { transform: "scale(1.15, 1.3)", opacity: 1, offset: .8 }, { transform: "scale(0)", opacity: 0 }], { duration: 1500, easing: "ease-in-out" });
+    lids.forEach((l) => A(l, [{ transform: "scaleY(0)" }, { transform: "scaleY(.8)", offset: .45 }, { transform: "scaleY(.8)", offset: .75 }, { transform: "scaleY(0)" }], { duration: 1500, easing: "ease-in-out" }));
+    A($o(".born__armL"), [{ transform: "rotate(0)" }, { transform: "rotate(40deg)", offset: .5 }, { transform: "rotate(30deg)", offset: .8 }, { transform: "rotate(0)" }], { duration: 1500, easing: "ease-in-out" });
+    A($o(".born__armR"), [{ transform: "rotate(0)" }, { transform: "rotate(-40deg)", offset: .5 }, { transform: "rotate(-30deg)", offset: .8 }, { transform: "rotate(0)" }], { duration: 1500, easing: "ease-in-out" });
+    A($o(".born__body"), [{ transform: "scale(1)" }, { transform: "scale(1.05, .92)", offset: .5 }, { transform: "scale(1)" }], { duration: 1500, easing: "ease-in-out" });
+    await wait(1550);
+    if (done) return;
+    A($o(".born__smile"), [{ opacity: 0 }, { opacity: 1 }], { duration: 200 });
+
+    // 5. first look at the world
+    talk("Arre wah… duniya! 👀", "Whoa… the world! 👀");
+    $$o(".born__pupil").forEach((p) => A(p, [{ transform: "translate(0,0)" }, { transform: "translate(-4px,-1px)", offset: .25 }, { transform: "translate(-4px,-1px)", offset: .45 },
+      { transform: "translate(4px,-1px)", offset: .7 }, { transform: "translate(4px,-1px)", offset: .85 }, { transform: "translate(0,0)" }], { duration: 1500, easing: "ease-in-out" }));
+    A(bot, [{ transform: "rotate(0)" }, { transform: "rotate(-6deg)", offset: .3 }, { transform: "rotate(6deg)", offset: .7 }, { transform: "rotate(0)" }], { duration: 1500, easing: "ease-in-out" });
+    await wait(1550);
+    if (done) return;
+    lids.forEach((l) => A(l, [{ transform: "scaleY(0)" }, { transform: "scaleY(1)", offset: .5 }, { transform: "scaleY(0)" }], { duration: 260 }));
+    talk("Namaste! Main Proto 👋", "Hi! I'm Proto 👋");
+    A(bot, [{ transform: "translateY(0)" }, { transform: "translateY(-22px)", offset: .4 }, { transform: "translateY(0)" }], { duration: 550, easing: "cubic-bezier(.3,1.6,.5,1)" });
+    await wait(1300);
+    finish(false);
+  })();
+  return true;
+}
+
 /* ---------- Reveal sections on scroll ---------- */
 function initReveal() {
   const items = $$(".play__title, .section__head, .adda__head, .makers__copy, .hero__copy, .contact__info, .fixer__copy, .tips__copy, .review__grid, .card, .step, .mat, .tile, .faq__list details, .why__list li");
@@ -1445,6 +1598,7 @@ function initReveal() {
 document.addEventListener("DOMContentLoaded", () => {
   applyConfig();
   initLang();
+  initBirth();
   initThemer();
   initProgress();
   initDoodles();

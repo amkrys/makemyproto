@@ -1835,3 +1835,29 @@ input[type="range"] { accent-color: var(--accent); width: 100%; }
 }
 @media (max-width: 400px) { .footer__cols { gap: 24px 20px; } }
 @media (max-width: 560px) { .footer__reach { grid-column: 1 / -1; } .footer__reach a { word-break: normal; } }
+
+/* v33: first visit — Proto is born out of the logo */
+.born { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; background: var(--paper);
+  background-image: radial-gradient(var(--line) 1px, transparent 1.2px); background-size: 18px 18px; cursor: default; }
+.born__stage { position: relative; display: grid; place-items: center; width: min(92vw, 900px); height: min(70vh, 520px); }
+.born__word { position: absolute; margin: 0; font: 700 clamp(3.4rem, 13vw, 9rem)/1 var(--f-logo); color: var(--ink); letter-spacing: -.01em; white-space: nowrap; }
+.born__l { display: inline-block; will-change: transform, opacity; }
+.born__l--me { color: var(--accent); }
+.born__bot { position: absolute; width: clamp(170px, 30vw, 260px); height: auto; overflow: visible; opacity: 0; will-change: transform; }
+.born__body { transform-box: fill-box; transform-origin: 50% 100%; }
+.born__armL, .born__armR { transform-box: view-box; }
+.born__armL { transform-origin: 22px 60px; }
+.born__armR { transform-origin: 98px 60px; }
+.born__arm { fill: none; stroke: var(--accent-ink); stroke-width: 6; stroke-linecap: round; }
+.born__lid { fill: var(--accent); transform-box: fill-box; transform-origin: 50% 0; }
+.born__pupil { transform-box: fill-box; }
+.born__yawn { fill: var(--ink); opacity: 0; transform-box: fill-box; transform-origin: 50% 50%; }
+.born__say { position: absolute; left: 50%; top: calc(50% + clamp(100px, 17vw, 150px)); transform: translateX(-50%); margin: 0; opacity: 0; white-space: nowrap;
+  font-size: clamp(1.4rem, 3.2vw, 2rem); color: var(--accent-ink); }
+.born__skip { position: absolute; right: clamp(16px, 3vw, 32px); bottom: clamp(16px, 3vw, 32px); font: 600 .9rem/1 var(--f-body); color: var(--ink-2); background: var(--white);
+  border: 1.5px solid var(--line); border-radius: 999px; padding: .7em 1.2em; cursor: pointer; transition: border-color .2s, color .2s, opacity .2s; }
+.born__skip:hover { border-color: var(--ink); color: var(--ink); }
+body.is-being-born { overflow: hidden; }
+body.is-being-born .guide, body.is-being-born .wa-float, body.is-being-born .price-float { opacity: 0 !important; }
+.born__word { z-index: 2; }
+.born__l--eye { position: relative; z-index: 3; }
