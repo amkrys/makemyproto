@@ -1713,3 +1713,11 @@ input[type="range"] { accent-color: var(--accent); width: 100%; }
 .footer__love { grid-column: 1 / -1; margin: -12px 0 0; text-align: center; font-size: .9rem; color: #a29d91; }
 .footer__love a { color: var(--paper); text-decoration: none; border-bottom: 1px dashed currentColor; }
 .footer__love a:hover { color: var(--accent); }
+
+/* v30: footer — everything under the logo/links row is centred */
+.footer__social { justify-content: center; }
+.footer__made, .footer__ps, .footer__copy, .footer__love { text-align: center; }
+.footer__ps { margin-inline: auto; transform: none; }
+.footer__copy { padding-bottom: 0; }
+.footer__love { margin-top: -18px; }
+@media (max-width: 860px) { .footer { padding-bottom: 104px; } }

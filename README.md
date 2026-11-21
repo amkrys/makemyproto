@@ -2,7 +2,7 @@
 
 # MakeMeProto website
 
-**Socho. Design Karo. Print Karo.** · 3D design & 3D printing, Gurugram
+**Socho. Design Karo. Print Karo.** · 3D design & 3D printing, Ahmedabad
 
 A one-page website for MakeMeProto (3D design & 3D printing services). Plain HTML, CSS and JavaScript, with nothing to install.
 

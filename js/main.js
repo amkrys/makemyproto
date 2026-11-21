@@ -10,8 +10,8 @@ const CONFIG = {
   whatsapp: "918487072210",          // country code + number, digits only
   phoneText: "+91 84870 72210",      // how the number is shown on the page
   email: "contact@makemeproto.com",
-  city: "Gurugram",
-  cityFull: "Gurugram, Haryana",
+  city: "Ahmedabad",
+  cityFull: "Ahmedabad, Gujarat",
   instagram: "makemeproto",          // handle without @
   community: "https://chat.whatsapp.com/D55pQNBsJBY4H8kOEmGliL",                     // WhatsApp community / group invite link (leave "" to use a WhatsApp message instead)
   maxFileMb: 500,                    // biggest STL the quote calculator will read
