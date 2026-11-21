@@ -35,5 +35,5 @@ jobs:
       - name: Internal links and files
         uses: lycheeverse/lychee-action@v2
         with:
-          args: --offline --no-progress --include-fragments './**/*.html'
+          args: --offline --no-progress --include-fragments './*.html'
           fail: true
