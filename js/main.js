@@ -1347,6 +1347,43 @@ function initProto() {
   } else proto.classList.add("is-up");
 }
 
+/* ---------- Home: glide between screen 1 (intro) and screen 2 (printer) on laptops ----------
+   Scroll down from the intro → glides to the printer. Scroll up at the printer → glides back to the top.
+   Everywhere else the page scrolls normally. Phones and small screens are never touched. */
+function initScreens() {
+  const play = $("#play"), intro = $(".intro");
+  if (!play || !intro) return;
+  const fits = matchMedia("(min-width: 861px) and (min-height: 640px) and (pointer: fine)");
+  const navH = () => $(".nav")?.offsetHeight || 72;
+  const playTop = () => Math.round(play.getBoundingClientRect().top + scrollY - navH());
+  let busy = false;
+  const glide = (y) => {
+    busy = true;
+    scrollTo({ top: y, behavior: "smooth" });
+    const t0 = performance.now();
+    const done = () => (Math.abs(scrollY - y) < 2 || performance.now() - t0 > 1000) ? setTimeout(() => { busy = false; settle = true; }, 120) : requestAnimationFrame(done);
+    requestAnimationFrame(done);
+  };
+  // a trackpad swipe keeps sending wheel events (momentum) after we glide: ignore them until the swipe ends
+  let lastWheel = 0, settle = false;
+  addEventListener("wheel", (e) => {
+    if (!fits.matches || e.ctrlKey || Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
+    const now = performance.now(), gap = now - lastWheel; lastWheel = now;
+    const pt = playTop(), y = scrollY;
+    if (busy) { e.preventDefault(); settle = true; return; }
+    if (settle) { if (gap < 220) { e.preventDefault(); return; } settle = false; }
+    if (e.deltaY > 0 && y < pt - 4) { e.preventDefault(); glide(pt); }                  // intro → printer
+    else if (e.deltaY < 0 && y > 4 && y <= pt + 4) { e.preventDefault(); glide(0); }    // printer → intro
+  }, { passive: false });
+  addEventListener("keydown", (e) => {
+    if (!fits.matches || busy || e.target.closest("input, textarea, select, [contenteditable]")) return;
+    const pt = playTop(), y = scrollY;
+    const down = ["PageDown", "ArrowDown", " "].includes(e.key) && !e.shiftKey, up = ["PageUp", "ArrowUp"].includes(e.key) || (e.key === " " && e.shiftKey);
+    if (down && y < pt - 4) { e.preventDefault(); glide(pt); }
+    else if (up && y > 4 && y <= pt + 4) { e.preventDefault(); glide(0); }
+  });
+}
+
 /* ---------- Reveal sections on scroll ---------- */
 function initReveal() {
   const items = $$(".play__title, .section__head, .adda__head, .makers__copy, .hero__copy, .contact__info, .fixer__copy, .tips__copy, .review__grid, .card, .step, .mat, .tile, .faq__list details, .why__list li");
@@ -1371,6 +1408,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initQuote();
   initContact();
   initPriceFloat();
+  initScreens();
   initUses();
   initExamples();
   initCompare();
