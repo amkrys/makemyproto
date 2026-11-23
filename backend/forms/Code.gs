@@ -261,12 +261,38 @@ function ensureHeaders_(ss) {
 
 function notify_(b, ref, saved) {
   if (!SETTINGS.notifyEmail) return;
+  let mail;
   try {
     const ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty("SHEET_ID"));
-    const when = Utilities.formatDate(new Date(), "Asia/Kolkata", "EEE d MMM yyyy · h:mm a");
-    const mail = buildEmail(b, ref, saved, ss.getUrl() + "#gid=" + ss.getSheetByName(TAB_TITLES[b.form]).getSheetId(), when);
-    MailApp.sendEmail({ to: SETTINGS.notifyEmail, subject: mail.subject, body: mail.text, htmlBody: mail.html, name: "MakeMeProto Website" });
-  } catch (e) { console.warn("mail", e); }
+    const when = Utilities.formatDate(new Date(), "Asia/Kolkata", "EEE d MMM yyyy, h:mm a");
+    mail = buildEmail(b, ref, saved, ss.getUrl() + "#gid=" + ss.getSheetByName(TAB_TITLES[b.form]).getSheetId(), when);
+    MailApp.sendEmail({ to: SETTINGS.notifyEmail, subject: mail.subject, body: mail.text, htmlBody: mail.html, name: "MakeMeProto Website", replyTo: SETTINGS.notifyEmail });
+  } catch (e) {
+    logProblem_("Email (designed) failed for " + ref, e);
+    try {   // fall back to a plain email so the alert still arrives
+      MailApp.sendEmail(SETTINGS.notifyEmail, (mail && mail.subject) || ("New entry " + ref), (mail && mail.text) || JSON.stringify(b.fields || {}, null, 2));
+    } catch (e2) { logProblem_("Email (plain) failed for " + ref, e2); }
+  }
+}
+
+// Problems go to a "Log" tab in the sheet, so nothing fails silently
+function logProblem_(what, err) {
+  console.warn(what, err);
+  try {
+    const ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty("SHEET_ID"));
+    const sh = ss.getSheetByName("Log") || ss.insertSheet("Log");
+    if (sh.getLastRow() === 0) sh.appendRow(["When", "What", "Details"]);
+    sh.appendRow([Utilities.formatDate(new Date(), "Asia/Kolkata", "dd MMM yyyy, HH:mm"), what, String(err && err.message || err)]);
+  } catch (e) {}
+}
+
+/* Run this from the editor (pick "testEmail" → Run) to check alert emails arrive.
+   It sends one sample quote email and shows how many emails you can still send today. */
+function testEmail() {
+  Logger.log("Emails left today: " + MailApp.getRemainingDailyQuota());
+  notify_({ form: "quote", source: "makemeproto.com", fields: { name: "Test Customer", phone: "9876543210", material: "PLA", infill: "20%", colour: "Orange",
+    quantity: 1, weight: "50 g", size: "60 × 40 × 30 mm", estimate: "₹300", notes: "This is a test email from testEmail()." } }, "Q-TEST", { links: [], files: [], skipped: 0 });
+  Logger.log("Sent to " + SETTINGS.notifyEmail + ". Check the inbox and the spam folder. Problems, if any, are in the sheet's Log tab.");
 }
 
 /* ------------------------- The alert email (pure, previewed in tests) ------------------------- */
