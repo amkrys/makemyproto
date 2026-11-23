@@ -199,7 +199,7 @@ function driveFull_() {
 
 /* ------------------------- Saving ------------------------- */
 function saveFiles_(b, ref, files) {
-  const out = { links: [], skipped: 0, reason: "" };
+  const out = { links: [], files: [], skipped: 0, reason: "" };
   if (!files.length) return out;
   if (b._noFiles || driveFull_()) {
     out.skipped = files.length; out.reason = b._noFiles ? "daily upload limit" : "Drive almost full";
@@ -216,6 +216,7 @@ function saveFiles_(b, ref, files) {
     const file = folder.createFile(blob);        // private: only the MakeMeProto account can open it
     file.setDescription(ref + " · " + clean(b.fields.name, 80) + " · " + digits(b.fields.phone));
     out.links.push(file.getUrl());
+    out.files.push({ name: f.name, url: file.getUrl(), kb: Math.max(1, Math.round(bytes.length / 1024)) });
   });
   return out;
 }
@@ -248,16 +249,105 @@ function appendRow_(b, ref, saved) {
 function notify_(b, ref, saved) {
   if (!SETTINGS.notifyEmail) return;
   try {
-    const f = b.fields || {}, phone = digits(f.phone), wa = "https://wa.me/" + (phone.length === 10 ? "91" + phone : phone);
-    const lines = Object.keys(f).filter((k) => clean(f[k])).map((k) => k + ": " + clean(f[k], 1000));
     const ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty("SHEET_ID"));
-    MailApp.sendEmail({
-      to: SETTINGS.notifyEmail,
-      subject: "🧾 New " + TAB_TITLES[b.form].replace(/s$/, "") + " · " + ref + " · " + clean(f.name, 40) + (/test|localhost|github\.io|file/i.test(String(b.source)) ? " [TEST]" : ""),
-      body: lines.join("\n") + "\n\nFiles:\n" + (saved.links.join("\n") || "none") + (saved.skipped ? "\n⚠️ " + saved.skipped + " not saved: " + saved.reason : "") +
-        "\n\nReply on WhatsApp: " + wa + "\nSheet: " + ss.getUrl() + "\nFrom: " + clean(b.source, 80),
-    });
+    const when = Utilities.formatDate(new Date(), "Asia/Kolkata", "EEE d MMM yyyy · h:mm a");
+    const mail = buildEmail(b, ref, saved, ss.getUrl() + "#gid=" + ss.getSheetByName(TAB_TITLES[b.form]).getSheetId(), when);
+    MailApp.sendEmail({ to: SETTINGS.notifyEmail, subject: mail.subject, body: mail.text, htmlBody: mail.html, name: "MakeMeProto Website" });
   } catch (e) { console.warn("mail", e); }
+}
+
+/* ------------------------- The alert email (pure, previewed in tests) ------------------------- */
+const MAIL_KIND = {
+  quote:   { title: "New quote request", emoji: "🧾", color: "#FF5A1F" },
+  contact: { title: "New message",       emoji: "👋", color: "#3557FF" },
+  careers: { title: "New job application", emoji: "💼", color: "#7A3FE6" },
+};
+const MAIL_LABELS = {
+  quote:   [["phone", "WhatsApp"], ["material", "Material"], ["colour", "Colour"], ["quantity", "Quantity"], ["infill", "Infill"], ["weight", "Weight"], ["size", "Size"], ["file", "STL file"], ["notes", "Notes"]],
+  contact: [["phone", "Phone"], ["service", "Looking for"], ["message", "Message"]],
+  careers: [["phone", "Phone"], ["email", "Email"], ["city", "City"], ["portfolio", "Portfolio"], ["why", "Why them"]],
+};
+
+function buildEmail(b, ref, saved, sheetUrl, when) {
+  const f = b.fields || {}, kind = MAIL_KIND[b.form], esc = (v) => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const val = (k, n) => clean(f[k], n || 1500);
+  const test = /test|localhost|github\.io|file/i.test(String(b.source));
+  const name = val("name", 80), first = name.split(/\s+/)[0] || "there";
+  const phone = digits(f.phone), intl = phone.length === 10 ? "91" + phone : phone;
+  const pretty = phone.length === 10 ? "+91 " + phone.slice(0, 5) + " " + phone.slice(5) : "+" + phone;
+  const hello = {
+    quote: `Hi ${first}! 👋 MakeMeProto here. Thanks for your quote request (${ref}). `,
+    contact: `Hi ${first}! 👋 MakeMeProto here, replying to your message (${ref}). `,
+    careers: `Hi ${first}! 👋 MakeMeProto here. Thanks for applying for ${val("role", 60) || "a role"} (${ref}). `,
+  }[b.form];
+  const wa = "https://wa.me/" + intl + "?text=" + encodeURIComponent(hello);
+  const files = saved.files || [];
+  const subject = `${kind.emoji} ${kind.title} · ${name || "someone"} · ${ref}` + (b.form === "quote" && val("estimate") ? ` · ${val("estimate", 40)}` : "") + (test ? " [TEST]" : "");
+
+  // rows of details
+  const rows = MAIL_LABELS[b.form].filter(([k]) => val(k)).map(([k, label]) => {
+    let v = esc(val(k));
+    if (k === "phone") v = `<a href="${wa}" style="color:#0b6a45;text-decoration:none;font-weight:600">${esc(pretty)}</a>`;
+    else if (k === "email") v = `<a href="mailto:${esc(val(k))}" style="color:#1a1a1a">${v}</a>`;
+    else if (k === "portfolio" && /^https?:\/\//i.test(val(k))) v = `<a href="${esc(val(k))}" style="color:#1a1a1a">${v}</a>`;
+    else v = v.replace(/\n/g, "<br>");
+    return `<tr><td style="padding:10px 0;border-bottom:1px solid #EFE8DA;width:120px;vertical-align:top;font:600 11px/1.4 Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8a857a">${label}</td>
+      <td style="padding:10px 0;border-bottom:1px solid #EFE8DA;vertical-align:top;font:15px/1.5 Arial,sans-serif;color:#1a1a1a">${v}</td></tr>`;
+  }).join("");
+
+  const highlight = b.form === "quote" && val("estimate") ? `
+    <tr><td style="padding:0 28px 6px">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#141414;border-radius:14px"><tr><td style="padding:18px 20px">
+        <div style="font:600 11px/1 Arial,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#a8a296">Website estimate</div>
+        <div style="font:800 30px/1.2 Arial,sans-serif;color:#FF5A1F;margin-top:6px">${esc(val("estimate", 40))}</div>
+        <div style="font:13px/1.4 Arial,sans-serif;color:#d9d3c7;margin-top:4px">${esc([val("quantity") && val("quantity") + " ×", val("material"), val("infill") && val("infill") + " infill", val("weight")].filter(Boolean).join(" · "))}</div>
+      </td></tr></table>
+    </td></tr>` : "";
+
+  const fileList = files.length || saved.skipped ? `
+    <tr><td style="padding:18px 28px 0">
+      <div style="font:600 11px/1 Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8a857a;margin-bottom:10px">Attachments</div>
+      ${files.map((x) => `<a href="${esc(x.url)}" style="display:block;margin:0 0 8px;padding:12px 14px;border:1.5px solid #EFE8DA;border-radius:12px;background:#FBF8F2;text-decoration:none;color:#1a1a1a;font:14px/1.3 Arial,sans-serif">
+        📎 <b>${esc(x.name)}</b> <span style="color:#8a857a">· ${x.kb >= 1024 ? (x.kb / 1024).toFixed(1) + " MB" : x.kb + " KB"} · open in Drive →</span></a>`).join("")}
+      ${saved.skipped ? `<div style="padding:12px 14px;border-radius:12px;background:#FFF1E8;color:#b4400f;font:14px/1.4 Arial,sans-serif">⚠️ ${saved.skipped} file(s) not saved: ${esc(saved.reason)}</div>` : ""}
+    </td></tr>` : "";
+
+  const btn = (href, text, bg, fg) => `<a href="${href}" style="display:inline-block;margin:0 8px 8px 0;padding:13px 20px;border-radius:999px;background:${bg};color:${fg};font:700 14px/1 Arial,sans-serif;text-decoration:none">${text}</a>`;
+
+  const html = `<!doctype html><html><body style="margin:0;padding:0;background:#F6F1E7">
+<div style="display:none;max-height:0;overflow:hidden">${esc(name)} · ${esc(b.form === "quote" ? val("estimate", 40) || "quote request" : b.form === "careers" ? val("role", 60) : val("service", 60))} · ${esc(ref)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F6F1E7"><tr><td align="center" style="padding:28px 12px">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px">
+    <tr><td style="padding:0 6px 14px;font:800 22px/1 Arial,sans-serif;color:#141414">make<span style="color:#FF5A1F">me</span>proto
+      ${test ? `<span style="display:inline-block;vertical-align:middle;margin-left:8px;padding:5px 9px;border-radius:999px;background:#FFE58A;color:#5c4a00;font:700 10px/1 Arial,sans-serif;letter-spacing:.08em">TEST SITE</span>` : ""}</td></tr>
+    <tr><td style="background:#ffffff;border-radius:20px;border:1px solid #E8E0CF;overflow:hidden">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        <tr><td style="height:6px;background:${kind.color};font-size:0;line-height:0">&nbsp;</td></tr>
+        <tr><td style="padding:26px 28px 18px">
+          <div style="display:inline-block;padding:6px 11px;border-radius:999px;background:${kind.color}1A;color:${kind.color};font:700 12px/1 Arial,sans-serif">${kind.emoji} ${kind.title}</div>
+          <div style="font:800 26px/1.25 Arial,sans-serif;color:#141414;margin-top:14px">${esc(name) || "Someone"}${b.form === "careers" && val("role") ? ` <span style="color:#8a857a;font-weight:400">wants to be our</span> ${esc(val("role", 60))}` : ""}</div>
+          <div style="font:13px/1.4 Arial,sans-serif;color:#8a857a;margin-top:6px">Ref <b style="color:#141414;font-family:Consolas,Menlo,monospace">${esc(ref)}</b> · ${esc(when)}</div>
+        </td></tr>
+        ${highlight}
+        <tr><td style="padding:12px 28px 0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table></td></tr>
+        ${fileList}
+        <tr><td style="padding:24px 28px 20px">
+          ${btn(wa, "💬 Reply on WhatsApp", "#1FAF5A", "#ffffff")}${btn(esc(sheetUrl), "📊 Open in sheet", "#141414", "#ffffff")}
+          <div style="font:12px/1.5 Arial,sans-serif;color:#8a857a;margin-top:6px">The WhatsApp button opens a chat with ${esc(first)} with a greeting ready to send.</div>
+        </td></tr>
+      </table>
+    </td></tr>
+    <tr><td style="padding:16px 6px;font:12px/1.6 Arial,sans-serif;color:#a39d90">Sent by the makemeproto.com ${b.form} form · from ${esc(clean(b.source, 80))}<br>Mark it in the sheet's Status column once you've replied.</td></tr>
+  </table>
+</td></tr></table></body></html>`;
+
+  const text = [`${kind.emoji} ${kind.title} · ${ref}${test ? " [TEST]" : ""}`, when, "", `Name: ${name}`, b.form === "careers" ? `Role: ${val("role", 60)}` : "",
+    ...MAIL_LABELS[b.form].filter(([k]) => val(k)).map(([k, l]) => `${l}: ${k === "phone" ? pretty : val(k)}`),
+    b.form === "quote" && val("estimate") ? `Estimate: ${val("estimate", 40)}` : "",
+    files.length ? "\nFiles:\n" + files.map((x) => `${x.name}: ${x.url}`).join("\n") : "",
+    saved.skipped ? `⚠️ ${saved.skipped} file(s) not saved: ${saved.reason}` : "",
+    "", `Reply on WhatsApp: ${wa}`, `Sheet: ${sheetUrl}`].filter((x) => x !== "").join("\n");
+  return { subject, html, text };
 }
 
 function alertOnce_(subject, body) {
@@ -290,4 +380,4 @@ function json_(o) {
   return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
 }
 
-if (typeof module !== "undefined") module.exports = { checkEntry, looksLike, validPhone, cell, safeName, makeRef, SETTINGS };
+if (typeof module !== "undefined") module.exports = { buildEmail, checkEntry, looksLike, validPhone, cell, safeName, makeRef, SETTINGS };
