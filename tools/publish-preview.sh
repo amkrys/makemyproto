@@ -39,6 +39,18 @@ touch "$PREVIEW/.nojekyll"
   echo '</ul></body></html>'
 } > "$PREVIEW/index.html"
 
+# GitHub Pages only uses the 404 page at the very top of a site. Send a wrong address on a test site
+# to that test site's own Proto 404 page (like makemeproto.com does), or to the list of test sites.
+cat > "$PREVIEW/404.html" <<'HTML'
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow"><title>Page not found | MakeMeProto test site</title>
+<script>
+  var m = location.pathname.match(/^\/makemeproto-preview\/([^\/]+)\//);
+  if (m && !/\/404\.html$/.test(location.pathname)) location.replace("/makemeproto-preview/" + m[1] + "/404.html");
+  else location.replace("/makemeproto-preview/");
+</script></head>
+<body style="font:16px/1.6 system-ui;margin:40px">Page not found. <a href="/makemeproto-preview/">See all test sites</a>.</body></html>
+HTML
+
 git -C "$PREVIEW" add -A
 git -C "$PREVIEW" commit -q -m "preview: $BRANCH @ $SHA" || echo "nothing changed"
 echo "Committed in $PREVIEW. Push it, then open: https://amkrys.github.io/makemeproto-preview/$SLUG/"
