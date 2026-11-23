@@ -20,7 +20,7 @@ const CONFIG = {
   // Cloudflare → Analytics & Logs → Web Analytics → makemeproto.com → "Manage site" (the token in the JS snippet).
   // Only counts visits on the live site, never the test sites or a local copy.
   analytics: {
-    cloudflareToken: "",
+    cloudflareToken: "be87442c7b0c4a959c4370581505190e",
     liveHosts: ["makemeproto.com", "www.makemeproto.com"],
   },
 
