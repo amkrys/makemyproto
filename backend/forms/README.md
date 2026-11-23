@@ -33,6 +33,7 @@ Edit `Code.gs` → **Save** → **Deploy → Manage deployments** → ✏️ →
 | Quote (pricing page) | Quotes | Drive › MakeMeProto · Website uploads › Quotes › yyyy-MM |
 | Contact | Contact | — |
 | Careers | Careers | Drive › … › Careers › yyyy-MM |
+| Newsletter (Gallery page + every footer) | Subscribers | — |
 
 Every entry gets a reference like `Q-2411-7GN`. The visitor sees the same reference in the confirmation card, so it matches what they mention on WhatsApp. Use the **Status** column (New → Replied → Ordered…) to track entries. An email goes to `SETTINGS.notifyEmail` for each entry, with a one-tap WhatsApp reply link. Entries from the test site or a local copy are marked `[TEST]`.
 
@@ -52,3 +53,14 @@ All of these numbers live in `SETTINGS` at the top of `Code.gs`.
 - Google Apps Script quotas apply per account (for example, 100 emails a day on a free Gmail). They're far above what the site needs.
 - A browser can't report real upload progress to Apps Script, so the progress bar is an estimate based on file size.
 - STLs bigger than 25 MB are not uploaded. The entry is still saved with a note, and the visitor is asked to share the file on WhatsApp or as a Drive link.
+
+## The Proto Post (newsletter)
+
+- New subscribers land in the **Subscribers** tab. This tab is created automatically on the first sign-up after you update the script. If the same email signs up twice, it is kept only once.
+- Each subscriber gets a branded **welcome email** with a one-click **unsubscribe** link (`media.html?unsubscribe=…`). Unsubscribing changes their **Status** to "Unsubscribed · date". Never email anyone whose status isn't "Subscribed".
+- To send an issue, run **`exportSubscribers`** in the editor. It logs every active email, comma-separated, ready to paste into BCC. For a nicer setup later, import the tab into a free mailing tool (Brevo or MailerLite), which adds open tracking and unsubscribe handling.
+- Settings: `sendWelcome` and `notifyOnSubscribe` (an email to you for each new subscriber) are in `SETTINGS`.
+
+## Gallery content
+
+Reels, BTS clips, photos and vlogs come from `js/media-data.js`. Add an entry with an Instagram reel link, a YouTube video id, or a file in `assets/media/`, then delete the `sample: true` placeholders before going live.

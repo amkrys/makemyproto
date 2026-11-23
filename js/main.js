@@ -760,7 +760,7 @@ async function postEntry(payload) {
  *   wa:     WhatsApp message used as a fallback (and offered after sending)
  *   done:   wording for the success card
  */
-async function sendEntry({ form, fields, files = [], wa, label, done, website = "" }) {
+async function sendEntry({ form, fields, files = [], wa, label, done, website = "", chat = true, doneTitle = null }) {
   if (!formsOn()) { window.open(waLink(wa), "_blank", "noopener"); return { whatsapp: true }; }
   const bytes = files.reduce((n, f) => n + f.size, 0);
   const size = bytes < 1048576 ? Math.max(1, Math.round(bytes / 1024)) + " KB" : (bytes / 1048576).toFixed(1) + " MB";
@@ -769,17 +769,17 @@ async function sendEntry({ form, fields, files = [], wa, label, done, website = 
   const expect = Math.max(1500, bytes / 420), t0 = Date.now();
   const tick = setInterval(() => card.update({ progress: 0.95 * (1 - Math.exp(-(Date.now() - t0) / expect * 2.2)) }), 200);
   sending++;
-  const payload = { form, fields, website, elapsed: Date.now() - PAGE_START, source: location.hostname || "local file", lang: LANG, files: [] };
+  const payload = { form, fields, website, elapsed: Date.now() - PAGE_START, source: location.hostname || "local file", base: location.href.split(/[?#]/)[0].replace(/[^/]*$/, ""), lang: LANG, files: [] };
   try {
     for (const f of files) payload.files.push({ name: f.name, data: await toBase64(f) });
     const res = await postEntry(payload);
     clearInterval(tick);
     if (res && res.ok) {
       const ref = res.ref || "";
-      card.update({ kind: "ok", icon: "✅", title: T("Pahunch gaya! 🎉", "Got it! 🎉") + (ref ? ` · ${ref}` : ""), text: done(ref, res), progress: false, timeout: 14000,
-        actions: [{ label: T("WhatsApp pe bhi bolo", "Also message us on WhatsApp"), href: waLink(wa + (ref ? `\n\nRef: ${ref}` : "")) }, { label: T("Theek hai", "Done"), primary: true }] });
+      card.update({ kind: "ok", icon: "✅", title: doneTitle ? doneTitle(ref, res) : T("Pahunch gaya! 🎉", "Got it! 🎉") + (ref ? ` · ${ref}` : ""), text: done(ref, res), progress: false, timeout: 14000,
+        actions: [...(chat ? [{ label: T("WhatsApp pe bhi bolo", "Also message us on WhatsApp"), href: waLink(wa + (ref ? `\n\nRef: ${ref}` : "")) }] : []), { label: T("Theek hai", "Done"), primary: true }] });
       window.mmpGuide?.cheer?.();
-      return { ok: true, ref };
+      return { ok: true, ref, res };
     }
     card.update({ kind: "error", icon: "⚠️", title: T("Nahi gaya", "Not sent"), text: (res && res.message) || T("Kuch gadbad hui.", "Something went wrong."), progress: false,
       actions: [{ label: T("WhatsApp pe bhejo", "Send on WhatsApp"), href: waLink(wa), primary: true }] });
@@ -790,7 +790,7 @@ async function sendEntry({ form, fields, files = [], wa, label, done, website = 
     card.update({ kind: "error", icon: "📶", title: T("Network gaya", "Connection dropped"), progress: false,
       text: files.length ? T("Upload poora nahi hua. Dobara try karo ya WhatsApp pe file bhejo.", "The upload didn't finish. Try again or send the file on WhatsApp.")
         : T("Hum agli baar khud bhej denge. Ya abhi WhatsApp pe bhejo.", "We'll send it automatically next time you visit. Or send it on WhatsApp now."),
-      actions: [{ label: T("Phir se try", "Try again"), onClick: () => sendEntry({ form, fields, files, wa, label, done, website }) }, { label: "WhatsApp", href: waLink(wa), primary: true }] });
+      actions: [{ label: T("Phir se try", "Try again"), onClick: () => sendEntry({ form, fields, files, wa, label, done, website, chat, doneTitle }) }, { label: "WhatsApp", href: waLink(wa), primary: true }] });
     return { ok: false, err };
   } finally { sending--; }
 }
@@ -910,7 +910,7 @@ function initQuote() {
     if (!/\.stl$/i.test(f.name)) { showFileMsg("Please choose an .stl file", true); return; }
     const mb = f.size / 1048576;
     if (mb > CONFIG.maxFileMb) { showFileMsg(`File is over ${CONFIG.maxFileMb} MB. Send it on WhatsApp instead.`, true); return; }
-    showFileMsg(mb > 50 ? `Reading ${f.name} (${Math.round(mb)} MB)… ${T("badi file hai, thoda time lagega ☕", "big file, this may take a moment ☕")}` : "Reading " + f.name + "…");
+    showFileMsg(mb > 50 ? `Reading ${f.name} (${Math.round(mb)} MB)… ${T("Badi file hai, thoda time lagega ☕", "Big file, this may take a moment ☕")}` : "Reading " + f.name + "…");
     await new Promise((r) => setTimeout(r, 40));   // let the message show before the heavy work
     try {
       model = parseSTL(await f.arrayBuffer());
@@ -1101,6 +1101,199 @@ function initCareers() {
     busy(btn, false);
     if (res.whatsapp) setHint(hint, "WhatsApp opened. Attach your resume there and press send. 🙌");
     else if (res.ok) setHint(hint, T("Application mil gayi ✓", "Application received ✓"));
+  });
+}
+
+/* =========================================================
+   Gallery: reels, behind the scenes, prints and vlogs (data in js/media-data.js)
+   ========================================================= */
+const MEDIA_TYPES = {
+  reel:  { icon: "🎞️", hi: "Reel", en: "Reel", short: "Reel", bg: "linear-gradient(160deg,#FF8A4C,#FF5A1F 55%,#C73F0C)" },
+  bts:   { icon: "🎥", hi: "Behind the scenes", en: "Behind the scenes", short: "BTS", bg: "linear-gradient(160deg,#3A3A38,#141414)" },
+  print: { icon: "📸", hi: "Print", en: "Print", short: "Print", bg: "linear-gradient(160deg,#FFE58A,#F2B705)" },
+  vlog:  { icon: "📹", hi: "Vlog", en: "Vlog", short: "Vlog", bg: "linear-gradient(160deg,#8C6CF0,#5B2FC9)" },
+};
+const mediaSlug = (m) => (m.titleEn || m.title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48);
+const mediaTitle = (m) => (LANG === "en" ? m.titleEn || m.title : m.title);
+const mediaCaption = (m) => (LANG === "en" ? m.captionEn || m.caption : m.caption) || "";
+const mediaDate = (m) => { try { return new Date(m.date + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }); } catch (e) { return m.date; } };
+const playable = (m) => !m.soon && (m.instagram || m.youtube || m.video || m.image);
+const escHtml = (v) => String(v == null ? "" : v).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+function mediaThumb(m, cls = "mcard__media") {
+  const t = MEDIA_TYPES[m.type] || MEDIA_TYPES.reel;
+  let inner = `<span class="mthumb__emoji" aria-hidden="true">${m.emoji || t.icon}</span>`;
+  if (m.poster) inner = `<img src="${escHtml(m.poster)}" alt="" loading="lazy">`;
+  else if (m.image) inner = `<img src="${escHtml(m.image)}" alt="" loading="lazy">`;
+  else if (m.video) inner = `<video src="${escHtml(m.video)}" muted loop playsinline preload="metadata" aria-hidden="true"></video>`;
+  return `<span class="${cls}" style="--bg:${t.bg}">${inner}</span>`;
+}
+
+function initGallery() {
+  const grid = $("#mediaGrid");
+  const vlogList = $("#vlogList");
+  const list = (window.MEDIA || []).slice().sort((a, b) => (a.soon === b.soon ? String(b.date).localeCompare(String(a.date)) : a.soon ? 1 : -1));
+  if (!grid && !vlogList) return;
+  let filter = "all", shown = [];
+  const box = $("#mediaBox"), stage = $("#mboxStage");
+  let at = 0;
+
+  function card(m, i) {
+    const t = MEDIA_TYPES[m.type] || MEDIA_TYPES.reel, video = m.type !== "print";
+    return `<button type="button" class="mcard mcard--${m.type}${m.soon ? " is-soon" : ""}" data-i="${i}" id="m-${mediaSlug(m)}">
+      ${mediaThumb(m)}
+      <span class="mcard__badge">${t.icon} <span class="mcard__lbl">${T(t.hi, t.en)}</span><span class="mcard__lbl--s">${t.short}</span></span>
+      ${m.duration ? `<span class="mcard__dur mono">${escHtml(m.duration)}</span>` : ""}
+      ${video && !m.soon ? `<span class="mcard__play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>` : ""}
+      ${m.soon ? `<span class="mcard__soon hand">${T("Jaldi aa raha hai", "Coming soon")}</span>` : ""}
+      <span class="mcard__text"><span class="mcard__title">${escHtml(mediaTitle(m))}</span><span class="mcard__date mono">${m.soon ? T("Aa raha hai", "Coming") + " " : ""}${mediaDate(m)}</span></span>
+    </button>`;
+  }
+
+  function render() {
+    if (grid) {
+      shown = list.filter((m) => filter === "all" || m.type === filter);
+      grid.innerHTML = shown.length ? shown.map(card).join("")
+        : `<p class="mgrid__empty">${T("Yahan abhi kuch nahi hai. Jaldi aayega! 🎬", "Nothing here yet. Coming soon! 🎬")}</p>`;
+      $$("#mediaFilter .mfilter__btn").forEach((b) => {
+        const n = b.dataset.filter === "all" ? list.length : list.filter((m) => m.type === b.dataset.filter).length;
+        $("b", b).textContent = n;
+      });
+      // videos without a poster play quietly while on screen
+      $$("video", grid).forEach((v) => io?.observe(v));
+    }
+    if (vlogList) {
+      const vlogs = list.filter((m) => m.type === "vlog");
+      vlogList.innerHTML = vlogs.map((m) => `<article class="vlog${m.soon ? " is-soon" : ""}">
+        ${mediaThumb(m, "vlog__thumb")}
+        <div class="vlog__body">
+          <p class="vlog__meta mono">${m.soon ? T("Aa raha hai", "Coming") + " · " : ""}${mediaDate(m)}${m.duration ? " · " + escHtml(m.duration) : ""}</p>
+          <h3 class="vlog__title">${escHtml(mediaTitle(m))}</h3>
+          <p class="vlog__cap">${escHtml(mediaCaption(m))}</p>
+          ${m.soon ? `<a href="#newsletter" class="btn btn--ghost btn--sm">🔔 ${T("Aane pe batao", "Notify me")}</a>`
+            : `<button type="button" class="btn btn--ink btn--sm" data-vlog="${list.indexOf(m)}">▶ ${T("Dekho", "Watch")}</button>`}
+        </div>
+      </article>`).join("") || `<p class="mgrid__empty">${T("Pehla episode jaldi! 🎬", "First episode coming soon! 🎬")}</p>`;
+    }
+  }
+
+  const io = "IntersectionObserver" in window && !matchMedia("(prefers-reduced-motion: reduce)").matches
+    ? new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? e.target.play().catch(() => {}) : e.target.pause())), { threshold: 0.4 }) : null;
+
+  $$("#mediaFilter .mfilter__btn").forEach((b) => b.addEventListener("click", () => {
+    filter = b.dataset.filter;
+    $$("#mediaFilter .mfilter__btn").forEach((x) => { x.classList.toggle("is-on", x === b); x.setAttribute("aria-pressed", x === b); });
+    render();
+  }));
+
+  /* ---- the viewer ---- */
+  function open(i, from = shown) {
+    if (!box) return;
+    shown = from; at = (i + shown.length) % shown.length;
+    const m = shown[at], t = MEDIA_TYPES[m.type] || MEDIA_TYPES.reel;
+    let html = "";
+    if (m.soon || !playable(m)) {
+      html = `<div class="mbox__placeholder" style="--bg:${t.bg}"><span aria-hidden="true">${m.emoji || t.icon}</span>
+        <p>${m.soon ? T("Ye episode jaldi aa raha hai 🎬", "This episode is coming soon 🎬") : T("Ye video jaldi yahan aayega 🎬", "This video is coming here soon 🎬")}</p></div>`;
+    } else if (m.instagram) {
+      const url = m.instagram.split("?")[0].replace(/\/?$/, "/");
+      html = `<iframe class="mbox__frame mbox__frame--ig" src="${escHtml(url)}embed/" title="${escHtml(mediaTitle(m))}" loading="lazy" allowfullscreen></iframe>`;
+    } else if (m.youtube) {
+      html = `<iframe class="mbox__frame mbox__frame--yt" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(m.youtube)}?autoplay=1&rel=0" title="${escHtml(mediaTitle(m))}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
+    } else if (m.video) {
+      html = `<video class="mbox__video" src="${escHtml(m.video)}" ${m.poster ? `poster="${escHtml(m.poster)}"` : ""} controls autoplay playsinline loop></video>`;
+    } else if (m.image) {
+      html = `<img class="mbox__img" src="${escHtml(m.image)}" alt="${escHtml(mediaTitle(m))}">`;
+    }
+    stage.innerHTML = html;
+    stage.className = "mbox__stage mbox__stage--" + (m.type === "vlog" || m.youtube ? "wide" : m.type === "print" ? "photo" : "tall");
+    const v = $("video", stage);
+    v?.addEventListener("loadedmetadata", () => { if (v.videoWidth > v.videoHeight * 1.1) stage.className = "mbox__stage mbox__stage--wide"; });
+    $("#mboxMeta").textContent = `${t.icon} ${T(t.hi, t.en)} · ${mediaDate(m)}${m.duration ? " · " + m.duration : ""}`;
+    $("#mboxTitle").textContent = mediaTitle(m);
+    $("#mboxCaption").textContent = mediaCaption(m);
+    const acts = [];
+    if (m.instagram) acts.push(`<a class="btn btn--ink btn--sm" href="${escHtml(m.instagram)}" target="_blank" rel="noopener">${T("Instagram pe kholo", "Open on Instagram")}</a>`);
+    if (m.youtube) acts.push(`<a class="btn btn--ink btn--sm" href="https://youtu.be/${encodeURIComponent(m.youtube)}" target="_blank" rel="noopener">${T("YouTube pe dekho", "Watch on YouTube")}</a>`);
+    if (m.soon) acts.push(`<a class="btn btn--accent btn--sm" href="#newsletter" data-close>🔔 ${T("Aane pe batao", "Notify me")}</a>`);
+    else if (!playable(m)) acts.push(`<a class="btn btn--ink btn--sm" href="https://instagram.com/makemeproto" target="_blank" rel="noopener">${T("Instagram pe follow karo", "Follow on Instagram")}</a>`);
+    acts.push(`<button type="button" class="btn btn--ghost btn--sm" data-share>${T("Link share karo", "Share link")}</button>`);
+    $("#mboxActions").innerHTML = acts.join("");
+    $$(".mbox__nav", box).forEach((n) => (n.hidden = shown.length < 2));
+    if (!box.open) box.showModal();
+    history.replaceState(null, "", "#m-" + mediaSlug(m));
+  }
+  function close() { if (box?.open) box.close(); }
+  box?.addEventListener("close", () => { stage.innerHTML = ""; if (/^#m-/.test(location.hash)) history.replaceState(null, "", location.pathname + location.search); });
+  box?.addEventListener("click", (e) => {
+    if (e.target === box || e.target.closest("[data-close]")) { close(); return; }
+    const step = e.target.closest("[data-step]");
+    if (step) open(at + Number(step.dataset.step), shown);
+    if (e.target.closest("[data-share]")) {
+      const url = location.href.split("#")[0] + "#m-" + mediaSlug(shown[at]);
+      if (navigator.share) navigator.share({ title: mediaTitle(shown[at]), url }).catch(() => {});
+      else navigator.clipboard?.writeText(url).then(() => toast({ kind: "ok", icon: "🔗", title: T("Link copy ho gaya", "Link copied"), timeout: 3000 }));
+    }
+  });
+  box?.addEventListener("keydown", (e) => { if (e.key === "ArrowRight") open(at + 1, shown); if (e.key === "ArrowLeft") open(at - 1, shown); });
+  let sx = null;
+  box?.addEventListener("touchstart", (e) => { sx = e.touches[0].clientX; }, { passive: true });
+  box?.addEventListener("touchend", (e) => { if (sx == null) return; const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 60) open(at + (dx < 0 ? 1 : -1), shown); sx = null; });
+
+  grid?.addEventListener("click", (e) => { const c = e.target.closest(".mcard"); if (c) open(Number(c.dataset.i), shown); });
+  vlogList?.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-vlog]"); if (!b) return;
+    const vlogs = list.filter((m) => m.type === "vlog");
+    open(vlogs.indexOf(list[Number(b.dataset.vlog)]), vlogs);
+  });
+
+  render();
+  addEventListener("mmp:lang", render);
+  // a shared link like media.html#m-our-logo-comes-to-life opens that item
+  const hit = location.hash.startsWith("#m-") ? list.findIndex((m) => "#m-" + mediaSlug(m) === location.hash) : -1;
+  if (hit > -1) setTimeout(() => open(hit, list), 300);
+}
+
+/* =========================================================
+   The Proto Post: newsletter sign-up (any form with data-newsletter) and one-click unsubscribe
+   ========================================================= */
+function initNewsletter() {
+  $$("form[data-newsletter]").forEach((form) => {
+    const email = $('input[name="email"]', form), hint = $("[data-hint]", form), btn = $('button[type="submit"]', form);
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const v = email.value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) { setHint(hint, T("Email sahi nahi lag raha.", "That email doesn't look right."), true); email.focus(); return; }
+      const fields = { email: v, name: $('input[name="name"]', form)?.value.trim() || "", topics: $$('input[name="topics"]:checked', form).map((c) => c.value).join(", "), language: LANG === "en" ? "English" : "Hinglish" };
+      busy(btn, true, T("Ruko…", "One sec…"));
+      const res = await sendEntry({ form: "newsletter", fields, website: honeypot(form), label: "The Proto Post", chat: false,
+        doneTitle: (ref, r) => r && r.already ? T("Aap pehle se andar ho 💌", "You're already in 💌") : T("Aap andar ho! 💌", "You're in! 💌"),
+        wa: waFormat("Newsletter 💌", [["Email", v], ["Name", fields.name || null]], "Please add me to The Proto Post."),
+        done: (ref, r) => r && r.already ? T("Aap pehle se subscribed ho 💌 Agla email jaldi!", "You're already subscribed 💌 The next issue is on its way!")
+          : T("Welcome! Inbox check karo, ek welcome email bheja hai (spam mein bhi dekh lena).", "Welcome aboard! We've sent you a welcome email (check spam just in case).") });
+      busy(btn, false);
+      if (res.ok) { setHint(hint, T("Subscribed ✓", "Subscribed ✓")); form.reset(); }
+    });
+  });
+
+  // media.html?unsubscribe=KEY (from the link in our emails)
+  const key = new URLSearchParams(location.search).get("unsubscribe");
+  const box = $("#unsubscribe");
+  if (!key || !box) return;
+  box.hidden = false;
+  const yes = $("#unsubYes"), msg = $("#unsubMsg");
+  yes.addEventListener("click", async () => {
+    busy(yes, true, T("Ruko…", "One sec…"));
+    try {
+      const r = await postEntry({ form: "unsubscribe", fields: { key }, elapsed: Date.now() - PAGE_START, source: location.hostname || "local file" });
+      if (r && r.ok) {
+        $(".unsub__actions", box).hidden = true;
+        $("h2", box).textContent = T("Unsubscribe ho gaya 💔", "You're unsubscribed 💔");
+        msg.textContent = T("Ab koi newsletter email nahi aayega. Jab mann ho, wapas aa jaana!", "You won't get any more newsletter emails. Come back any time!");
+        history.replaceState(null, "", location.pathname);
+        setTimeout(() => (box.hidden = true), 5000);
+      } else { msg.textContent = (r && r.message) || T("Kuch gadbad hui. Humein email karo.", "Something went wrong. Please email us."); busy(yes, false); }
+    } catch (e) { msg.textContent = T("Network nahi mila. Dobara try karo.", "No connection. Please try again."); busy(yes, false); }
   });
 }
 
@@ -1330,6 +1523,7 @@ function initGuide() {
     "page-community": ["Printer hai? Adda join karo, free help 🧡", "Got a printer? Join the Adda, free help 🧡"],
     "page-about": ["Hum dono se milo 👋 Polaroid pe tap karo", "Meet us both 👋 Tap a polaroid"],
     "page-careers": ["Pasand ka role chuno, apply karo 💼", "Pick a role and apply 💼"],
+    "page-media": ["Koi bhi reel tap karo, yahin chalegi 🎬", "Tap any reel to play it right here 🎬"],
     "page-terms": ["Simple bhasha mein likha hai, padh lo 📜", "Written in plain words, have a read 📜"],
     "page-privacy": ["Aapka data safe hai, kabhi bechte nahi 🔒", "Your data is safe, we never sell it 🔒"],
     "page-contact": ["Form bharo, WhatsApp khul jaayega 💬", "Fill the form and WhatsApp opens 💬"],
@@ -1771,7 +1965,7 @@ function initBirth() {
   bot.addEventListener("click", () => {
     if (!alive || done) return;
     jump.animate([{ transform: "none" }, { transform: "rotate(-9deg) scale(1.06,.94)", offset: .25 }, { transform: "rotate(8deg)", offset: .5 }, { transform: "rotate(-4deg)", offset: .75 }, { transform: "none" }], { duration: 460, composite: "add" });
-    fx(T("hehe 😆", "hehe 😆"), 60, -4, { dy: -45, size: .8 });
+    fx(T("Hehe 😆", "Hehe 😆"), 60, -4, { dy: -45, size: .8 });
   });
 
   async function finish(fast) {
@@ -1994,6 +2188,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initContact();
   initPriceFloat();
   initCareers();
+  initGallery();
+  initNewsletter();
   flushOutbox();
   initScreens();
   initUses();

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700;800;900&family=Red+Hat+Text:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&family=Caveat:wght@500;700&family=Kalam:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20261124c">
+  <link rel="stylesheet" href="css/style.css?v=20261124e">
 </head>
 <body data-page="pricing">
   <!-- @layout:nav -->
@@ -25,7 +25,8 @@
         <a href="pricing.html" class="nav__quote">⚡ Instant price</a>
         <a href="services.html">Services</a>
         <a href="guide.html">Guide</a>
-        <a href="community.html" class="nav__new">Community <i class="hand" aria-hidden="true">new!</i></a>
+        <a href="community.html">Community</a>
+        <a href="media.html" class="nav__new">Gallery <i class="hand" aria-hidden="true">New!</i></a>
         <a href="about.html">About us</a>
         <a href="contact.html" class="btn btn--sm btn--ink">Contact</a>
       </nav>
@@ -58,7 +59,7 @@
               <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 32V10M15 19l9-9 9 9"/><path d="M8 30v8h32v-8"/></svg>
               <p><b>Drop your STL file here</b><br><span>or <label for="stlFile" class="link">browse</label> · up to 500 MB</span></p>
               <p class="drop__file mono" id="fileInfo" hidden></p>
-              <p class="drop__note hand" aria-hidden="true" data-en="just drag it in, done! ✨">bas drag karo, ho gaya! ✨</p>
+              <p class="drop__note hand" aria-hidden="true" data-en="Just drag it in, done! ✨">Bas drag karo, ho gaya! ✨</p>
             </div>
             <p class="sample">No file handy? <button type="button" class="link" id="sampleBtn">Try a sample (phone stand)</button></p>
 
@@ -78,7 +79,7 @@
                   <option value="ABS">ABS: heat resistant, functional</option>
                   <option value="TPU">TPU: flexible, rubber-like</option>
                 </select>
-                <small class="hnote hand" id="matNote" data-en="not sure? pick PLA 😉">confused? PLA le lo 😉</small>
+                <small class="hnote hand" id="matNote" data-en="Not sure? Pick PLA 😉">Confused? PLA le lo 😉</small>
               </label>
               <label class="field">
                 <span>Quantity</span>
@@ -106,7 +107,7 @@
             <label class="field">
               <span>Strength (infill) <b class="mono" id="infillVal">20%</b></span>
               <input type="range" id="infill" min="10" max="100" step="5" value="20">
-              <small class="hnote hand" data-en="more infill = stronger (and a bit heavier) 💪 · 15–20% is plenty for display pieces">zyada infill = zyada strong (aur thoda heavy) 💪 · showpiece ke liye 15–20% kaafi hai</small>
+              <small class="hnote hand" data-en="More infill = stronger (and a bit heavier) 💪 · 15–20% is plenty for display pieces">Zyada infill = zyada strong (aur thoda heavy) 💪 · showpiece ke liye 15–20% kaafi hai</small>
             </label>
           </form>
 
@@ -114,7 +115,7 @@
             <p class="sticky hand" aria-hidden="true" data-en="Don&#x27;t know the weight?&lt;br&gt;No worries, just send a photo 🙂">Weight nahi pata?<br>No tension, bas photo bhejo 🙂</p>
             <p class="mono quote__label">Estimated price</p>
             <p class="quote__price" id="price">₹ —</p>
-            <p class="quote__cheer hand" id="cheer" aria-hidden="true" data-en="that&#x27;s it! 🎉">bas itna hi! 🎉</p>
+            <p class="quote__cheer hand" id="cheer" aria-hidden="true" data-en="That&#x27;s it! 🎉">Bas itna hi! 🎉</p>
             <p class="quote__note" id="priceNote">Upload a file or enter a weight to see your estimate.</p>
             <dl class="quote__stats mono">
               <div><dt>Weight</dt><dd id="statWeight">—</dd></div>
@@ -129,13 +130,13 @@
                 <label class="field"><span>Your name</span><input type="text" id="oName" required autocomplete="name" maxlength="80"></label>
                 <label class="field"><span>WhatsApp number</span><input type="tel" id="oPhone" required autocomplete="tel" inputmode="tel" maxlength="16" placeholder="98765 43210"></label>
               </div>
-              <label class="field"><span>Photo or sketch <em>optional</em></span>
+              <label class="field"><span>Photo or sketch <em>Optional</em></span>
                 <span class="filepick">
                   <input type="file" id="oPhoto" accept="image/jpeg,image/png,image/webp,image/heic,.heic">
                   <span class="filepick__hint" id="oPhotoName">Broken part, idea or reference · up to 8 MB</span>
                 </span>
               </label>
-              <label class="field"><span>Notes <em>optional</em></span><textarea id="oNotes" rows="2" maxlength="1000" placeholder="Deadline, size, anything else…"></textarea></label>
+              <label class="field"><span>Notes <em>Optional</em></span><textarea id="oNotes" rows="2" maxlength="1000" placeholder="Deadline, size, anything else…"></textarea></label>
               <button type="submit" class="btn btn--accent btn--block" id="orderSend">Send request 📤</button>
               <p class="order__hint" id="orderHint">We reply on WhatsApp, usually within a few hours.</p>
               <a href="#" class="order__wa" id="quoteWa">or chat with us on WhatsApp</a>
@@ -216,7 +217,7 @@
         </div>
         <div class="mats">
           <article class="mat">
-            <p class="annot annot--mat hand" aria-hidden="true"><span data-en="not sure? start with this one!">confused? isi se shuru karo!</span><svg viewBox="0 0 50 44"><path d="M4 8c20-4 34 6 36 30m0 0-7-7m7 7 5-9"/></svg></p>
+            <p class="annot annot--mat hand" aria-hidden="true"><span data-en="Not sure? Start with this one!">Confused? Isi se shuru karo!</span><svg viewBox="0 0 50 44"><path d="M4 8c20-4 34 6 36 30m0 0-7-7m7 7 5-9"/></svg></p>
             <div class="mat__swatch" style="--c:#FF5A1F"></div>
             <h3>PLA</h3>
             <p>Easy, accurate, many colours. Best for gifts, models, prototypes and display pieces.</p>
@@ -253,7 +254,7 @@
             <div class="mat__swatch" style="--c:#141414"></div>
             <h3>TPU</h3>
             <p>Flexible like rubber. Phone cases, gaskets, grips, bumpers and wearable parts.</p>
-            <p class="mat__aside hand" data-en="psst… this one bends!">psst… isse bend kar sakte ho!</p>
+            <p class="mat__aside hand" data-en="Psst… this one bends!">Psst… isse bend kar sakte ho!</p>
             <ul class="mono">
               <li><span>Strength</span><i style="--v:3"></i></li>
               <li><span>Heat</span><i style="--v:2"></i></li>
@@ -285,6 +286,13 @@
           <a href="https://instagram.com/makemeproto" target="_blank" rel="noopener" aria-label="MakeMeProto on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></svg></a>
           <a href="mailto:contact@makemeproto.com" aria-label="Email contact@makemeproto.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
         </div>
+        <form class="subscribe" data-newsletter novalidate>
+          <div class="hp" aria-hidden="true"><label>Leave this empty <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+          <label class="subscribe__label"><span>💌 The Proto Post: one email a month</span>
+            <span class="subscribe__row"><input type="email" name="email" required autocomplete="email" inputmode="email" maxlength="120" placeholder="you@example.com"><button type="submit" class="btn btn--accent">Subscribe</button></span>
+          </label>
+          <p class="subscribe__hint" data-hint></p>
+        </form>
       </div>
       <div class="footer__cols">
         <nav class="footer__col" aria-label="Explore">
@@ -294,6 +302,7 @@
           <a href="pricing.html#materials">Materials</a>
           <a href="guide.html">Guide &amp; FAQ</a>
           <a href="community.html">3D Adda</a>
+          <a href="media.html">Gallery &amp; vlogs</a>
         </nav>
         <nav class="footer__col" aria-label="Company">
           <p class="footer__h mono">Company</p>
@@ -369,6 +378,6 @@
   </a>
   <!-- @end -->
 
-  <script src="js/main.js?v=20261124c"></script>
+  <script src="js/main.js?v=20261124e"></script>
 </body>
 </html>

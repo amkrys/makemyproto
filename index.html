@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700;800;900&family=Red+Hat+Text:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&family=Caveat:wght@500;700&family=Kalam:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20261124c">
+  <link rel="stylesheet" href="css/style.css?v=20261124e">
 </head>
 <body data-page="index">
   <!-- @layout:nav -->
@@ -25,7 +25,8 @@
         <a href="pricing.html" class="nav__quote">⚡ Instant price</a>
         <a href="services.html">Services</a>
         <a href="guide.html">Guide</a>
-        <a href="community.html" class="nav__new">Community <i class="hand" aria-hidden="true">new!</i></a>
+        <a href="community.html">Community</a>
+        <a href="media.html" class="nav__new">Gallery <i class="hand" aria-hidden="true">New!</i></a>
         <a href="about.html">About us</a>
         <a href="contact.html" class="btn btn--sm btn--ink">Contact</a>
       </nav>
@@ -87,13 +88,13 @@
             <a href="services.html#fixer" class="snap tile polaroid tile--b" style="--r:3.5deg;--d:-18"><div class="tile__art"><svg viewBox="0 0 200 160"><circle cx="100" cy="80" r="40"/><circle cx="100" cy="80" r="14"/><path d="M100 30v-10M100 140v-10M50 80H40M160 80h-10M65 45l-7-7M142 122l-7-7M135 45l7-7M58 122l7-7"/></svg></div><span class="snap__cap"><b data-en="Spare gear">Spare gear</b><i class="mono">PETG · ₹300</i></span></a>
           </div>
           <div class="chatmock" style="--d:-14">
-            <p class="chatmock__label hand" data-en="this is how it goes 👇">aise hota hai 👇</p>
+            <p class="chatmock__label hand" data-en="This is how it goes 👇">Aise hota hai 👇</p>
             <p class="msg msg--in" data-en="Can you make this broken clip? 📷">Ye toota clip bana doge? 📷</p>
             <p class="msg msg--out" data-en="Yes! ₹300, ready in 2 days ✅">Haan! ₹300, 2 din mein ✅</p>
           </div>
         </div>
       </div>
-      <a href="#play" class="scrollcue hand"><span data-en="try the printer below">neeche printer chalake dekho</span> <svg viewBox="0 0 24 36" aria-hidden="true"><path d="M12 3c-3 9 3 17 0 28m0 0-6-7m6 7 6-7"/></svg></a>
+      <a href="#play" class="scrollcue hand"><span data-en="Try the printer below">Neeche printer chalake dekho</span> <svg viewBox="0 0 24 36" aria-hidden="true"><path d="M12 3c-3 9 3 17 0 28m0 0-6-7m6 7 6-7"/></svg></a>
     </section>
 
     <!-- ===== SCREEN 2: PRINTER PLAYGROUND ===== -->
@@ -110,8 +111,8 @@
         <div class="hero__visual">
           <div class="printer is-idle" id="printer">
             <p class="scribble scribble--hero hand" aria-hidden="true">
-              <span class="hint-mouse" data-en="psst… move your mouse up &amp;amp; down,&lt;br&gt;or pick something below&lt;br&gt;and drop it on the printer!">psst… mouse upar-neeche karo,<br>ya neeche se kuch uthake<br>printer pe daal do!</span>
-              <span class="hint-touch" data-en="pick anything below&lt;br&gt;and watch it print!">neeche se kuch bhi<br>chuno, print dekho!</span>
+              <span class="hint-mouse" data-en="Psst… move your mouse up &amp;amp; down,&lt;br&gt;or pick something below&lt;br&gt;and drop it on the printer!">Psst… mouse upar-neeche karo,<br>ya neeche se kuch uthake<br>printer pe daal do!</span>
+              <span class="hint-touch" data-en="Pick anything below&lt;br&gt;and watch it print!">Neeche se kuch bhi<br>chuno, print dekho!</span>
               <svg viewBox="0 0 80 60"><path d="M6 6c22 2 46 12 56 38m0 0-9-6m9 6 4-11"/></svg>
             </p>
             <div class="printer__frame" title="Click to print">
@@ -129,21 +130,21 @@
             <p class="printer__readout mono" aria-live="polite"><span>LAYER <b id="layerNo">52</b>/52</span><i>·</i><span id="printStatus">PRINT DONE ✓</span><span id="nozzleTemp" hidden>220</span></p>
             <div class="bench">
               <div class="shelf" role="group" aria-label="Pick something to print">
-                <button type="button" class="shelf__item" data-model="vase" aria-pressed="true" aria-label="Print a vase"><span class="shelf__thumb" data-thumb="vase"></span><span class="shelf__label hand">vase</span></button>
-                <button type="button" class="shelf__item" data-model="kulhad" aria-pressed="false" aria-label="Print a kulhad"><span class="shelf__thumb" data-thumb="kulhad"></span><span class="shelf__label hand" data-en="clay cup">kulhad</span></button>
-                <button type="button" class="shelf__item" data-model="rocket" aria-pressed="false" aria-label="Print a rocket"><span class="shelf__thumb" data-thumb="rocket"></span><span class="shelf__label hand">rocket</span></button>
-                <button type="button" class="shelf__item" data-model="heart" aria-pressed="false" aria-label="Print a dil"><span class="shelf__thumb" data-thumb="heart"></span><span class="shelf__label hand" data-en="heart">dil</span></button>
-                <button type="button" class="shelf__item" data-model="name" aria-pressed="false" aria-label="Print your name"><span class="shelf__thumb shelf__tag"><b>Aa</b></span><span class="shelf__label hand" data-en="your name">apna naam</span></button>
+                <button type="button" class="shelf__item" data-model="vase" aria-pressed="true" aria-label="Print a vase"><span class="shelf__thumb" data-thumb="vase"></span><span class="shelf__label hand">Vase</span></button>
+                <button type="button" class="shelf__item" data-model="kulhad" aria-pressed="false" aria-label="Print a kulhad"><span class="shelf__thumb" data-thumb="kulhad"></span><span class="shelf__label hand" data-en="Clay cup">Kulhad</span></button>
+                <button type="button" class="shelf__item" data-model="rocket" aria-pressed="false" aria-label="Print a rocket"><span class="shelf__thumb" data-thumb="rocket"></span><span class="shelf__label hand">Rocket</span></button>
+                <button type="button" class="shelf__item" data-model="heart" aria-pressed="false" aria-label="Print a dil"><span class="shelf__thumb" data-thumb="heart"></span><span class="shelf__label hand" data-en="Heart">Dil</span></button>
+                <button type="button" class="shelf__item" data-model="name" aria-pressed="false" aria-label="Print your name"><span class="shelf__thumb shelf__tag"><b>Aa</b></span><span class="shelf__label hand" data-en="Your name">Apna naam</span></button>
                 <svg class="shelf__plank" viewBox="0 0 400 24" preserveAspectRatio="none" aria-hidden="true"><path d="M4 8c60-3 130-2 196-1s130 2 196-1"/><path d="M40 9l-6 13M360 9l6 13"/></svg>
               </div>
               <form class="nametag" id="nameForm" hidden>
-                <label class="hand" for="printName" data-en="your name:">naam likho:</label>
+                <label class="hand" for="printName" data-en="Your name:">Naam likho:</label>
                 <input type="text" id="printName" maxlength="14" autocomplete="off" spellcheck="false" placeholder="Riya">
-                <button type="submit" class="nametag__go hand">print ↵</button>
+                <button type="submit" class="nametag__go hand">Print ↵</button>
                 <button type="button" class="nametag__x" id="nameClose" aria-label="Close">✕</button>
               </form>
               <div class="spools">
-                <span class="spools__label hand">filament:</span>
+                <span class="spools__label hand">Filament:</span>
                 <button type="button" class="spool" data-fil="var(--accent)" style="--c:var(--accent)" aria-pressed="true" aria-label="Orange filament" data-tip="orange"><svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15.5" class="spool__fil"/><path d="M8 13c6-3 14-3 20 0M7 19c7-3 15-3 22 0M9 25c6-3 12-3 18 0" class="spool__wind"/><circle cx="18" cy="18" r="15.5" class="spool__rim"/><circle cx="18" cy="18" r="5" class="spool__hub"/></svg></button>
                 <button type="button" class="spool" data-fil="#1FBF8F" style="--c:#1FBF8F" aria-pressed="false" aria-label="Mint filament" data-tip="mint"><svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15.5" class="spool__fil"/><path d="M8 13c6-3 14-3 20 0M7 19c7-3 15-3 22 0M9 25c6-3 12-3 18 0" class="spool__wind"/><circle cx="18" cy="18" r="15.5" class="spool__rim"/><circle cx="18" cy="18" r="5" class="spool__hub"/></svg></button>
                 <button type="button" class="spool" data-fil="#3B6CFF" style="--c:#3B6CFF" aria-pressed="false" aria-label="Blue filament" data-tip="blue"><svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15.5" class="spool__fil"/><path d="M8 13c6-3 14-3 20 0M7 19c7-3 15-3 22 0M9 25c6-3 12-3 18 0" class="spool__wind"/><circle cx="18" cy="18" r="15.5" class="spool__rim"/><circle cx="18" cy="18" r="5" class="spool__hub"/></svg></button>
@@ -173,7 +174,7 @@
           <p class="play__lead" data-en="A real printer, just smaller. Try it, then get it made for real.">Asli printer jaisa, bas chhota. Khelo, phir asli mein banwao.</p>
           <ol class="fixer__steps howto">
             <li><b data-en="Make it print">Print chalao</b> <span class="hint-mouse" data-en="Move your mouse up and down over the printer, or click it.">Printer pe mouse upar-neeche karo, ya click karo.</span><span class="hint-touch" data-en="Tap the printer, or drag across it.">Printer pe tap karo, ya ungli se ghumao.</span></li>
-            <li><b data-en="Pick a model">Model chuno</b> <span data-en="Vase, clay cup, rocket, heart… or &lt;b&gt;your own name&lt;/b&gt;.">Vase, kulhad, rocket, dil… ya <b>apna naam</b>.</span></li>
+            <li><b data-en="Pick a model">Model chuno</b> <span data-en="Vase, clay cup, rocket, heart… or &lt;b&gt;your own name&lt;/b&gt;.">Vase, kulhad, rocket, dil… ya <b>Apna naam</b>.</span></li>
             <li><b data-en="Change the colour">Colour badlo</b> <span data-en="Tap a filament spool and it prints again.">Filament spool pe tap karo, naya print shuru.</span></li>
           </ol>
           <div class="makeit">
@@ -200,27 +201,27 @@
           <a class="path" href="pricing.html#quote" style="--c:#ffe2d4;--r:-1.5deg">
             <span class="path__emoji" aria-hidden="true">📂</span>
             <b data-en="I have an STL file">Mere paas STL hai</b>
-            <span class="path__go hand" data-en="get an instant price →">instant price lo →</span>
+            <span class="path__go hand" data-en="Get an instant price →">Instant price lo →</span>
           </a>
           <a class="path" href="#" data-wa="Design request ✏️|I only have an idea / photo. Can you design it?" style="--c:#d7f3e9;--r:1deg">
             <span class="path__emoji" aria-hidden="true">💡</span>
             <b data-en="Just an idea or a photo">Sirf idea ya photo hai</b>
-            <span class="path__go hand" data-en="we'll design it, WhatsApp us →">design hum karenge, WhatsApp karo →</span>
+            <span class="path__go hand" data-en="we'll design it, WhatsApp us →">Design hum karenge, WhatsApp karo →</span>
           </a>
           <a class="path" href="services.html#fixer" style="--c:#fff1c9;--r:-.8deg">
             <span class="path__emoji" aria-hidden="true">🔧</span>
             <b data-en="Something broke">Kuch toot gaya</b>
-            <span class="path__go hand" data-en="see how we remake parts →">part dobara banwao →</span>
+            <span class="path__go hand" data-en="See how we remake parts →">Part dobara banwao →</span>
           </a>
           <a class="path" href="services.html#services" style="--c:#f4e3ff;--r:1.4deg">
             <span class="path__emoji" aria-hidden="true">🎁</span>
             <b data-en="I need a gift">Gift chahiye</b>
-            <span class="path__go hand" data-en="names, keychains, trophies →">naam, keychain, trophy →</span>
+            <span class="path__go hand" data-en="Names, keychains, trophies →">Naam, keychain, trophy →</span>
           </a>
           <a class="path" href="services.html#uses" style="--c:#dfe6ff;--r:-1.2deg">
             <span class="path__emoji" aria-hidden="true">🎓</span>
             <b data-en="College project">College project</b>
-            <span class="path__go hand" data-en="robot parts, models, student rates →">robot parts, models, student rates →</span>
+            <span class="path__go hand" data-en="Robot parts, models, student rates →">Robot parts, models, student rates →</span>
           </a>
           <a class="path" href="services.html#services" style="--c:#ece7dc;--r:.8deg">
             <span class="path__emoji" aria-hidden="true">🚀</span>
@@ -274,7 +275,7 @@
           <li><b>Small orders welcome.</b> One keychain or 200 parts, we treat both seriously.</li>
           <li><b>Your idea stays yours.</b> Happy to sign an NDA for product designs.</li>
         </ul>
-        <p class="why__aside hand" data-en="we&#x27;ll happily put all of this in writing ✍️">ye sab hum likh ke bhi de sakte hain ✍️</p>
+        <p class="why__aside hand" data-en="We&#x27;ll happily put all of this in writing ✍️">Ye sab hum likh ke bhi de sakte hain ✍️</p>
       </div>
     </section>
 
@@ -312,6 +313,13 @@
           <a href="https://instagram.com/makemeproto" target="_blank" rel="noopener" aria-label="MakeMeProto on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></svg></a>
           <a href="mailto:contact@makemeproto.com" aria-label="Email contact@makemeproto.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
         </div>
+        <form class="subscribe" data-newsletter novalidate>
+          <div class="hp" aria-hidden="true"><label>Leave this empty <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+          <label class="subscribe__label"><span>💌 The Proto Post: one email a month</span>
+            <span class="subscribe__row"><input type="email" name="email" required autocomplete="email" inputmode="email" maxlength="120" placeholder="you@example.com"><button type="submit" class="btn btn--accent">Subscribe</button></span>
+          </label>
+          <p class="subscribe__hint" data-hint></p>
+        </form>
       </div>
       <div class="footer__cols">
         <nav class="footer__col" aria-label="Explore">
@@ -321,6 +329,7 @@
           <a href="pricing.html#materials">Materials</a>
           <a href="guide.html">Guide &amp; FAQ</a>
           <a href="community.html">3D Adda</a>
+          <a href="media.html">Gallery &amp; vlogs</a>
         </nav>
         <nav class="footer__col" aria-label="Company">
           <p class="footer__h mono">Company</p>
@@ -387,6 +396,6 @@
   </a>
   <!-- @end -->
 
-  <script src="js/main.js?v=20261124c"></script>
+  <script src="js/main.js?v=20261124e"></script>
 </body>
 </html>
