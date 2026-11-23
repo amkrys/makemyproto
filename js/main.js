@@ -16,6 +16,14 @@ const CONFIG = {
   community: "https://chat.whatsapp.com/D55pQNBsJBY4H8kOEmGliL",                     // WhatsApp community / group invite link (leave "" to use a WhatsApp message instead)
   maxFileMb: 500,                    // biggest STL the quote calculator will read
 
+  // Visitor stats: Cloudflare Web Analytics (free, no cookies). Paste the token from
+  // Cloudflare → Analytics & Logs → Web Analytics → makemeproto.com → "Manage site" (the token in the JS snippet).
+  // Only counts visits on the live site, never the test sites or a local copy.
+  analytics: {
+    cloudflareToken: "be87442c7b0c4a959c4370581505190e",
+    liveHosts: ["makemeproto.com", "www.makemeproto.com"],
+  },
+
   // Website forms → Google Sheet + Drive (see backend/forms/README.md).
   // Leave endpoint "" and every form simply opens WhatsApp, like before.
   forms: {
@@ -626,6 +634,17 @@ function parseSTL(buffer) {
 }
 
 /* ---------- Instant quote ---------- */
+/* ---------- Visitor stats (Cloudflare Web Analytics, live site only) ---------- */
+function initAnalytics() {
+  const a = CONFIG.analytics || {};
+  if (!a.cloudflareToken || !(a.liveHosts || []).includes(location.hostname)) return;
+  const s = document.createElement("script");
+  s.defer = true;
+  s.src = "https://static.cloudflareinsights.com/beacon.min.js";
+  s.setAttribute("data-cf-beacon", JSON.stringify({ token: a.cloudflareToken }));
+  document.head.appendChild(s);
+}
+
 /* =========================================================
    Website forms: saved to our Google Sheet (+ files to Drive)
    in the background, with a little notification card.
@@ -1523,6 +1542,7 @@ function initGuide() {
     "page-community": ["Printer hai? Adda join karo, free help 🧡", "Got a printer? Join the Adda, free help 🧡"],
     "page-about": ["Hum dono se milo 👋 Polaroid pe tap karo", "Meet us both 👋 Tap a polaroid"],
     "page-careers": ["Pasand ka role chuno, apply karo 💼", "Pick a role and apply 💼"],
+    "page-404": ["Main bhi dhoond raha hoon 🔍 Neeche wale links try karo!", "I'm looking for it too 🔍 Try the links below!"],
     "page-media": ["Koi bhi reel tap karo, yahin chalegi 🎬", "Tap any reel to play it right here 🎬"],
     "page-terms": ["Simple bhasha mein likha hai, padh lo 📜", "Written in plain words, have a read 📜"],
     "page-privacy": ["Aapka data safe hai, kabhi bechte nahi 🔒", "Your data is safe, we never sell it 🔒"],
@@ -2177,6 +2197,7 @@ function initReveal() {
 
 document.addEventListener("DOMContentLoaded", () => {
   applyConfig();
+  initAnalytics();
   initLang();
   initBirth();
   initThemer();
