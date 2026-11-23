@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700;800;900&family=Red+Hat+Text:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&family=Caveat:wght@500;700&family=Kalam:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20261122u">
+  <link rel="stylesheet" href="css/style.css?v=20261124c">
 </head>
 <body data-page="privacy">
   <!-- @layout:nav -->
@@ -45,7 +45,7 @@
       <div class="wrap legal__wrap">
         <header class="legal__head">
           <h1 class="legal__title" data-en="Privacy Policy">Privacy Policy</h1>
-          <p class="legal__meta mono">Last updated: 22 November 2026</p>
+          <p class="legal__meta mono">Last updated: 24 November 2026</p>
           <p class="legal__intro">What personal data we collect, why, who sees it, and how you can control it. Short answer: only what we need to make your order, and we never sell it.</p>
         </header>
         <nav class="legal__toc" aria-label="On this page">
@@ -69,7 +69,7 @@
           <h2>1. The short version</h2>
           <ul>
             <li>We only collect what we need to quote, make and deliver your order, reply to you, or consider a job application.</li>
-            <li>Your STL file stays in your browser when you use the instant price calculator. It is not uploaded to us.</li>
+            <li>The instant price calculator reads your STL file in your browser. The file only reaches us if you press <b>Send request</b>.</li>
             <li>We don't sell your data, and we don't use advertising trackers on this website.</li>
             <li>You can ask us to see, correct or delete your data at any time: <a href="mailto:contact@makemeproto.com">contact@makemeproto.com</a>.</li>
           </ul>
@@ -88,7 +88,9 @@
         </section>
         <section class="legal__sec" id="forms">
           <h2>3. How our forms work</h2>
-          <p>Our quote, contact, 3D Adda and job application forms don't send data to a server. When you press send, they open WhatsApp on your device with a pre-filled message. Nothing is shared until you press send in WhatsApp yourself.</p>
+          <p>When you press send on our quote, contact or job application form, what you typed is saved to a private Google Sheet that only MakeMeProto can open. Files you attach (an STL file, a photo or a resume) are saved to a private folder in our Google Drive. Nothing is sent until you press send.</p>
+          <p>To keep out spam, the forms check that files really are the type they claim to be, limit how many entries can be sent, and reject entries filled in by bots. Big photos are made smaller in your browser before they're sent.</p>
+          <p>Some buttons, and the 3D Adda form, open WhatsApp on your device with a pre-filled message instead. Nothing is shared until you press send in WhatsApp yourself.</p>
           <p>WhatsApp is run by Meta. Messages you send to us there are also covered by <a href="https://www.whatsapp.com/legal/privacy-policy" target="_blank" rel="noopener">WhatsApp's privacy policy</a>.</p>
         </section>
         <section class="legal__sec" id="use">
@@ -107,7 +109,7 @@
           <ul>
             <li><b>Courier and delivery partners</b> (name, phone, address) to deliver your order;</li>
             <li><b>Payment providers and banks</b> to process payments;</li>
-            <li><b>WhatsApp, email and hosting providers</b> we use to talk to you and run this website;</li>
+            <li><b>Google (Sheets, Drive and Gmail), WhatsApp and our hosting provider</b>, which we use to store form entries, talk to you and run this website;</li>
             <li><b>Authorities</b>, only if the law requires it.</li>
           </ul>
           <p>We never sell your personal data, and we never share your designs with anyone without your permission.</p>
@@ -116,8 +118,9 @@
           <h2>6. How long we keep it</h2>
           <ul>
             <li>Order and payment records: as long as Indian accounting and tax laws require (usually up to 8 years).</li>
-            <li>Your design files: for up to 2 years after your order so we can reprint parts for you, or less if you ask us to delete them.</li>
-            <li>Job applications: up to 12 months, unless you ask us to delete them sooner.</li>
+            <li>Files sent through the quote form: deleted automatically after 120 days unless you place an order.</li>
+            <li>Your design files for an order: for up to 2 years after your order so we can reprint parts for you, or less if you ask us to delete them.</li>
+            <li>Job applications and resumes: up to 12 months (resumes are deleted automatically after 365 days), unless you ask us to delete them sooner.</li>
             <li>General messages: deleted when no longer needed.</li>
           </ul>
         </section>
@@ -139,7 +142,7 @@
         </section>
         <section class="legal__sec" id="cookies">
           <h2>9. Cookies and browser storage</h2>
-          <p>This website doesn't use advertising or tracking cookies. It saves your language choice in your browser's local storage so the site remembers it. Fonts are loaded from Google Fonts, which may see your IP address when loading them.</p>
+          <p>This website doesn't use advertising or tracking cookies. It saves your language choice in your browser's local storage so the site remembers it. If a form message fails to send because of a bad connection, it is kept in your browser and sent automatically on your next visit. Fonts are loaded from Google Fonts, which may see your IP address when loading them.</p>
           <p>If we add website analytics in the future, we'll update this page first.</p>
         </section>
         <section class="legal__sec" id="children">
@@ -251,6 +254,6 @@
   </a>
   <!-- @end -->
 
-  <script src="js/main.js?v=20261122u"></script>
+  <script src="js/main.js?v=20261124c"></script>
 </body>
 </html>

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700;800;900&family=Red+Hat+Text:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&family=Caveat:wght@500;700&family=Kalam:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20261122u">
+  <link rel="stylesheet" href="css/style.css?v=20261124c">
 </head>
 <body data-page="pricing">
   <!-- @layout:nav -->
@@ -48,7 +48,7 @@
       <div class="wrap">
         <div class="section__head">
           <h2 data-en="How much? Find out &lt;span class=&quot;squiggle&quot;&gt;now&lt;/span&gt;.">Kitna lagega? <span class="squiggle">Abhi</span> pata karo.</h2>
-          <p class="section__sub">Upload an STL file (<span class="hl">it stays on your device</span>) or enter an approximate weight. You get an estimate in seconds.</p>
+          <p class="section__sub">Upload an STL file or enter an approximate weight. You get an estimate in seconds, and <span class="hl">nothing is sent until you press Send</span>.</p>
         </div>
 
         <div class="quote">
@@ -122,8 +122,25 @@
               <div><dt>Size</dt><dd id="statSize">—</dd></div>
               <div><dt>Volume</dt><dd id="statVol">—</dd></div>
             </dl>
-            <a href="#" class="btn btn--accent btn--block" id="quoteWa">Send this quote on WhatsApp</a>
-            <p class="quote__fine">This is an estimate. Final price is confirmed after we check your file. Minimum order ₹300. Design work is quoted separately.</p>
+            <form class="order" id="orderForm" novalidate>
+              <p class="order__title hand" data-en="Like it? Send it to us 👇">Pasand aaya? Humein bhejo 👇</p>
+              <div class="hp" aria-hidden="true"><label>Leave this empty <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+              <div class="order__row">
+                <label class="field"><span>Your name</span><input type="text" id="oName" required autocomplete="name" maxlength="80"></label>
+                <label class="field"><span>WhatsApp number</span><input type="tel" id="oPhone" required autocomplete="tel" inputmode="tel" maxlength="16" placeholder="98765 43210"></label>
+              </div>
+              <label class="field"><span>Photo or sketch <em>optional</em></span>
+                <span class="filepick">
+                  <input type="file" id="oPhoto" accept="image/jpeg,image/png,image/webp,image/heic,.heic">
+                  <span class="filepick__hint" id="oPhotoName">Broken part, idea or reference · up to 8 MB</span>
+                </span>
+              </label>
+              <label class="field"><span>Notes <em>optional</em></span><textarea id="oNotes" rows="2" maxlength="1000" placeholder="Deadline, size, anything else…"></textarea></label>
+              <button type="submit" class="btn btn--accent btn--block" id="orderSend">Send request 📤</button>
+              <p class="order__hint" id="orderHint">We reply on WhatsApp, usually within a few hours.</p>
+              <a href="#" class="order__wa" id="quoteWa">or chat with us on WhatsApp</a>
+            </form>
+            <p class="quote__fine">This is an estimate. Final price is confirmed after we check your file. Minimum order ₹300. Design work is quoted separately. By sending, you agree to our <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a>.</p>
           </aside>
         </div>
       </div>
@@ -352,6 +369,6 @@
   </a>
   <!-- @end -->
 
-  <script src="js/main.js?v=20261122u"></script>
+  <script src="js/main.js?v=20261124c"></script>
 </body>
 </html>
