@@ -16,6 +16,13 @@ const CONFIG = {
   community: "https://chat.whatsapp.com/D55pQNBsJBY4H8kOEmGliL",                     // WhatsApp community / group invite link (leave "" to use a WhatsApp message instead)
   maxFileMb: 500,                    // biggest STL the quote calculator will read
 
+  // Website forms → Google Sheet + Drive (see backend/forms/README.md).
+  // Leave endpoint "" and every form simply opens WhatsApp, like before.
+  forms: {
+    endpoint: "",
+    maxMb: { stl: 25, photo: 8, resume: 5 },   // bigger STLs are sent without the file (we ask for it on WhatsApp)
+  },
+
   // Colours: "filament" (orange), "neem" (green), "neela" (blue), "gulabi" (pink), "jamun" (purple)
   theme: "filament",
   showThemeSwitcher: false,          // true shows the 🎨 colour button
@@ -619,6 +626,197 @@ function parseSTL(buffer) {
 }
 
 /* ---------- Instant quote ---------- */
+/* =========================================================
+   Website forms: saved to our Google Sheet (+ files to Drive)
+   in the background, with a little notification card.
+   ========================================================= */
+const PAGE_START = Date.now();
+const formsOn = () => !!CONFIG.forms?.endpoint;
+
+/* ---------- Notification cards (bottom-left) ---------- */
+function toast({ icon = "", title = "", text = "", kind = "info", progress = false, actions = [], timeout = 0 } = {}) {
+  let box = $(".toasts");
+  if (!box) { box = document.createElement("div"); box.className = "toasts"; document.body.appendChild(box); }
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.innerHTML = `<span class="toast__icon" aria-hidden="true"></span><div class="toast__body"><b class="toast__title"></b><p class="toast__text"></p>
+    <div class="toast__bar" hidden><i></i></div><div class="toast__actions"></div></div><button type="button" class="toast__x" aria-label="Close">×</button>`;
+  let timer;
+  const api = {
+    el,
+    update(o) {
+      if (o.kind) { el.className = "toast toast--" + o.kind + (el.classList.contains("show") ? " show" : ""); el.setAttribute("role", o.kind === "error" ? "alert" : "status"); }
+      if (o.icon != null) $(".toast__icon", el).textContent = o.icon;
+      if (o.title != null) $(".toast__title", el).textContent = o.title;
+      if (o.text != null) $(".toast__text", el).textContent = o.text;
+      if (o.progress != null) {
+        const bar = $(".toast__bar", el);
+        bar.hidden = o.progress === false;
+        if (typeof o.progress === "number") $("i", bar).style.width = Math.round(o.progress * 100) + "%";
+      }
+      if (o.actions) {
+        const row = $(".toast__actions", el); row.innerHTML = "";
+        o.actions.forEach((a) => {
+          const b = document.createElement(a.href ? "a" : "button");
+          b.className = "toast__btn" + (a.primary ? " toast__btn--main" : "");
+          b.textContent = a.label;
+          if (a.href) { b.href = a.href; b.target = "_blank"; b.rel = "noopener"; } else b.type = "button";
+          b.addEventListener("click", () => { a.onClick?.(); if (a.close !== false) api.close(); });
+          row.appendChild(b);
+        });
+      }
+      clearTimeout(timer);
+      if (o.timeout) timer = setTimeout(() => api.close(), o.timeout);
+      return api;
+    },
+    close() { clearTimeout(timer); el.classList.remove("show"); setTimeout(() => el.remove(), 350); },
+  };
+  $(".toast__x", el).addEventListener("click", () => api.close());
+  box.appendChild(el);
+  api.update({ icon, title, text, kind, progress, actions, timeout });
+  requestAnimationFrame(() => el.classList.add("show"));
+  return api;
+}
+
+/* ---------- Is the file what it claims to be? (checked again on the server) ---------- */
+const FILE_RULES = {
+  stl: ["stl"],
+  photo: ["jpg", "jpeg", "png", "webp", "heic"],
+  resume: ["pdf", "doc", "docx", "jpg", "jpeg", "png"],
+};
+async function looksGenuine(file, ext) {
+  const head = new Uint8Array(await file.slice(0, 2048).arrayBuffer());
+  const asc = (a, n) => String.fromCharCode(...head.slice(a, a + n));
+  switch (ext) {
+    case "stl": {
+      if (/^\s*solid/i.test(asc(0, 80)) && /facet|endsolid/i.test(asc(0, 2048))) return true;
+      if (file.size < 134) return false;
+      const tris = new DataView(head.buffer).getUint32(80, true);
+      return tris > 0 && 84 + tris * 50 === file.size;
+    }
+    case "jpg": case "jpeg": return head[0] === 0xFF && head[1] === 0xD8 && head[2] === 0xFF;
+    case "png": return head[0] === 0x89 && asc(1, 3) === "PNG";
+    case "webp": return asc(0, 4) === "RIFF" && asc(8, 4) === "WEBP";
+    case "heic": return asc(4, 4) === "ftyp";
+    case "pdf": return asc(0, 5) === "%PDF-";
+    case "docx": return head[0] === 0x50 && head[1] === 0x4B && head[2] === 0x03 && head[3] === 0x04;
+    case "doc": return head[0] === 0xD0 && head[1] === 0xCF && head[2] === 0x11 && head[3] === 0xE0;
+  }
+  return false;
+}
+// returns an error message, or "" when the file is fine
+async function checkFile(file, kind) {
+  if (!file) return "";
+  const ext = file.name.toLowerCase().split(".").pop();
+  if (!FILE_RULES[kind].includes(ext)) return T(`.${ext} file nahi chalegi. Ye bhejo: ${FILE_RULES[kind].join(", ")}`, `.${ext} files aren't accepted. Use: ${FILE_RULES[kind].join(", ")}`);
+  if (kind !== "stl" && file.size > CONFIG.forms.maxMb[kind] * 1048576) return T(`File ${CONFIG.forms.maxMb[kind]} MB se badi hai.`, `File is bigger than ${CONFIG.forms.maxMb[kind]} MB.`);
+  if (!(await looksGenuine(file, ext))) return T("Ye file khul nahi rahi ya asli nahi lag rahi. Doosri try karo.", "This file looks damaged or isn't really that type. Try another one.");
+  return "";
+}
+
+// Big phone photos are shrunk before sending (faster upload, less Drive space)
+async function shrinkPhoto(file) {
+  if (!/\.(jpe?g|png|webp)$/i.test(file.name) || file.size < 1.2 * 1048576 || !window.createImageBitmap) return file;
+  try {
+    const img = await createImageBitmap(file), k = Math.min(1, 2000 / Math.max(img.width, img.height));
+    const c = document.createElement("canvas"); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    const blob = await new Promise((r) => c.toBlob(r, "image/jpeg", 0.85));
+    return blob && blob.size < file.size ? new File([blob], file.name.replace(/\.\w+$/, ".jpg"), { type: "image/jpeg" }) : file;
+  } catch (e) { return file; }
+}
+
+const toBase64 = (file) => new Promise((res, rej) => {
+  const r = new FileReader();
+  r.onload = () => res(String(r.result).split(",")[1] || "");
+  r.onerror = () => rej(r.error);
+  r.readAsDataURL(file);
+});
+
+/* ---------- Sending, in the background ---------- */
+let sending = 0;
+addEventListener("beforeunload", (e) => { if (sending) { e.preventDefault(); e.returnValue = ""; } });
+
+const OUTBOX = "mmp-outbox";
+const outbox = {
+  read() { try { return JSON.parse(localStorage.getItem(OUTBOX) || "[]"); } catch (e) { return []; } },
+  write(list) { try { list.length ? localStorage.setItem(OUTBOX, JSON.stringify(list.slice(-5))) : localStorage.removeItem(OUTBOX); } catch (e) {} },
+};
+
+async function postEntry(payload) {
+  const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 120000);
+  try {
+    // text/plain keeps it a "simple" request, so Google Apps Script answers without a CORS preflight
+    const r = await fetch(CONFIG.forms.endpoint, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload), signal: ctrl.signal });
+    return await r.json();
+  } finally { clearTimeout(t); }
+}
+
+/**
+ * Save a form entry. Shows a card that tracks the upload, so people can keep browsing.
+ *   form:   "quote" | "contact" | "careers"
+ *   fields: plain values for the sheet
+ *   files:  [File]
+ *   wa:     WhatsApp message used as a fallback (and offered after sending)
+ *   done:   wording for the success card
+ */
+async function sendEntry({ form, fields, files = [], wa, label, done, website = "" }) {
+  if (!formsOn()) { window.open(waLink(wa), "_blank", "noopener"); return { whatsapp: true }; }
+  const bytes = files.reduce((n, f) => n + f.size, 0);
+  const size = bytes < 1048576 ? Math.max(1, Math.round(bytes / 1024)) + " KB" : (bytes / 1048576).toFixed(1) + " MB";
+  const card = toast({ icon: "📤", title: label, text: files.length ? T(`File bhej rahe hain (${size})… aap browse karte raho.`, `Uploading ${size}… feel free to keep browsing.`) : T("Bhej rahe hain…", "Sending…"), progress: 0.04 });
+  // the upload can't report real progress here, so we ease towards 95% based on size (~0.4 MB/s on mobile data)
+  const expect = Math.max(1500, bytes / 420), t0 = Date.now();
+  const tick = setInterval(() => card.update({ progress: 0.95 * (1 - Math.exp(-(Date.now() - t0) / expect * 2.2)) }), 200);
+  sending++;
+  const payload = { form, fields, website, elapsed: Date.now() - PAGE_START, source: location.hostname || "local file", lang: LANG, files: [] };
+  try {
+    for (const f of files) payload.files.push({ name: f.name, data: await toBase64(f) });
+    const res = await postEntry(payload);
+    clearInterval(tick);
+    if (res && res.ok) {
+      const ref = res.ref || "";
+      card.update({ kind: "ok", icon: "✅", title: T("Pahunch gaya! 🎉", "Got it! 🎉") + (ref ? ` · ${ref}` : ""), text: done(ref, res), progress: false, timeout: 14000,
+        actions: [{ label: T("WhatsApp pe bhi bolo", "Also ping on WhatsApp"), href: waLink(wa + (ref ? `\n\nRef: ${ref}` : "")) }, { label: T("Theek hai", "Okay"), primary: true }] });
+      window.mmpGuide?.cheer?.();
+      return { ok: true, ref };
+    }
+    card.update({ kind: "error", icon: "⚠️", title: T("Nahi gaya", "Not sent"), text: (res && res.message) || T("Kuch gadbad hui.", "Something went wrong."), progress: false,
+      actions: [{ label: T("WhatsApp pe bhejo", "Send on WhatsApp"), href: waLink(wa), primary: true }] });
+    return { ok: false, res };
+  } catch (err) {
+    clearInterval(tick);
+    if (!files.length) outbox.write([...outbox.read(), payload]);   // text-only: we'll retry by ourselves next time
+    card.update({ kind: "error", icon: "📶", title: T("Network gaya", "Connection dropped"), progress: false,
+      text: files.length ? T("Upload poora nahi hua. Dobara try karo ya WhatsApp pe file bhejo.", "The upload didn't finish. Try again or send the file on WhatsApp.")
+        : T("Hum agli baar khud bhej denge. Ya abhi WhatsApp pe bhejo.", "We'll send it automatically next time you visit. Or send it on WhatsApp now."),
+      actions: [{ label: T("Phir se try", "Try again"), onClick: () => sendEntry({ form, fields, files, wa, label, done, website }) }, { label: "WhatsApp", href: waLink(wa), primary: true }] });
+    return { ok: false, err };
+  } finally { sending--; }
+}
+
+// Anything that failed earlier without files is quietly sent again
+async function flushOutbox() {
+  if (!formsOn()) return;
+  const list = outbox.read();
+  if (!list.length) return;
+  const left = [];
+  for (const p of list) { try { const r = await postEntry(p); if (!r || !r.ok) left.push(p); } catch (e) { left.push(p); } }
+  outbox.write(left);
+  if (left.length < list.length) toast({ kind: "ok", icon: "✅", title: T("Purana message bhej diya", "Earlier message sent"), text: T("Jo pichhli baar nahi gaya tha, ab pahunch gaya.", "The message that didn't go through last time has now reached us."), timeout: 8000 });
+}
+
+// Shared bits for every form: a hidden field bots fill in, and phone checking
+const honeypot = (form) => $('input[name="website"]', form)?.value || "";
+const phoneOk = (v) => { const d = String(v).replace(/\D/g, ""); return /^(91)?[6-9]\d{9}$/.test(d) || (/^\d{11,15}$/.test(d) && !/^91/.test(d)); };
+function setHint(el, text, bad) { if (!el) return; el.textContent = text; el.classList.toggle("is-bad", !!bad); }
+function busy(btn, on, text) {
+  if (!btn) return;
+  if (on) { btn.dataset.label = btn.textContent; btn.textContent = text; btn.disabled = true; }
+  else { btn.textContent = btn.dataset.label || btn.textContent; btn.disabled = false; }
+}
+
+
 function initQuote() {
   const drop = $("#drop"), file = $("#stlFile"), info = $("#fileInfo");
   if (!drop || !file) return;
@@ -628,8 +826,11 @@ function initQuote() {
     price: $("#price"), note: $("#priceNote"), weight: $("#statWeight"),
     time: $("#statTime"), size: $("#statSize"), vol: $("#statVol"), wa: $("#quoteWa"),
   };
+  out.wa.target = "_blank"; out.wa.rel = "noopener";
   let model = null; // parsed STL
   let fileName = "";
+  let stlFile = null;   // the real file, uploaded only when they press Send
+  let quoteMsg = "", quoteFields = {};
   const cheer = $("#cheer");
   const quoteSec = $("#quote");
   let scrollAfter = false;   // jump to the quote after a file is picked from elsewhere on the page
@@ -663,7 +864,9 @@ function initQuote() {
       out.price.textContent = "₹ —";
       out.note.textContent = "Upload a file or enter a weight to see your estimate.";
       out.weight.textContent = out.time.textContent = "—";
-      out.wa.classList.add("is-disabled");
+      out.wa.href = waLink("Quote request 🧾|Hi! I'd like a 3D print. I'll share the details here.");
+      quoteMsg = waFormat("Quote request 🧾", [["Material", material.value], ["Colour", color()], ["Quantity", q]]);
+      quoteFields = { material: material.value, infill: infill.value + "%", colour: color(), quantity: q, weight: "", size: "", estimate: "", file: fileName };
       cheer?.classList.remove("show");
       return;
     }
@@ -692,6 +895,9 @@ function initQuote() {
       ["Quantity", q],
       ["Website estimate", out.price.textContent],
     ], fileName ? "📎 I'll attach the STL file in this chat." : null);
+    quoteMsg = msg;
+    quoteFields = { material: material.value, infill: infill.value + "%", colour: color(), quantity: q, weight: `${weight.toFixed(0)} g${q > 1 ? " each" : ""}`,
+      size: model ? out.size.textContent : "", estimate: out.price.textContent, file: fileName };
     out.wa.href = waLink(msg);
     out.wa.target = "_blank";
     out.wa.rel = "noopener";
@@ -708,12 +914,12 @@ function initQuote() {
     await new Promise((r) => setTimeout(r, 40));   // let the message show before the heavy work
     try {
       model = parseSTL(await f.arrayBuffer());
-      fileName = f.name;
+      fileName = f.name; stlFile = f;
       grams.value = "";
       drop.classList.add("has-file");
       showFileMsg(`✓ ${f.name} · ${model.triangles.toLocaleString("en-IN")} triangles`);
     } catch (e) {
-      model = null; fileName = "";
+      model = null; fileName = ""; stlFile = null;
       drop.classList.remove("has-file");
       showFileMsg("Couldn't read this STL. Send it on WhatsApp and we'll check it.", true);
     }
@@ -754,7 +960,7 @@ function initQuote() {
   // Sample model so people can try the calculator without a file
   $("#sampleBtn")?.addEventListener("click", () => {
     model = { volumeCm3: 160, size: [80, 64, 92], triangles: 2316 };
-    fileName = "sample-phone-stand.stl";
+    fileName = "sample-phone-stand.stl"; stlFile = null;
     grams.value = ""; file.value = "";
     drop.classList.add("has-file");
     showFileMsg("✓ sample-phone-stand.stl (sample) · 80 × 64 × 92 mm");
@@ -763,7 +969,7 @@ function initQuote() {
 
   grams.addEventListener("input", () => {
     if (grams.value) { // typing a weight replaces the file
-      model = null; fileName = ""; file.value = "";
+      model = null; fileName = ""; stlFile = null; file.value = "";
       drop.classList.remove("has-file"); info.hidden = true;
     }
     calc();
@@ -772,6 +978,47 @@ function initQuote() {
   $$('input[name="color"]').forEach((el) => el.addEventListener("change", calc));
   $("#quoteForm").addEventListener("submit", (e) => e.preventDefault());
   calc();
+
+  /* ---- Send request: saved to our sheet, STL + photo uploaded in the background ---- */
+  const order = $("#orderForm");
+  if (!order) return;
+  const oName = $("#oName"), oPhone = $("#oPhone"), oPhoto = $("#oPhoto"), oPhotoName = $("#oPhotoName"), oHint = $("#orderHint"), oSend = $("#orderSend");
+  if (!formsOn()) { oSend.textContent = T("WhatsApp pe bhejo", "Send on WhatsApp"); }
+  oPhoto.addEventListener("change", async () => {
+    const f = oPhoto.files[0], err = await checkFile(f, "photo");
+    if (err) { oPhoto.value = ""; setHint(oPhotoName, err, true); oPhotoName.classList.remove("on"); return; }
+    setHint(oPhotoName, f ? `📎 ${f.name}` : "Broken part, idea or reference · up to 8 MB");
+    oPhotoName.classList.toggle("on", !!f);
+  });
+  order.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = oName.value.trim(), phone = oPhone.value.trim(), notes = $("#oNotes").value.trim(), photo = oPhoto.files[0];
+    if (name.length < 2) { setHint(oHint, T("Apna naam likho 🙂", "Please add your name 🙂"), true); oName.focus(); return; }
+    if (!phoneOk(phone)) { setHint(oHint, T("10 digit ka mobile number daalo.", "Please add a valid 10-digit mobile number."), true); oPhone.focus(); return; }
+    if (!fileName && !parseFloat(grams.value) && !photo && !notes) { setHint(oHint, T("Pehle file, weight ya photo daalo.", "Add a file, a weight or a photo first."), true); return; }
+    setHint(oHint, "");
+    const files = [];
+    let note = notes;
+    if (stlFile) {
+      const err = await checkFile(stlFile, "stl");
+      if (err) { setHint(oHint, err, true); return; }
+      if (stlFile.size <= CONFIG.forms.maxMb.stl * 1048576) files.push(stlFile);
+      else note = `[STL ${fileName} is ${Math.round(stlFile.size / 1048576)} MB, too big to upload; will share on WhatsApp/Drive]\n` + note;
+    }
+    if (photo) files.push(await shrinkPhoto(photo));
+    const big = stlFile && !files.includes(stlFile);
+    busy(oSend, true, T("Bhej rahe hain…", "Sending…"));
+    const res = await sendEntry({
+      form: "quote", website: honeypot(order), label: T("Quote request", "Quote request"),
+      fields: { name, phone, ...quoteFields, notes: note },
+      files,
+      wa: waFormat("Quote request 🧾", [["Name", name], ...quoteMsg.split("\n").slice(2).filter((l) => /^\*/.test(l)).map((l) => [null, l]), ["Notes", notes || null]]),
+      done: () => big ? T("File badi hai, WhatsApp ya Drive link se bhej do. Baaki details mil gayi!", "Your file is too big to upload, so please send it on WhatsApp or as a Drive link. We've got the rest!")
+        : T("Hum file check karke WhatsApp pe final price bhejenge, aam taur pe kuch ghanton mein.", "We'll check your file and WhatsApp you the final price, usually within a few hours."),
+    });
+    busy(oSend, false);
+    if (res.ok) setHint(oHint, T("Bhej diya ✓ Kuch aur bhejna ho to dobara bhej sakte ho.", "Sent ✓ You can send another one any time."));
+  });
 }
 
 /* ---------- Floating "Instant price" pill: shows once the first screen is passed, hides near the calculator ---------- */
@@ -789,71 +1036,71 @@ function initPriceFloat() {
   addEventListener("scroll", toggle, { passive: true }); toggle();
 }
 
-/* ---------- Contact form → WhatsApp ---------- */
+/* ---------- Contact form: saved to our sheet (or WhatsApp if forms aren't set up) ---------- */
 function initContact() {
   const form = $("#contactForm");
   const hint = $("#contactHint");
   if (!form) return;
-  form.addEventListener("submit", (e) => {
+  const btn = $('button[type="submit"]', form);
+  if (formsOn()) { btn.textContent = T("Message bhejo 📤", "Send message 📤"); setHint(hint, T("Hum WhatsApp pe jawab denge, aam taur pe kuch ghanton mein.", "We'll reply on WhatsApp, usually within a few hours.")); }
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const name = $("#cName").value.trim();
     const phone = $("#cPhone").value.trim();
-    if (!name || !phone) {
-      hint.textContent = "Please add your name and phone number.";
-      hint.style.color = "#c73f0c";
-      return;
-    }
-    const msg = waFormat("New enquiry 👋", [
-      ["Name", name],
-      ["Phone", phone],
-      ["Service", $("#cService").value],
-      ["Details", $("#cMsg").value.trim() || null],
-    ]);
-    window.open(waLink(msg), "_blank", "noopener");
-    hint.style.color = "";
-    hint.textContent = hasRealNumber()
-      ? "WhatsApp opened. Just press send."
-      : "WhatsApp number not set yet.";
+    if (name.length < 2) { setHint(hint, T("Apna naam likho 🙂", "Please add your name 🙂"), true); $("#cName").focus(); return; }
+    if (!phoneOk(phone)) { setHint(hint, T("10 digit ka mobile number daalo.", "Please add a valid 10-digit mobile number."), true); $("#cPhone").focus(); return; }
+    const fields = { name, phone, service: $("#cService").value, message: $("#cMsg").value.trim() };
+    const wa = waFormat("New enquiry 👋", [["Name", name], ["Phone", phone], ["Service", fields.service], ["Details", fields.message || null]]);
+    busy(btn, true, T("Bhej rahe hain…", "Sending…"));
+    const res = await sendEntry({ form: "contact", fields, wa, website: honeypot(form), label: T("Message", "Message"),
+      done: () => T("Hum WhatsApp pe jaldi reply karenge 🙌", "We'll reply on WhatsApp soon 🙌") });
+    busy(btn, false);
+    if (res.whatsapp) setHint(hint, hasRealNumber() ? "WhatsApp opened. Just press send." : "WhatsApp number not set yet.");
+    else if (res.ok) { setHint(hint, T("Bhej diya ✓", "Sent ✓")); $("#cMsg").value = ""; }
   });
 }
 
-/* ---------- Careers: "Apply" picks the role; the form opens WhatsApp with the application ---------- */
+/* ---------- Careers: "Apply" picks the role; the application (and resume) is saved to our sheet and Drive ---------- */
 function initCareers() {
   const form = $("#jobForm");
   if (!form) return;
-  const role = $("#jRole"), hint = $("#jobHint"), file = $("#jResume"), fileName = $("#jResumeName");
+  const role = $("#jRole"), hint = $("#jobHint"), file = $("#jResume"), fileName = $("#jResumeName"), btn = $('button[type="submit"]', form);
+  const pickText = () => formsOn() ? T("Resume chuno: PDF, Word ya photo · 5 MB tak", "Choose your resume: PDF, Word or image · up to 5 MB") : "Choose your resume (PDF). You'll attach it in WhatsApp next.";
+  if (formsOn()) {
+    btn.textContent = T("Application bhejo 📤", "Send application 📤");
+    setHint(hint, T("Resume ke saath seedha humare paas aayega.", "Comes straight to us, resume included."));
+    fileName.textContent = pickText();
+  }
   $$(".job__apply").forEach((b) => b.addEventListener("click", () => {
     role.value = b.dataset.role;
     $("#apply").scrollIntoView({ behavior: "smooth", block: "start" });
     setTimeout(() => $("#jName").focus({ preventScroll: true }), 600);
   }));
-  file.addEventListener("change", () => {
+  file.addEventListener("change", async () => {
     const f = file.files[0];
-    fileName.textContent = f ? `📎 ${f.name}: attach this in WhatsApp after it opens` : "Choose your resume (PDF). You'll attach it in WhatsApp next.";
+    const err = formsOn() ? await checkFile(f, "resume") : "";
+    if (err) { file.value = ""; setHint(fileName, err, true); fileName.classList.remove("on"); return; }
+    setHint(fileName, f ? (formsOn() ? `📎 ${f.name}` : `📎 ${f.name}: attach this in WhatsApp after it opens`) : pickText());
     fileName.classList.toggle("on", !!f);
   });
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const name = $("#jName").value.trim(), phone = $("#jPhone").value.trim();
-    if (!name || !phone) {
-      hint.textContent = "Please add your name and phone number.";
-      hint.style.color = "#ffb38f";
-      (name ? $("#jPhone") : $("#jName")).focus();
-      return;
-    }
+    const name = $("#jName").value.trim(), phone = $("#jPhone").value.trim(), email = $("#jEmail").value.trim();
+    if (name.length < 2) { setHint(hint, T("Apna naam likho 🙂", "Please add your name 🙂"), true); $("#jName").focus(); return; }
+    if (!phoneOk(phone)) { setHint(hint, T("10 digit ka mobile number daalo.", "Please add a valid 10-digit mobile number."), true); $("#jPhone").focus(); return; }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { setHint(hint, T("Email sahi nahi lag raha.", "That email doesn't look right."), true); $("#jEmail").focus(); return; }
     const f = file.files[0];
-    const msg = waFormat("Job application 💼", [
-      ["Role", role.value],
-      ["Name", name],
-      ["Phone", phone],
-      ["Email", $("#jEmail").value.trim() || null],
-      ["City", $("#jCity").value.trim() || null],
-      ["Portfolio", $("#jLink").value.trim() || null],
-      ["Why me", $("#jWhy").value.trim() || null],
+    const fields = { role: role.value, name, phone, email, city: $("#jCity").value.trim(), portfolio: $("#jLink").value.trim(), why: $("#jWhy").value.trim() };
+    const wa = waFormat("Job application 💼", [
+      ["Role", fields.role], ["Name", name], ["Phone", phone], ["Email", email || null], ["City", fields.city || null],
+      ["Portfolio", fields.portfolio || null], ["Why me", fields.why || null],
     ], f ? `📎 Attaching my resume (${f.name}) in this chat.` : "📎 I'll attach my resume in this chat.");
-    window.open(waLink(msg), "_blank", "noopener");
-    hint.style.color = "";
-    hint.textContent = "WhatsApp opened. Attach your resume there and press send. 🙌";
+    busy(btn, true, T("Bhej rahe hain…", "Sending…"));
+    const res = await sendEntry({ form: "careers", fields, files: f ? [f] : [], wa, website: honeypot(form), label: T("Job application", "Job application"),
+      done: () => T("Shukriya! Role khulte hi hum aapko contact karenge 🙌", "Thank you! We'll get in touch as soon as the role opens 🙌") });
+    busy(btn, false);
+    if (res.whatsapp) setHint(hint, "WhatsApp opened. Attach your resume there and press send. 🙌");
+    else if (res.ok) setHint(hint, T("Application mil gayi ✓", "Application received ✓"));
   });
 }
 
@@ -1747,6 +1994,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initContact();
   initPriceFloat();
   initCareers();
+  flushOutbox();
   initScreens();
   initUses();
   initExamples();
