@@ -12,6 +12,9 @@
 /* ------------------------- Settings ------------------------- */
 const SETTINGS = {
   notifyEmail: "contact@makemeproto.com",   // gets an email for every new entry ("" = no email)
+  siteUrl: "https://makemeproto.com",       // used in newsletter emails (welcome + unsubscribe link)
+  sendWelcome: true,                        // email new newsletter subscribers a welcome note
+  notifyOnSubscribe: false,                 // also email you for every new subscriber
   sheetName: "MakeMeProto · Website forms",
   folderName: "MakeMeProto · Website uploads",
 
@@ -31,6 +34,7 @@ const SETTINGS = {
     quote:   { stl: 25, jpg: 8, jpeg: 8, png: 8, webp: 8, heic: 8 },
     careers: { pdf: 5, doc: 5, docx: 5, jpg: 5, jpeg: 5, png: 5 },
     contact: {},
+    newsletter: {},
   },
   maxFilesPerEntry: 2,
 };
@@ -39,10 +43,11 @@ const TABS = {
   quote:   ["Received", "Reference", "Status", "Customer name", "WhatsApp number", "Material", "Infill density", "Colour", "Quantity", "Estimated weight", "Dimensions", "Website estimate", "Customer notes", "Attachments", "Submitted from"],
   contact: ["Received", "Reference", "Status", "Customer name", "Phone number", "Service required", "Message", "Submitted from"],
   careers: ["Received", "Reference", "Status", "Position", "Applicant name", "Phone number", "Email address", "City", "Portfolio link", "Cover note", "Attachments", "Submitted from"],
+  newsletter: ["Subscribed", "Reference", "Status", "Email address", "First name", "Interests", "Language", "Submitted from", "Unsubscribe key"],
 };
-const HEADER_VERSION = "2";   // bump when the headers above change; the sheet is updated on the next entry
-const TAB_TITLES = { quote: "Quotes", contact: "Contact", careers: "Careers" };
-const PREFIX = { quote: "Q", contact: "C", careers: "J" };
+const HEADER_VERSION = "3";   // bump when the headers above change; the sheet is updated on the next entry
+const TAB_TITLES = { quote: "Quotes", contact: "Contact", careers: "Careers", newsletter: "Subscribers" };
+const PREFIX = { quote: "Q", contact: "C", careers: "J", newsletter: "N" };
 
 /* ------------------------- One-time setup ------------------------- */
 function setup() {
@@ -91,6 +96,9 @@ function doPost(e) {
     try { limit = takeQuota_(body, check.uploadBytes); } finally { lock.releaseLock(); }
     if (!limit.ok) return json_(limit);
 
+    if (body.form === "newsletter") return json_(subscribe_(body));
+    if (body.form === "unsubscribe") return json_(unsubscribe_(body));
+
     const ref = makeRef(PREFIX[body.form]);
     const saved = saveFiles_(body, ref, check.files);
     appendRow_(body, ref, saved);
@@ -105,10 +113,18 @@ function doPost(e) {
 /* ------------------------- Checks (pure, also unit-tested) ------------------------- */
 function checkEntry(b, S) {
   const bad = (error, message) => ({ ok: false, error: error, message: message });
-  if (!b || !TABS[b.form]) return bad("form", "Unknown form.");
+  if (!b || !(TABS[b.form] || b.form === "unsubscribe")) return bad("form", "Unknown form.");
   if (b.website) return { ok: false, silent: true };                       // honeypot field, humans never see it
-  if (!(Number(b.elapsed) >= S.minSecondsOnForm * 1000)) return bad("fast", "That was quick! Please try again.");
   const f = b.fields || {};
+  if (b.form === "unsubscribe") {                                          // one click from an email link
+    return /^[A-Za-z0-9]{16,64}$/.test(String(f.key || "")) ? { ok: true, files: [], uploadBytes: 0 } : bad("key", "This unsubscribe link isn't valid. Please email us and we'll remove you.");
+  }
+  if (!(Number(b.elapsed) >= S.minSecondsOnForm * 1000)) return bad("fast", "That was quick! Please try again.");
+  if (b.form === "newsletter") {
+    if (!validEmail(f.email)) return bad("email", "That email doesn't look right.");
+    if (countLinks(JSON.stringify(f)) > 0) return bad("spam", "Links aren't allowed here.");
+    return { ok: true, files: [], uploadBytes: 0 };
+  }
   const name = clean(f.name, 80), phone = digits(f.phone);
   if (!name || name.length < 2) return bad("name", "Please add your name.");
   if (!validPhone(phone)) return bad("phone", "Please add a valid 10-digit mobile number.");
@@ -157,6 +173,7 @@ function looksLike(ext, bytes, totalLength) {
 
 function clean(v, max) { return String(v == null ? "" : v).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "").trim().slice(0, max || 500); }
 function digits(v) { return String(v || "").replace(/\D/g, ""); }
+function validEmail(v) { const e = String(v || "").trim(); return e.length <= 120 && /^[^\s@<>",;]+@[^\s@<>",;]+\.[a-z]{2,}$/i.test(e); }
 function validPhone(p) { return /^(91)?[6-9]\d{9}$/.test(p) || /^\d{11,15}$/.test(p) && !/^91/.test(p); }
 function countLinks(s) { return (String(s).match(/https?:\/\//gi) || []).length; }
 function safeName(n) { return String(n || "file").replace(/[^\w.\- ]+/g, "_").replace(/\s+/g, " ").slice(-80); }
@@ -175,7 +192,8 @@ function takeQuota_(b, uploadBytes) {
   const perMin = Number(cache.get(minuteKey) || 0);
   if (perMin >= SETTINGS.maxPerMinute) return { ok: false, error: "busy", message: "We're getting a lot of requests. Please try again in a minute." };
 
-  const phoneKey = "p" + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, digits(b.fields.phone))).slice(0, 20);
+  const who = b.form === "newsletter" ? String(b.fields.email || "").toLowerCase().trim() : b.form === "unsubscribe" ? String(b.fields.key || "") : digits(b.fields.phone);
+  const phoneKey = "p" + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, who)).slice(0, 20);
   const perPhone = Number(cache.get(phoneKey) || 0);
   if (perPhone >= SETTINGS.maxPerPhonePerHour) return { ok: false, error: "phone-limit", message: "You've sent a few already. We'll reply soon, or WhatsApp us." };
 
@@ -253,8 +271,9 @@ function ensureHeaders_(ss) {
   const props = PropertiesService.getScriptProperties();
   if (props.getProperty("HEADERS") === HEADER_VERSION) return;
   Object.keys(TABS).forEach((form) => {
-    const sh = ss.getSheetByName(TAB_TITLES[form]);
-    if (sh) sh.getRange(1, 1, 1, TABS[form].length).setValues([TABS[form]]).setFontWeight("bold").setBackground("#FFE4D6");
+    const sh = ss.getSheetByName(TAB_TITLES[form]) || ss.insertSheet(TAB_TITLES[form]);
+    sh.getRange(1, 1, 1, TABS[form].length).setValues([TABS[form]]).setFontWeight("bold").setBackground("#FFE4D6");
+    sh.setFrozenRows(1);
   });
   props.setProperty("HEADERS", HEADER_VERSION);
 }
@@ -398,6 +417,103 @@ function alertOnce_(subject, body) {
   try { MailApp.sendEmail(SETTINGS.notifyEmail, "⚠️ MakeMeProto forms: " + subject, body); } catch (e) {}
 }
 
+/* ------------------------- The Proto Post (newsletter) ------------------------- */
+function subscribersSheet_() {
+  const ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty("SHEET_ID"));
+  ensureHeaders_(ss);
+  return ss.getSheetByName(TAB_TITLES.newsletter);
+}
+
+// where links in the emails should point: the page the visitor signed up on (test site or live), otherwise the live site
+function siteBase_(b) {
+  const base = String(b.base || "");
+  return /^https:\/\/(makemeproto\.(com|in)|amkrys\.github\.io)\//.test(base) ? base : SETTINGS.siteUrl.replace(/\/?$/, "/");
+}
+
+function subscribe_(b) {
+  const f = b.fields || {}, email = String(f.email).trim(), lower = email.toLowerCase();
+  const sh = subscribersSheet_(), last = sh.getLastRow();
+  const when = Utilities.formatDate(new Date(), "Asia/Kolkata", "dd MMM yyyy, HH:mm");
+  if (last > 1) {
+    const rows = sh.getRange(2, 1, last - 1, TABS.newsletter.length).getValues();
+    for (let i = 0; i < rows.length; i++) {
+      if (String(rows[i][3]).toLowerCase().trim() !== lower) continue;
+      if (/^Subscribed/.test(String(rows[i][2]))) return { ok: true, ref: rows[i][1], already: true };
+      sh.getRange(i + 2, 3).setValue("Subscribed again · " + when);          // they had unsubscribed and came back
+      if (SETTINGS.sendWelcome) welcome_(b, email, clean(f.name, 60), rows[i][8]);
+      return { ok: true, ref: rows[i][1], again: true };
+    }
+  }
+  const ref = makeRef(PREFIX.newsletter), key = Utilities.getUuid().replace(/-/g, "");
+  sh.appendRow([when, ref, "Subscribed", cell(email), cell(clean(f.name, 60)), cell(clean(f.topics, 200)), cell(clean(f.language, 20)), cell(clean(b.source, 80)), key]);
+  if (SETTINGS.sendWelcome) welcome_(b, email, clean(f.name, 60), key);
+  if (SETTINGS.notifyOnSubscribe && SETTINGS.notifyEmail) {
+    try { MailApp.sendEmail(SETTINGS.notifyEmail, "💌 New subscriber · " + email, email + (f.name ? " (" + clean(f.name, 60) + ")" : "") + "\nInterests: " + (clean(f.topics, 200) || "none")); } catch (e) { logProblem_("Subscriber alert failed", e); }
+  }
+  return { ok: true, ref: ref };
+}
+
+function unsubscribe_(b) {
+  const key = String(b.fields.key), sh = subscribersSheet_(), last = sh.getLastRow();
+  if (last > 1) {
+    const keys = sh.getRange(2, 9, last - 1, 1).getValues();
+    for (let i = 0; i < keys.length; i++) {
+      if (String(keys[i][0]) !== key) continue;
+      sh.getRange(i + 2, 3).setValue("Unsubscribed · " + Utilities.formatDate(new Date(), "Asia/Kolkata", "dd MMM yyyy, HH:mm"));
+      return { ok: true };
+    }
+  }
+  return { ok: false, error: "key", message: "We couldn't find this subscription. Please email us and we'll remove you." };
+}
+
+function welcome_(b, email, name, key) {
+  try {
+    const base = siteBase_(b), mail = buildWelcome(name, base, base + "media.html?unsubscribe=" + key);
+    MailApp.sendEmail({ to: email, subject: mail.subject, body: mail.text, htmlBody: mail.html });
+  } catch (e) { logProblem_("Welcome email failed for " + email, e); }
+}
+
+function buildWelcome(name, base, unsubUrl) {
+  const esc = (v) => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const hi = name ? "Hi " + esc(name) + "," : "Hi there,";
+  const perks = [["🖨️", "New prints", "and the stories behind them"], ["🎥", "New reels and vlogs", "before anyone else"], ["💡", "One practical tip", "on 3D printing or design"], ["🎁", "Early offers", "just for subscribers"]];
+  const btn = (href, text, bg, fg) => `<a href="${href}" style="display:inline-block;margin:0 8px 8px 0;padding:13px 20px;border-radius:999px;background:${bg};color:${fg};font:700 14px/1 Arial,sans-serif;text-decoration:none">${text}</a>`;
+  const html = `<!doctype html><html><body style="margin:0;padding:0;background:#F6F1E7">
+<div style="display:none;max-height:0;overflow:hidden">One email a month from our 3D printing workshop in Ahmedabad.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F6F1E7"><tr><td align="center" style="padding:28px 12px">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px">
+    <tr><td style="padding:0 6px 14px;font:800 22px/1 Arial,sans-serif;color:#141414">make<span style="color:#FF5A1F">me</span>proto</td></tr>
+    <tr><td style="background:#ffffff;border-radius:20px;border:1px solid #E8E0CF;overflow:hidden">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        <tr><td style="height:6px;background:#FF5A1F;font-size:0;line-height:0">&nbsp;</td></tr>
+        <tr><td style="padding:28px 28px 8px">
+          <div style="display:inline-block;padding:6px 11px;border-radius:999px;background:#FF5A1F1A;color:#FF5A1F;font:700 12px/1 Arial,sans-serif">💌 The Proto Post</div>
+          <div style="font:800 28px/1.2 Arial,sans-serif;color:#141414;margin-top:14px">Welcome to the workshop!</div>
+          <p style="font:16px/1.6 Arial,sans-serif;color:#3a3a38;margin:14px 0 0">${hi}<br>Thanks for subscribing. We're two friends with a 3D printer in Ahmedabad, and once a month we'll send you what we've been making.</p>
+        </td></tr>
+        <tr><td style="padding:12px 28px 0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          ${perks.map(([e, t, d]) => `<tr><td style="width:44px;padding:8px 0;vertical-align:top"><div style="width:36px;height:36px;border-radius:10px;background:#FBF3E6;text-align:center;font:18px/36px Arial,sans-serif">${e}</div></td>
+            <td style="padding:8px 0 8px 10px;font:15px/1.45 Arial,sans-serif;color:#1a1a1a"><b>${t}</b> <span style="color:#6d6a63">${d}</span></td></tr>`).join("")}
+        </table></td></tr>
+        <tr><td style="padding:22px 28px 8px">${btn(base + "media.html", "🎬 Watch our latest reels", "#141414", "#ffffff")}${btn(base + "pricing.html", "⚡ Get an instant price", "#FF5A1F", "#ffffff")}</td></tr>
+        <tr><td style="padding:4px 28px 26px;font:14px/1.6 Arial,sans-serif;color:#6d6a63">Got something you want printed? Just reply to this email.<br>Bal &amp; Deepak, MakeMeProto</td></tr>
+      </table>
+    </td></tr>
+    <tr><td style="padding:16px 6px;font:12px/1.6 Arial,sans-serif;color:#a39d90">You're receiving this because you subscribed to The Proto Post on makemeproto.com.<br>
+      <a href="${esc(unsubUrl)}" style="color:#a39d90">Unsubscribe in one click</a> · <a href="${base}privacy.html#newsletter" style="color:#a39d90">Privacy Policy</a></td></tr>
+  </table>
+</td></tr></table></body></html>`;
+  const text = `${name ? "Hi " + name : "Hi there"},\n\nWelcome to The Proto Post! Thanks for subscribing. Once a month we'll send you new prints, new reels and vlogs, one practical 3D tip and early offers.\n\nWatch our latest reels: ${base}media.html\nGet an instant price: ${base}pricing.html\n\nBal & Deepak, MakeMeProto\n\nUnsubscribe in one click: ${unsubUrl}`;
+  return { subject: "Welcome to The Proto Post 💌", html, text };
+}
+
+/* Run from the editor: logs every active subscriber's email, comma-separated, ready to paste into BCC or a mailing tool */
+function exportSubscribers() {
+  const sh = subscribersSheet_(), last = sh.getLastRow();
+  const emails = last > 1 ? sh.getRange(2, 1, last - 1, TABS.newsletter.length).getValues().filter((r) => /^Subscribed/.test(String(r[2]))).map((r) => r[3]) : [];
+  Logger.log(emails.length + " active subscribers:\n" + emails.join(", "));
+}
+
 /* ------------------------- Daily clean-up ------------------------- */
 function cleanup() {
   const id = PropertiesService.getScriptProperties().getProperty("FOLDER_ID");
@@ -420,4 +536,4 @@ function json_(o) {
   return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
 }
 
-if (typeof module !== "undefined") module.exports = { buildEmail, checkEntry, looksLike, validPhone, cell, safeName, makeRef, SETTINGS };
+if (typeof module !== "undefined") module.exports = { buildEmail, buildWelcome, validEmail, checkEntry, looksLike, validPhone, cell, safeName, makeRef, SETTINGS };
