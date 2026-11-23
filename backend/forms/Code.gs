@@ -266,7 +266,7 @@ function notify_(b, ref, saved) {
     const ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty("SHEET_ID"));
     const when = Utilities.formatDate(new Date(), "Asia/Kolkata", "EEE d MMM yyyy, h:mm a");
     mail = buildEmail(b, ref, saved, ss.getUrl() + "#gid=" + ss.getSheetByName(TAB_TITLES[b.form]).getSheetId(), when);
-    MailApp.sendEmail({ to: SETTINGS.notifyEmail, subject: mail.subject, body: mail.text, htmlBody: mail.html, name: "MakeMeProto Website", replyTo: SETTINGS.notifyEmail });
+    MailApp.sendEmail({ to: SETTINGS.notifyEmail, subject: mail.subject, body: mail.text, htmlBody: mail.html });   // no custom sender name or reply-to: from a Gmail account those look like spoofing to spam filters
   } catch (e) {
     logProblem_("Email (designed) failed for " + ref, e);
     try {   // fall back to a plain email so the alert still arrives
