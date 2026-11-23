@@ -910,7 +910,7 @@ function initQuote() {
     if (!/\.stl$/i.test(f.name)) { showFileMsg("Please choose an .stl file", true); return; }
     const mb = f.size / 1048576;
     if (mb > CONFIG.maxFileMb) { showFileMsg(`File is over ${CONFIG.maxFileMb} MB. Send it on WhatsApp instead.`, true); return; }
-    showFileMsg(mb > 50 ? `Reading ${f.name} (${Math.round(mb)} MB)… ${T("badi file hai, thoda time lagega ☕", "big file, this may take a moment ☕")}` : "Reading " + f.name + "…");
+    showFileMsg(mb > 50 ? `Reading ${f.name} (${Math.round(mb)} MB)… ${T("Badi file hai, thoda time lagega ☕", "Big file, this may take a moment ☕")}` : "Reading " + f.name + "…");
     await new Promise((r) => setTimeout(r, 40));   // let the message show before the heavy work
     try {
       model = parseSTL(await f.arrayBuffer());
@@ -1145,7 +1145,7 @@ function initGallery() {
       <span class="mcard__badge">${t.icon} <span class="mcard__lbl">${T(t.hi, t.en)}</span><span class="mcard__lbl--s">${t.short}</span></span>
       ${m.duration ? `<span class="mcard__dur mono">${escHtml(m.duration)}</span>` : ""}
       ${video && !m.soon ? `<span class="mcard__play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>` : ""}
-      ${m.soon ? `<span class="mcard__soon hand">${T("jaldi aa raha hai", "coming soon")}</span>` : ""}
+      ${m.soon ? `<span class="mcard__soon hand">${T("Jaldi aa raha hai", "Coming soon")}</span>` : ""}
       <span class="mcard__text"><span class="mcard__title">${escHtml(mediaTitle(m))}</span><span class="mcard__date mono">${m.soon ? T("Aa raha hai", "Coming") + " " : ""}${mediaDate(m)}</span></span>
     </button>`;
   }
@@ -1965,7 +1965,7 @@ function initBirth() {
   bot.addEventListener("click", () => {
     if (!alive || done) return;
     jump.animate([{ transform: "none" }, { transform: "rotate(-9deg) scale(1.06,.94)", offset: .25 }, { transform: "rotate(8deg)", offset: .5 }, { transform: "rotate(-4deg)", offset: .75 }, { transform: "none" }], { duration: 460, composite: "add" });
-    fx(T("hehe 😆", "hehe 😆"), 60, -4, { dy: -45, size: .8 });
+    fx(T("Hehe 😆", "Hehe 😆"), 60, -4, { dy: -45, size: .8 });
   });
 
   async function finish(fast) {

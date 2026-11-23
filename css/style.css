@@ -1990,18 +1990,6 @@ body.is-being-born .guide, body.is-being-born .wa-float, body.is-being-born .pri
 .news__perks li { display: flex; gap: 12px; align-items: center; font-size: 1rem; color: rgba(255,255,255,.9); }
 .news__perks span { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: rgba(255,255,255,.08); flex: none; }
 .news__note { color: var(--accent); font-size: 1.4rem; margin: 0; transform: rotate(-2deg); }
-.news__form { background: var(--paper); color: var(--ink); border-radius: 22px; padding: clamp(22px, 3vw, 32px); box-shadow: 0 24px 60px rgba(0,0,0,.3); transform: rotate(.6deg); }
-.news__form .field > span { color: var(--ink); }
-.news__topics { border: 0; padding: 0; margin: 0 0 18px; display: flex; flex-wrap: wrap; gap: 8px; }
-.news__topics legend { font-weight: 600; font-size: .92rem; margin-bottom: 10px; padding: 0; }
-.news__topics legend em { font-style: normal; font-weight: 500; font-size: .8rem; color: var(--muted); }
-.news__topics label { cursor: pointer; }
-.news__topics input { position: absolute; opacity: 0; pointer-events: none; }
-.news__topics span { display: inline-block; padding: .55em .9em; border-radius: 999px; border: 1.5px solid var(--line); font-size: .86rem; background: var(--white); transition: all .2s; }
-.news__topics input:checked + span { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-.news__topics input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
-.news__hint { margin-top: 10px !important; }
-
 /* Unsubscribe card (from the email link) */
 .unsub { position: fixed; inset: 0; z-index: 240; display: grid; place-items: center; padding: 20px; background: rgba(20,20,20,.55); backdrop-filter: blur(4px); }
 .unsub[hidden] { display: none; }
@@ -2051,7 +2039,6 @@ body.is-being-born .guide, body.is-being-born .wa-float, body.is-being-born .pri
   .mbox__x { top: 4px; right: 4px; }
   .mbox__nav { top: auto; bottom: 14px; margin: 0; }
   .news { grid-template-columns: 1fr; }
-  .news__form { transform: none; }
 }
 @media (max-width: 560px) {
   .mgrid { columns: 2 140px; column-gap: 12px; }
@@ -2066,14 +2053,23 @@ body.is-being-born .guide, body.is-being-born .wa-float, body.is-being-born .pri
   .mfilter__btn { white-space: nowrap; }
 }
 
-/* footer newsletter */
-.footnews { width: 100%; max-width: 380px; margin-top: 4px; }
-.footnews__label { display: grid; gap: 8px; font-size: .88rem; color: #e9e4d8; font-weight: 600; }
-.footnews__row { display: flex; gap: 8px; }
-.footnews input { flex: 1; min-width: 0; font: inherit; font-weight: 400; font-size: .9rem; padding: 10px 12px; border-radius: 12px; border: 1.5px solid rgba(255,255,255,.18); background: rgba(255,255,255,.06); color: #fff; }
-.footnews input::placeholder { color: rgba(255,255,255,.4); }
-.footnews input:focus { outline: none; border-color: var(--accent); }
-.footnews__hint { margin: 6px 0 0; font-size: .8rem; color: rgba(255,255,255,.6); min-height: 1em; }
+/* The Proto Post: one subscribe box, used in every footer and on the Gallery page */
+.subscribe { width: 100%; max-width: 400px; margin-top: 4px; }
+.subscribe__label { display: grid; gap: 8px; font-size: .88rem; color: #e9e4d8; font-weight: 600; }
+.subscribe__row { display: flex; gap: 8px; }
+.subscribe input { flex: 1; min-width: 0; font: inherit; font-weight: 400; font-size: .92rem; padding: 11px 14px; border-radius: 12px; border: 1.5px solid rgba(255,255,255,.2); background: rgba(255,255,255,.07); color: #fff; }
+.subscribe input::placeholder { color: rgba(255,255,255,.42); }
+.subscribe input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent); }
+.subscribe .btn { padding: 11px 18px; font-size: .9rem; white-space: nowrap; }
+.subscribe__hint { margin: 8px 0 0; font-size: .8rem; color: rgba(255,255,255,.6); min-height: 1em; }
+.subscribe--big { max-width: 520px; justify-self: end; background: rgba(255,255,255,.05); border: 1.5px solid rgba(255,255,255,.12); border-radius: 22px; padding: clamp(20px, 3vw, 30px); }
+.subscribe--big .subscribe__label { font-size: 1rem; }
+.subscribe--big input { font-size: 1rem; padding: 14px 16px; }
+.subscribe--big .btn { padding: 14px 22px; font-size: 1rem; }
+.subscribe--big .form__consent { color: rgba(255,255,255,.5); margin: 12px 0 0; font-size: .8rem; }
+.subscribe--big .form__consent a { color: rgba(255,255,255,.75); }
+@media (max-width: 860px) { .subscribe--big { justify-self: stretch; max-width: none; } }
+@media (max-width: 400px) { .subscribe__row { flex-direction: column; } }
 @media (prefers-reduced-motion: reduce) { .mcard, .mcard:hover, .mthumb__emoji, .mcard__play { transition: none; transform: none; } .mbox[open] { animation: none; } }
 .mcard__lbl--s { display: none; }
 @media (max-width: 560px) { .mcard__lbl { display: none; } .mcard__lbl--s { display: inline; } }

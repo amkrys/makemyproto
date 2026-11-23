@@ -372,7 +372,7 @@ function buildEmail(b, ref, saved, sheetUrl, when) {
 
   const btn = (href, text, bg, fg) => `<a href="${href}" style="display:inline-block;margin:0 8px 8px 0;padding:13px 20px;border-radius:999px;background:${bg};color:${fg};font:700 14px/1 Arial,sans-serif;text-decoration:none">${text}</a>`;
 
-  const html = `<!doctype html><html><body style="margin:0;padding:0;background:#F6F1E7">
+  const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head><body style="margin:0;padding:0;background:#F6F1E7">
 <div style="display:none;max-height:0;overflow:hidden">${esc(name)} · ${esc(b.form === "quote" ? val("estimate", 40) || "quote request" : b.form === "careers" ? val("role", 60) : val("service", 60))} · ${esc(ref)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F6F1E7"><tr><td align="center" style="padding:28px 12px">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px">
@@ -478,7 +478,8 @@ function buildWelcome(name, base, unsubUrl) {
   const hi = name ? "Hi " + esc(name) + "," : "Hi there,";
   const perks = [["🖨️", "New prints", "and the stories behind them"], ["🎥", "New reels and vlogs", "before anyone else"], ["💡", "One practical tip", "on 3D printing or design"], ["🎁", "Early offers", "just for subscribers"]];
   const btn = (href, text, bg, fg) => `<a href="${href}" style="display:inline-block;margin:0 8px 8px 0;padding:13px 20px;border-radius:999px;background:${bg};color:${fg};font:700 14px/1 Arial,sans-serif;text-decoration:none">${text}</a>`;
-  const html = `<!doctype html><html><body style="margin:0;padding:0;background:#F6F1E7">
+  const social = socialRow_(base);
+  const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head><body style="margin:0;padding:0;background:#F6F1E7">
 <div style="display:none;max-height:0;overflow:hidden">One email a month from our 3D printing workshop in Ahmedabad.</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F6F1E7"><tr><td align="center" style="padding:28px 12px">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px">
@@ -499,12 +500,25 @@ function buildWelcome(name, base, unsubUrl) {
         <tr><td style="padding:4px 28px 26px;font:14px/1.6 Arial,sans-serif;color:#6d6a63">Got something you want printed? Just reply to this email.<br>Bal &amp; Deepak, MakeMeProto</td></tr>
       </table>
     </td></tr>
-    <tr><td style="padding:16px 6px;font:12px/1.6 Arial,sans-serif;color:#a39d90">You're receiving this because you subscribed to The Proto Post on makemeproto.com.<br>
+    <tr><td style="padding:22px 6px 4px">${social}</td></tr>
+    <tr><td style="padding:10px 6px 16px;font:12px/1.6 Arial,sans-serif;color:#a39d90">MakeMeProto · 3D design and printing · Ahmedabad, Gujarat<br>You're receiving this because you subscribed to The Proto Post on makemeproto.com.<br>
       <a href="${esc(unsubUrl)}" style="color:#a39d90">Unsubscribe in one click</a> · <a href="${base}privacy.html#newsletter" style="color:#a39d90">Privacy Policy</a></td></tr>
   </table>
 </td></tr></table></body></html>`;
-  const text = `${name ? "Hi " + name : "Hi there"},\n\nWelcome to The Proto Post! Thanks for subscribing. Once a month we'll send you new prints, new reels and vlogs, one practical 3D tip and early offers.\n\nWatch our latest reels: ${base}media.html\nGet an instant price: ${base}pricing.html\n\nBal & Deepak, MakeMeProto\n\nUnsubscribe in one click: ${unsubUrl}`;
+  const text = `${name ? "Hi " + name : "Hi there"},\n\nWelcome to The Proto Post! Thanks for subscribing. Once a month we'll send you new prints, new reels and vlogs, one practical 3D tip and early offers.\n\nWatch our latest reels: ${base}media.html\nGet an instant price: ${base}pricing.html\n\nBal & Deepak, MakeMeProto\n\nFollow us:\nLinkedIn: ${SOCIAL.linkedin}\nInstagram: ${SOCIAL.instagram}\nEmail: ${SOCIAL.email}\n\nUnsubscribe in one click: ${unsubUrl}`;
   return { subject: "Welcome to The Proto Post 💌", html, text };
+}
+
+/* The same LinkedIn, Instagram and email links as the website footer, for every email a customer receives */
+const SOCIAL = { linkedin: "https://www.linkedin.com/company/makemeproto", instagram: "https://instagram.com/makemeproto", email: "contact@makemeproto.com" };
+function socialRow_(base) {
+  const icon = (href, img, alt) => `<a href="${href}" style="display:inline-block;margin-right:10px;text-decoration:none"><img src="${base}assets/email/${img}.png" width="32" height="32" alt="${alt}" style="display:block;border:0;border-radius:50%"></a>`;
+  return `<table role="presentation" cellpadding="0" cellspacing="0"><tr>
+    <td style="padding-right:6px">${icon(SOCIAL.linkedin, "linkedin", "LinkedIn")}</td>
+    <td style="padding-right:6px">${icon(SOCIAL.instagram, "instagram", "Instagram")}</td>
+    <td style="padding-right:12px">${icon("mailto:" + SOCIAL.email, "email", "Email")}</td>
+    <td style="font:13px/1.4 Arial,sans-serif;color:#6d6a63">Follow along: <a href="${SOCIAL.instagram}" style="color:#141414;font-weight:700;text-decoration:none">@makemeproto</a></td>
+  </tr></table>`;
 }
 
 /* Run from the editor: logs every active subscriber's email, comma-separated, ready to paste into BCC or a mailing tool */
