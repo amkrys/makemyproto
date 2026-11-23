@@ -27,7 +27,7 @@ jobs:
           done
 
       - name: Shared layout in sync
-        run: python3 tools/layout.py --check
+        run: python3 tools/layout.py --check && python3 tools/seo.py --check
 
       - name: HTML lint
         run: npx --yes htmlhint@1 "*.html"  # _layout/ holds page fragments, not full pages
