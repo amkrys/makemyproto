@@ -36,10 +36,11 @@ const SETTINGS = {
 };
 
 const TABS = {
-  quote:   ["Received", "Ref", "Status", "Name", "Phone", "Material", "Infill", "Colour", "Quantity", "Weight", "Size", "Estimate", "Notes", "Files", "Source"],
-  contact: ["Received", "Ref", "Status", "Name", "Phone", "Service", "Message", "Source"],
-  careers: ["Received", "Ref", "Status", "Role", "Name", "Phone", "Email", "City", "Portfolio", "Why", "Files", "Source"],
+  quote:   ["Received", "Reference", "Status", "Customer name", "WhatsApp number", "Material", "Infill density", "Colour", "Quantity", "Estimated weight", "Dimensions", "Website estimate", "Customer notes", "Attachments", "Submitted from"],
+  contact: ["Received", "Reference", "Status", "Customer name", "Phone number", "Service required", "Message", "Submitted from"],
+  careers: ["Received", "Reference", "Status", "Position", "Applicant name", "Phone number", "Email address", "City", "Portfolio link", "Cover note", "Attachments", "Submitted from"],
 };
+const HEADER_VERSION = "2";   // bump when the headers above change; the sheet is updated on the next entry
 const TAB_TITLES = { quote: "Quotes", contact: "Contact", careers: "Careers" };
 const PREFIX = { quote: "Q", contact: "C", careers: "J" };
 
@@ -243,7 +244,19 @@ function appendRow_(b, ref, saved) {
     careers: [when, ref, "New", c("role", 60), c("name", 80), phone, c("email", 120), c("city", 60), c("portfolio", 300), c("why", 1500), files, source],
   }[b.form];
   const ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty("SHEET_ID"));
+  ensureHeaders_(ss);
   ss.getSheetByName(TAB_TITLES[b.form]).appendRow(row);
+}
+
+// Keeps the header row in step with TABS (same column order, clearer names)
+function ensureHeaders_(ss) {
+  const props = PropertiesService.getScriptProperties();
+  if (props.getProperty("HEADERS") === HEADER_VERSION) return;
+  Object.keys(TABS).forEach((form) => {
+    const sh = ss.getSheetByName(TAB_TITLES[form]);
+    if (sh) sh.getRange(1, 1, 1, TABS[form].length).setValues([TABS[form]]).setFontWeight("bold").setBackground("#FFE4D6");
+  });
+  props.setProperty("HEADERS", HEADER_VERSION);
 }
 
 function notify_(b, ref, saved) {
@@ -263,9 +276,9 @@ const MAIL_KIND = {
   careers: { title: "New job application", emoji: "💼", color: "#7A3FE6" },
 };
 const MAIL_LABELS = {
-  quote:   [["phone", "WhatsApp"], ["material", "Material"], ["colour", "Colour"], ["quantity", "Quantity"], ["infill", "Infill"], ["weight", "Weight"], ["size", "Size"], ["file", "STL file"], ["notes", "Notes"]],
-  contact: [["phone", "Phone"], ["service", "Looking for"], ["message", "Message"]],
-  careers: [["phone", "Phone"], ["email", "Email"], ["city", "City"], ["portfolio", "Portfolio"], ["why", "Why them"]],
+  quote:   [["phone", "WhatsApp number"], ["material", "Material"], ["colour", "Colour"], ["quantity", "Quantity"], ["infill", "Infill density"], ["weight", "Estimated weight"], ["size", "Dimensions"], ["file", "STL file"], ["notes", "Customer notes"]],
+  contact: [["phone", "Phone number"], ["service", "Service required"], ["message", "Message"]],
+  careers: [["phone", "Phone number"], ["email", "Email address"], ["city", "City"], ["portfolio", "Portfolio"], ["why", "Cover note"]],
 };
 
 function buildEmail(b, ref, saved, sheetUrl, when) {
@@ -325,7 +338,8 @@ function buildEmail(b, ref, saved, sheetUrl, when) {
         <tr><td style="height:6px;background:${kind.color};font-size:0;line-height:0">&nbsp;</td></tr>
         <tr><td style="padding:26px 28px 18px">
           <div style="display:inline-block;padding:6px 11px;border-radius:999px;background:${kind.color}1A;color:${kind.color};font:700 12px/1 Arial,sans-serif">${kind.emoji} ${kind.title}</div>
-          <div style="font:800 26px/1.25 Arial,sans-serif;color:#141414;margin-top:14px">${esc(name) || "Someone"}${b.form === "careers" && val("role") ? ` <span style="color:#8a857a;font-weight:400">wants to be our</span> ${esc(val("role", 60))}` : ""}</div>
+          <div style="font:800 26px/1.25 Arial,sans-serif;color:#141414;margin-top:14px">${esc(name) || "New visitor"}</div>
+          ${b.form === "careers" && val("role") ? `<div style="font:15px/1.4 Arial,sans-serif;color:#4a4740;margin-top:4px">Applied for the <b>${esc(val("role", 60))}</b> position</div>` : ""}
           <div style="font:13px/1.4 Arial,sans-serif;color:#8a857a;margin-top:6px">Ref <b style="color:#141414;font-family:Consolas,Menlo,monospace">${esc(ref)}</b> · ${esc(when)}</div>
         </td></tr>
         ${highlight}
@@ -333,20 +347,20 @@ function buildEmail(b, ref, saved, sheetUrl, when) {
         ${fileList}
         <tr><td style="padding:24px 28px 20px">
           ${btn(wa, "💬 Reply on WhatsApp", "#1FAF5A", "#ffffff")}${btn(esc(sheetUrl), "📊 Open in sheet", "#141414", "#ffffff")}
-          <div style="font:12px/1.5 Arial,sans-serif;color:#8a857a;margin-top:6px">The WhatsApp button opens a chat with ${esc(first)} with a greeting ready to send.</div>
+          <div style="font:12px/1.5 Arial,sans-serif;color:#8a857a;margin-top:6px">“Reply on WhatsApp” opens a chat with ${esc(first)}, with a greeting ready to send.</div>
         </td></tr>
       </table>
     </td></tr>
-    <tr><td style="padding:16px 6px;font:12px/1.6 Arial,sans-serif;color:#a39d90">Sent by the makemeproto.com ${b.form} form · from ${esc(clean(b.source, 80))}<br>Mark it in the sheet's Status column once you've replied.</td></tr>
+    <tr><td style="padding:16px 6px;font:12px/1.6 Arial,sans-serif;color:#a39d90">Submitted through the ${({ quote: "quote", contact: "contact", careers: "careers" })[b.form]} form on ${test ? "the test site (" + esc(clean(b.source, 80)) + ")" : "makemeproto.com"}.<br>Once you've replied, update the Status column in the sheet.</td></tr>
   </table>
 </td></tr></table></body></html>`;
 
-  const text = [`${kind.emoji} ${kind.title} · ${ref}${test ? " [TEST]" : ""}`, when, "", `Name: ${name}`, b.form === "careers" ? `Role: ${val("role", 60)}` : "",
+  const text = [`${kind.emoji} ${kind.title} · ${ref}${test ? " [TEST]" : ""}`, when, "", `${b.form === "careers" ? "Applicant name" : "Customer name"}: ${name}`, b.form === "careers" ? `Position: ${val("role", 60)}` : "",
     ...MAIL_LABELS[b.form].filter(([k]) => val(k)).map(([k, l]) => `${l}: ${k === "phone" ? pretty : val(k)}`),
-    b.form === "quote" && val("estimate") ? `Estimate: ${val("estimate", 40)}` : "",
-    files.length ? "\nFiles:\n" + files.map((x) => `${x.name}: ${x.url}`).join("\n") : "",
+    b.form === "quote" && val("estimate") ? `Website estimate: ${val("estimate", 40)}` : "",
+    files.length ? "\nAttachments:\n" + files.map((x) => `${x.name}: ${x.url}`).join("\n") : "",
     saved.skipped ? `⚠️ ${saved.skipped} file(s) not saved: ${saved.reason}` : "",
-    "", `Reply on WhatsApp: ${wa}`, `Sheet: ${sheetUrl}`].filter((x) => x !== "").join("\n");
+    "", `Reply on WhatsApp: ${wa}`, `Open in sheet: ${sheetUrl}`].filter((x) => x !== "").join("\n");
   return { subject, html, text };
 }
 

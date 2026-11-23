@@ -777,7 +777,7 @@ async function sendEntry({ form, fields, files = [], wa, label, done, website = 
     if (res && res.ok) {
       const ref = res.ref || "";
       card.update({ kind: "ok", icon: "✅", title: T("Pahunch gaya! 🎉", "Got it! 🎉") + (ref ? ` · ${ref}` : ""), text: done(ref, res), progress: false, timeout: 14000,
-        actions: [{ label: T("WhatsApp pe bhi bolo", "Also ping on WhatsApp"), href: waLink(wa + (ref ? `\n\nRef: ${ref}` : "")) }, { label: T("Theek hai", "Okay"), primary: true }] });
+        actions: [{ label: T("WhatsApp pe bhi bolo", "Also message us on WhatsApp"), href: waLink(wa + (ref ? `\n\nRef: ${ref}` : "")) }, { label: T("Theek hai", "Done"), primary: true }] });
       window.mmpGuide?.cheer?.();
       return { ok: true, ref };
     }
