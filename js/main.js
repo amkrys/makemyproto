@@ -19,7 +19,7 @@ const CONFIG = {
   // Website forms → Google Sheet + Drive (see backend/forms/README.md).
   // Leave endpoint "" and every form simply opens WhatsApp, like before.
   forms: {
-    endpoint: "",
+    endpoint: "https://script.google.com/macros/s/AKfycbxlvs76-R42puts5UtR2sOP5H7wI-cMJxzRCkHumyaAL-epoGe7Ba2tOd52gxQWj6gO/exec",
     maxMb: { stl: 25, photo: 8, resume: 5 },   // bigger STLs are sent without the file (we ask for it on WhatsApp)
   },
 
