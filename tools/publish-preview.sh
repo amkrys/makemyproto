@@ -16,10 +16,13 @@ cp -r "$SITE"/*.html "$SITE/css" "$SITE/js" "$SITE/assets" "$OUT/"     # no CNAM
 
 # every page: hidden from Google + a TEST SITE banner
 for f in "$OUT"/*.html; do
-  python3 - "$f" "$BRANCH" "$SHA" <<'PY'
-import sys
-f, branch, sha = sys.argv[1:4]
+  python3 - "$f" "$BRANCH" "$SHA" "$SLUG" <<'PY'
+import sys, re
+f, branch, sha, slug = sys.argv[1:5]
 s = open(f, encoding="utf-8").read()
+# link previews (WhatsApp etc.) on a test link should use this test site's own images and address
+test = f"https://amkrys.github.io/makemeproto-preview/{slug}/"
+s = re.sub(r'(<meta (?:property="og:(?:image|url)"|name="twitter:image") content=")https://makemeproto\.com/', lambda m: m.group(1) + test, s)
 s = s.replace("<head>", '<head>\n  <meta name="robots" content="noindex, nofollow">', 1)
 banner = (f'<div style="position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:9999;'
           f'background:#141414;color:#fffdf8;font:600 12px/1.4 monospace;padding:5px 12px;border-radius:8px 8px 0 0;'

@@ -2,7 +2,8 @@
 """Adds (or refreshes) the share-preview and search tags in every page's <head>:
 canonical link, Open Graph (WhatsApp, Facebook, LinkedIn, Instagram DMs) and Twitter/X card.
 Title and description come from the page's own <title> and meta description.
-Each page uses assets/og/<page>.png if it exists, otherwise assets/og/index.png.
+WhatsApp, Facebook and LinkedIn get the small square assets/og/thumb.png (compact preview);
+X gets the wide assets/og/<page>.png (or index.png).
 
     python3 tools/seo.py           # update all pages
     python3 tools/seo.py --check   # fail if any page is out of date (used in CI)
@@ -30,11 +31,12 @@ def block(page, html):
         f'  <meta property="og:title" content="{title}">',
         f'  <meta property="og:description" content="{desc}">',
         f'  <meta property="og:url" content="{url}">',
-        f'  <meta property="og:image" content="{SITE}assets/og/{img}.png">',
-        '  <meta property="og:image:width" content="1200">',
-        '  <meta property="og:image:height" content="630">',
-        f'  <meta property="og:image:alt" content="{title}">',
+        f'  <meta property="og:image" content="{SITE}assets/og/thumb.png">',
+        '  <meta property="og:image:width" content="256">',
+        '  <meta property="og:image:height" content="256">',
+        '  <meta property="og:image:alt" content="MakeMeProto">',
         '  <meta name="twitter:card" content="summary_large_image">',
+        f'  <meta name="twitter:image" content="{SITE}assets/og/{img}.png">',
         '  <meta name="theme-color" content="#FF5A1F">',
         "  " + END,
     ])
