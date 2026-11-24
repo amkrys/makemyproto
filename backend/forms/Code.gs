@@ -40,12 +40,16 @@ const SETTINGS = {
 };
 
 const TABS = {
-  quote:   ["Received", "Reference", "Status", "Customer name", "WhatsApp number", "Material", "Infill density", "Colour", "Quantity", "Estimated weight", "Dimensions", "Website estimate", "Customer notes", "Attachments", "Submitted from"],
+  quote:   ["Received", "Reference", "Status", "Customer name", "WhatsApp number", "Material", "Infill density", "Colour", "Quantity", "Estimated weight", "Dimensions", "Website estimate", "Customer notes", "Attachments", "Submitted from",
+            "Customer update", "Courier", "Tracking number", "Expected by"],   // the last four are shown to the customer on the Track order page
   contact: ["Received", "Reference", "Status", "Customer name", "Phone number", "Service required", "Message", "Submitted from"],
   careers: ["Received", "Reference", "Status", "Position", "Applicant name", "Phone number", "Email address", "City", "Portfolio link", "Cover note", "Attachments", "Submitted from"],
   newsletter: ["Subscribed", "Reference", "Status", "Email address", "First name", "Interests", "Language", "Submitted from", "Unsubscribe key"],
 };
-const HEADER_VERSION = "3";   // bump when the headers above change; the sheet is updated on the next entry
+const HEADER_VERSION = "4";
+
+/* Order stages the customer sees on the Track order page. Pick one from the Status dropdown in the Quotes tab. */
+const ORDER_STATUSES = ["New", "Quote sent", "Confirmed", "Printing", "Ready", "Shipped", "Delivered", "On hold", "Cancelled"];   // bump when the headers above change; the sheet is updated on the next entry
 const TAB_TITLES = { quote: "Quotes", contact: "Contact", careers: "Careers", newsletter: "Subscribers" };
 const PREFIX = { quote: "Q", contact: "C", careers: "J", newsletter: "N" };
 
@@ -86,6 +90,7 @@ function doGet() {
 function doPost(e) {
   try {
     const body = JSON.parse((e && e.postData && e.postData.contents) || "{}");
+    if (body && body.form === "track") return json_(track_(body));
     const check = checkEntry(body, SETTINGS);
     if (check.silent) return json_({ ok: true, ref: makeRef(PREFIX[body.form] || "X") });   // a bot: pretend it worked, save nothing
     if (!check.ok) return json_(check);
@@ -274,6 +279,11 @@ function ensureHeaders_(ss) {
     const sh = ss.getSheetByName(TAB_TITLES[form]) || ss.insertSheet(TAB_TITLES[form]);
     sh.getRange(1, 1, 1, TABS[form].length).setValues([TABS[form]]).setFontWeight("bold").setBackground("#FFE4D6");
     sh.setFrozenRows(1);
+    if (form === "quote") {
+      sh.getRange(2, 3, Math.max(sh.getMaxRows() - 1, 1), 1).setDataValidation(
+        SpreadsheetApp.newDataValidation().requireValueInList(ORDER_STATUSES, true).setAllowInvalid(true).build());
+      sh.getRange(1, 16, 1, 4).setBackground("#DFF5EC").setNote("Shown to the customer on the Track order page");
+    }
   });
   props.setProperty("HEADERS", HEADER_VERSION);
 }
@@ -417,6 +427,63 @@ function alertOnce_(subject, body) {
   try { MailApp.sendEmail(SETTINGS.notifyEmail, "⚠️ MakeMeProto forms: " + subject, body); } catch (e) {}
 }
 
+/* ------------------------- Track order ------------------------- */
+// Which step of the tracker a Status is on (works with the dropdown values and similar words)
+function orderStage(status) {
+  const t = String(status || "").toLowerCase();
+  if (/cancel/.test(t)) return { stage: -1, state: "cancelled" };
+  if (/hold|paused|waiting/.test(t)) return { stage: -1, state: "hold" };
+  if (/deliver|picked up|collected|complete|done/.test(t)) return { stage: 5, state: "delivered" };
+  if (/ship|dispatch|courier|out for/.test(t)) return { stage: 4, state: "active" };
+  if (/ready|quality|packed|packing/.test(t)) return { stage: 3, state: "active" };
+  if (/print|production|making/.test(t)) return { stage: 2, state: "active" };
+  if (/confirm|paid|advance|accepted/.test(t)) return { stage: 1, state: "active" };
+  return { stage: 0, state: /quote sent|quoted/.test(t) ? "quoted" : "active" };
+}
+
+function checkTrack(b) {
+  const f = (b && b.fields) || {}, ref = String(f.ref || "").trim().toUpperCase(), phone = digits(f.phone);
+  if (b.website) return { ok: false, silent: true };
+  if (!/^[QCJN]-\d{4}-[A-Z0-9]{3}$/.test(ref)) return { ok: false, error: "ref", message: "That reference doesn't look right. It looks like Q-2411-ABC." };
+  if (!/^Q/.test(ref)) return { ok: false, error: "not-order", message: "This reference is for a message or application, not an order. Order references start with Q." };
+  if (!validPhone(phone)) return { ok: false, error: "phone", message: "Please add the mobile number you used for this order." };
+  return { ok: true, ref: ref, phone: phone.slice(-10) };
+}
+
+function track_(b) {
+  const c = checkTrack(b);
+  if (c.silent) return { ok: false, error: "notfound", message: "We couldn't find an order with these details." };
+  if (!c.ok) return c;
+  const cache = CacheService.getScriptCache();
+  const failKey = "tf" + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, c.phone)).slice(0, 20);
+  const fails = Number(cache.get(failKey) || 0);
+  if (fails >= 8) return { ok: false, error: "slow-down", message: "Too many tries. Please wait an hour, or WhatsApp us your reference." };
+  const minuteKey = "t" + Math.floor(Date.now() / 60000), perMin = Number(cache.get(minuteKey) || 0);
+  if (perMin >= 40) return { ok: false, error: "busy", message: "Lots of people are tracking right now. Please try again in a minute." };
+  cache.put(minuteKey, String(perMin + 1), 120);
+
+  const ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty("SHEET_ID"));
+  ensureHeaders_(ss);
+  const sh = ss.getSheetByName(TAB_TITLES.quote), last = sh.getLastRow();
+  const rows = last > 1 ? sh.getRange(2, 1, last - 1, TABS.quote.length).getValues() : [];
+  const row = rows.find((r) => String(r[1]).trim().toUpperCase() === c.ref && digits(r[4]).slice(-10) === c.phone);
+  if (!row) {
+    cache.put(failKey, String(fails + 1), 3600);
+    return { ok: false, error: "notfound", message: "We couldn't find an order with this reference and phone number. Check both, or WhatsApp us." };
+  }
+  const fmt = (v) => v instanceof Date ? Utilities.formatDate(v, "Asia/Kolkata", "EEE d MMM yyyy") : String(v == null ? "" : v).trim();
+  const st = orderStage(row[2]);
+  return {
+    ok: true, ref: c.ref, firstName: String(row[3]).trim().split(/\s+/)[0] || "",
+    status: String(row[2] || "New"), stage: st.stage, state: st.state,
+    received: fmt(row[0]),
+    // Sheets turns "30%" into 0.3, so show it as a percentage again
+    item: { material: fmt(row[5]), infill: typeof row[6] === "number" ? Math.round(row[6] * (row[6] <= 1 ? 100 : 1)) + "%" : fmt(row[6]), colour: fmt(row[7]), quantity: fmt(row[8]), weight: fmt(row[9]), size: fmt(row[10]) },
+    estimate: fmt(row[11]),
+    update: fmt(row[15]), courier: fmt(row[16]), tracking: fmt(row[17]), expected: fmt(row[18]),
+  };
+}
+
 /* ------------------------- The Proto Post (newsletter) ------------------------- */
 function subscribersSheet_() {
   const ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty("SHEET_ID"));
@@ -550,4 +617,4 @@ function json_(o) {
   return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
 }
 
-if (typeof module !== "undefined") module.exports = { buildEmail, buildWelcome, validEmail, checkEntry, looksLike, validPhone, cell, safeName, makeRef, SETTINGS };
+if (typeof module !== "undefined") module.exports = { orderStage, checkTrack, buildEmail, buildWelcome, validEmail, checkEntry, looksLike, validPhone, cell, safeName, makeRef, SETTINGS };
