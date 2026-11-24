@@ -477,7 +477,8 @@ function track_(b) {
     ok: true, ref: c.ref, firstName: String(row[3]).trim().split(/\s+/)[0] || "",
     status: String(row[2] || "New"), stage: st.stage, state: st.state,
     received: fmt(row[0]),
-    item: { material: fmt(row[5]), infill: fmt(row[6]), colour: fmt(row[7]), quantity: fmt(row[8]), weight: fmt(row[9]), size: fmt(row[10]) },
+    // Sheets turns "30%" into 0.3, so show it as a percentage again
+    item: { material: fmt(row[5]), infill: typeof row[6] === "number" ? Math.round(row[6] * (row[6] <= 1 ? 100 : 1)) + "%" : fmt(row[6]), colour: fmt(row[7]), quantity: fmt(row[8]), weight: fmt(row[9]), size: fmt(row[10]) },
     estimate: fmt(row[11]),
     update: fmt(row[15]), courier: fmt(row[16]), tracking: fmt(row[17]), expected: fmt(row[18]),
   };
