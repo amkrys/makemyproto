@@ -64,3 +64,12 @@ All of these numbers live in `SETTINGS` at the top of `Code.gs`.
 ## Gallery content
 
 Reels, BTS clips, photos and vlogs come from `js/media-data.js`. Add an entry with an Instagram reel link, a YouTube video id, or a file in `assets/media/`, then delete the `sample: true` placeholders before going live.
+
+## Track order (track.html)
+
+Customers enter their order reference (`Q-…`) and the WhatsApp number they used. The page shows the order's progress, read live from the **Quotes** tab. Both must match, so nobody can look up someone else's order.
+
+- **Status** (column C) has a dropdown: New · Quote sent · Confirmed · Printing · Ready · Shipped · Delivered · On hold · Cancelled. Change it as the order moves and the customer sees it straight away.
+- Four green columns at the end are shown to the customer: **Customer update** (a short note, e.g. "Halfway there!"), **Courier**, **Tracking number** and **Expected by** (a date). Leave them empty to hide them.
+- Only quote references (`Q-…`) can be tracked. Repeated wrong guesses from the same number are blocked for an hour.
+- The columns and dropdown are added automatically the first time someone tracks an order or sends a new entry after you update the script.

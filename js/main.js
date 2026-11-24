@@ -679,7 +679,7 @@ function toast({ icon = "", title = "", text = "", kind = "info", progress = fal
           const b = document.createElement(a.href ? "a" : "button");
           b.className = "toast__btn" + (a.primary ? " toast__btn--main" : "");
           b.textContent = a.label;
-          if (a.href) { b.href = a.href; b.target = "_blank"; b.rel = "noopener"; } else b.type = "button";
+          if (a.href) { b.href = a.href; if (a.newTab !== false) { b.target = "_blank"; b.rel = "noopener"; } } else b.type = "button";
           b.addEventListener("click", () => { a.onClick?.(); if (a.close !== false) api.close(); });
           row.appendChild(b);
         });
@@ -779,7 +779,7 @@ async function postEntry(payload) {
  *   wa:     WhatsApp message used as a fallback (and offered after sending)
  *   done:   wording for the success card
  */
-async function sendEntry({ form, fields, files = [], wa, label, done, website = "", chat = true, doneTitle = null }) {
+async function sendEntry({ form, fields, files = [], wa, label, done, website = "", chat = true, doneTitle = null, track = false }) {
   if (!formsOn()) { window.open(waLink(wa), "_blank", "noopener"); return { whatsapp: true }; }
   const bytes = files.reduce((n, f) => n + f.size, 0);
   const size = bytes < 1048576 ? Math.max(1, Math.round(bytes / 1024)) + " KB" : (bytes / 1048576).toFixed(1) + " MB";
@@ -796,7 +796,7 @@ async function sendEntry({ form, fields, files = [], wa, label, done, website = 
     if (res && res.ok) {
       const ref = res.ref || "";
       card.update({ kind: "ok", icon: "✅", title: doneTitle ? doneTitle(ref, res) : T("Pahunch gaya! 🎉", "Got it! 🎉") + (ref ? ` · ${ref}` : ""), text: done(ref, res), progress: false, timeout: 14000,
-        actions: [...(chat ? [{ label: T("WhatsApp pe bhi bolo", "Also message us on WhatsApp"), href: waLink(wa + (ref ? `\n\nRef: ${ref}` : "")) }] : []), { label: T("Theek hai", "Done"), primary: true }] });
+        actions: [...(track && ref ? [{ label: T("Order track karo", "Track this order"), href: "track.html?ref=" + encodeURIComponent(ref), newTab: false }] : []), ...(chat ? [{ label: T("WhatsApp pe bhi bolo", "Also message us on WhatsApp"), href: waLink(wa + (ref ? `\n\nRef: ${ref}` : "")) }] : []), { label: T("Theek hai", "Done"), primary: true }] });
       window.mmpGuide?.cheer?.();
       return { ok: true, ref, res };
     }
@@ -1032,6 +1032,7 @@ function initQuote() {
       fields: { name, phone, ...quoteFields, notes: note },
       files,
       wa: waFormat("Quote request 🧾", [["Name", name], ...quoteMsg.split("\n").slice(2).filter((l) => /^\*/.test(l)).map((l) => [null, l]), ["Notes", notes || null]]),
+      track: true,
       done: () => big ? T("File badi hai, WhatsApp ya Drive link se bhej do. Baaki details mil gayi!", "Your file is too big to upload, so please send it on WhatsApp or as a Drive link. We've got the rest!")
         : T("Hum file check karke WhatsApp pe final price bhejenge, aam taur pe kuch ghanton mein.", "We'll check your file and WhatsApp you the final price, usually within a few hours."),
     });
@@ -1316,6 +1317,123 @@ function initNewsletter() {
   });
 }
 
+/* =========================================================
+   Track order: reference + phone → live status from our sheet (Quotes tab)
+   ========================================================= */
+const TRACK_STEPS = [
+  { icon: "🧾", hi: "Mil gaya", en: "Received" },
+  { icon: "✅", hi: "Confirm", en: "Confirmed" },
+  { icon: "🖨️", hi: "Print ho raha", en: "Printing" },
+  { icon: "📦", hi: "Ready", en: "Ready" },
+  { icon: "🚚", hi: "Raste mein", en: "Shipped" },
+  { icon: "🎉", hi: "Pahunch gaya", en: "Delivered" },
+];
+function trackHeadline(r) {
+  const n = r.firstName ? r.firstName + ", " : "";
+  if (r.state === "cancelled") return T(`${n}ye order cancel ho gaya hai`, `${n}this order was cancelled`);
+  if (r.state === "hold") return T(`${n}aapka order abhi hold pe hai ⏸️`, `${n}your order is on hold ⏸️`);
+  if (r.state === "quoted") return T(`${n}aapka quote ready hai 💬`, `${n}your quote is ready 💬`);
+  return [
+    T(`${n}aapki request humein mil gayi 🧾`, `${n}we've got your request 🧾`),
+    T(`${n}aapka order confirm hai ✅`, `${n}your order is confirmed ✅`),
+    T(`${n}aapka order print ho raha hai 🖨️`, `${n}your order is on the printer 🖨️`),
+    T(`${n}aapka order ready hai 📦`, `${n}your order is ready 📦`),
+    T(`${n}aapka order raste mein hai 🚚`, `${n}your order is on its way 🚚`),
+    T(`${n}order pahunch gaya! 🎉`, `${n}your order was delivered! 🎉`),
+  ][Math.max(0, Math.min(5, r.stage))];
+}
+function trackNext(r) {
+  if (r.state === "cancelled") return T("Koi sawaal ho toh WhatsApp pe poochho.", "If you have any questions, message us on WhatsApp.");
+  if (r.state === "hold") return T("Hum aapse WhatsApp pe baat karke aage badhenge.", "We'll message you on WhatsApp to sort out the next step.");
+  if (r.state === "quoted") return T("WhatsApp pe price confirm karo aur advance bhejo, phir printing shuru.", "Confirm the price on WhatsApp and pay the advance, and we'll start printing.");
+  return [
+    T("Hum aapki file check karke WhatsApp pe final price bhejenge.", "We're checking your file and will WhatsApp you the final price."),
+    T("Aapka order print queue mein hai. Jaldi printer pe hoga.", "Your order is in the print queue and will be on the printer soon."),
+    T("Print ke baad hum isse check karke pack karenge.", "Once it's printed, we'll check it and pack it."),
+    T("Courier ya pickup ke liye taiyaar. Hum details bhejenge.", "It's ready for the courier or pickup. We'll send you the details."),
+    T("Tracking number se courier ki website pe dekh sakte ho.", "Use the tracking number on the courier's website to follow it."),
+    T("Kaisa laga? Ek photo bhejo, humein bahut pasand aata hai!", "How did it turn out? Send us a photo, we love seeing them!"),
+  ][Math.max(0, Math.min(5, r.stage))];
+}
+
+function initTrack() {
+  const form = $("#trackForm");
+  if (!form) return;
+  const ref = $("#tRef"), phone = $("#tPhone"), hint = $("#trackHint"), btn = $("#trackBtn"), out = $("#trackResult");
+  let last = null;
+  const q = new URLSearchParams(location.search).get("ref");
+  if (q) { ref.value = q.toUpperCase().slice(0, 12); setTimeout(() => phone.focus({ preventScroll: true }), 300); }
+  ref.addEventListener("input", () => { const p = ref.selectionStart; ref.value = ref.value.toUpperCase().replace(/\s/g, ""); ref.setSelectionRange(p, p); });
+
+  function render(r) {
+    const stopped = r.state === "cancelled" || r.state === "hold";
+    const at = stopped ? -1 : r.stage;
+    const steps = TRACK_STEPS.map((st, i) => `<li class="tstep${i < at || (i === at && r.stage === 5) ? " is-done" : ""}${i === at && r.stage !== 5 ? " is-now" : ""}">
+        <span class="tstep__dot" aria-hidden="true">${i < at || r.stage === 5 ? "✓" : st.icon}</span><span class="tstep__label">${T(st.hi, st.en)}</span></li>`).join("");
+    const item = [r.item.quantity && r.item.quantity + " ×", r.item.material, r.item.colour && r.item.colour !== "Not sure" ? r.item.colour : "", r.item.infill && r.item.infill + " infill"].filter(Boolean).join(" · ");
+    const rows = [
+      [T("Request mili", "Received"), r.received],
+      [T("Kab tak", "Expected by"), r.expected],
+      [T("Order", "Item"), item],
+      [T("Size", "Size"), r.item.size],
+      [T("Website estimate", "Website estimate"), r.estimate],
+      [T("Courier", "Courier"), r.courier],
+      [T("Tracking number", "Tracking number"), r.tracking],
+    ].filter(([, v]) => v);
+    const pct = stopped ? 0 : Math.round((Math.max(0, r.stage) / 5) * 100);
+    out.innerHTML = `<div class="trackres__card${stopped ? " is-stopped" : ""}${r.stage === 5 ? " is-done" : ""}">
+      <div class="trackres__head">
+        <div>
+          <p class="trackres__ref mono">${T("Order", "Order")} ${escHtml(r.ref)} · ${T("Status", "Status")}: <b>${escHtml(r.status)}</b></p>
+          <h2 class="trackres__title">${escHtml(trackHeadline(r))}</h2>
+          <p class="trackres__next">${escHtml(trackNext(r))}</p>
+        </div>
+        <button type="button" class="btn btn--ghost btn--sm" data-refresh>↻ ${T("Refresh", "Refresh")}</button>
+      </div>
+      ${stopped ? `<p class="trackres__banner">${r.state === "hold" ? "⏸️" : "✖️"} ${escHtml(r.status)}</p>`
+        : `<div class="tsteps-bar" style="--frac:${(pct / 100).toFixed(2)}"><ol class="tstepper" aria-label="${T("Order ki progress", "Order progress")}">${steps}</ol></div>`}
+      ${r.update ? `<div class="trackres__update"><span aria-hidden="true">💬</span><div><b>${T("Humari taraf se update", "Update from us")}</b><p>${escHtml(r.update)}</p></div></div>` : ""}
+      ${rows.length ? `<dl class="trackres__info">${rows.map(([k, v]) => `<div><dt class="mono">${escHtml(k)}</dt><dd>${escHtml(v)}</dd></div>`).join("")}</dl>` : ""}
+      <div class="trackres__actions">
+        <a class="btn btn--ink" href="${waLink(waFormat("Order status 🔍", [["Reference", r.ref], ["Status shown", r.status]], "Hi! I have a question about my order."))}" target="_blank" rel="noopener">💬 ${T("Is order ke baare mein WhatsApp karo", "Ask about this order on WhatsApp")}</a>
+        <button type="button" class="btn btn--ghost" data-another>${T("Doosra order track karo", "Track another order")}</button>
+      </div>
+    </div>`;
+    out.hidden = false;
+    requestAnimationFrame(() => out.querySelector(".trackres__card")?.classList.add("show"));
+    if (r.stage === 5 && !stopped) window.mmpGuide?.cheer?.();
+  }
+
+  async function lookup(scroll = true) {
+    const r0 = ref.value.trim().toUpperCase(), p0 = phone.value.trim();
+    if (!/^[QCJN]-\d{4}-[A-Z0-9]{3}$/.test(r0)) { setHint(hint, T("Reference aisa dikhta hai: Q-2411-ABC", "The reference looks like Q-2411-ABC."), true); ref.focus(); return; }
+    if (!phoneOk(p0)) { setHint(hint, T("Order wala 10 digit mobile number daalo.", "Please add the 10-digit mobile number you used for the order."), true); phone.focus(); return; }
+    if (!formsOn()) { window.open(waLink(waFormat("Order status 🔍", [["Reference", r0], ["Phone", p0]])), "_blank", "noopener"); return; }
+    setHint(hint, "");
+    busy(btn, true, T("Dhoondh rahe hain…", "Looking it up…"));
+    try {
+      const r = await postEntry({ form: "track", fields: { ref: r0, phone: p0 }, website: honeypot(form), source: location.hostname || "local file" });
+      if (r && r.ok) {
+        last = r; render(r);
+        if (scroll) out.scrollIntoView({ behavior: "smooth", block: "start" });
+        history.replaceState(null, "", location.pathname + "?ref=" + encodeURIComponent(r.ref));
+      } else {
+        out.hidden = true;
+        setHint(hint, (r && r.message) || T("Ye order nahi mila.", "We couldn't find that order."), true);
+      }
+    } catch (e) {
+      setHint(hint, T("Network nahi mila. Dobara try karo.", "No connection. Please try again."), true);
+    } finally { busy(btn, false); }
+  }
+
+  form.addEventListener("submit", (e) => { e.preventDefault(); lookup(); });
+  out.addEventListener("click", (e) => {
+    if (e.target.closest("[data-refresh]")) lookup(false);
+    if (e.target.closest("[data-another]")) { out.hidden = true; ref.value = ""; ref.focus(); form.scrollIntoView({ behavior: "smooth", block: "center" }); history.replaceState(null, "", location.pathname); }
+  });
+  addEventListener("mmp:lang", () => { if (last && !out.hidden) render(last); });
+}
+
 /* ---------- Colour theme switcher ---------- */
 function initThemer() {
   const root = document.documentElement;
@@ -1542,6 +1660,7 @@ function initGuide() {
     "page-community": ["Printer hai? Adda join karo, free help 🧡", "Got a printer? Join the Adda, free help 🧡"],
     "page-about": ["Hum dono se milo 👋 Polaroid pe tap karo", "Meet us both 👋 Tap a polaroid"],
     "page-careers": ["Pasand ka role chuno, apply karo 💼", "Pick a role and apply 💼"],
+    "page-track": ["Reference aur number daalo, main dhoondhta hoon 🔍", "Enter your reference and number, I'll find it 🔍"],
     "page-404": ["Main bhi dhoond raha hoon 🔍 Neeche wale links try karo!", "I'm looking for it too 🔍 Try the links below!"],
     "page-media": ["Koi bhi reel tap karo, yahin chalegi 🎬", "Tap any reel to play it right here 🎬"],
     "page-terms": ["Simple bhasha mein likha hai, padh lo 📜", "Written in plain words, have a read 📜"],
@@ -2211,6 +2330,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initCareers();
   initGallery();
   initNewsletter();
+  initTrack();
   flushOutbox();
   initScreens();
   initUses();

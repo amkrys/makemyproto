@@ -22,6 +22,7 @@ PAGES = {
     "media":     ("Inside the <em>workshop</em>", "Reels, behind-the-scenes clips, prints and vlogs", "Proto Diaries 🎬"),
     "about":     ("Two friends. One printer. <em>Lots of chai.</em>", "Meet the makers behind MakeMeProto", "Hi! Main Proto 👋"),
     "contact":   ("Let's <em>make it.</em>", "WhatsApp, email or Instagram. Real humans reply.", "Hum sach mein reply karte hain 🤞"),
+    "track":     ("Track your <em>order</em>", "From request to delivery: see exactly where your print is", "Order kahan tak pahuncha? 🔍"),
     "careers":   ("Build <em>with us</em>", "Future roles at MakeMeProto: reels, social media, 3D design", "No CV formalities 🙌"),
     "terms":     ("Terms <em>&amp; Conditions</em>", "For our 3D printing, CAD and design services", "Clear and simple ✍️"),
     "privacy":   ("Privacy <em>Policy</em>", "What we collect, why, and your rights", "Your data stays yours 🔒"),
