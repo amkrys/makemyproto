@@ -89,6 +89,20 @@ async def main():
             path = OUT / f"{key}.png"
             await pg.screenshot(path=str(path))
             print("made", path.relative_to(ROOT))
+        # small square thumbnail: WhatsApp shows images under 300 px wide as the compact preview
+        thumb = f"""<!doctype html><html><head><meta charset="utf-8"><style>
+* {{ margin: 0; box-sizing: border-box; }}
+body {{ width: 256px; height: 256px; background: #F4F1EA; display: grid; place-items: center; overflow: hidden;
+  background-image: radial-gradient(#d9d3c6 1.2px, transparent 1.4px); background-size: 16px 16px; border-top: 8px solid #FF5A1F; }}
+.wrap {{ display: grid; justify-items: center; gap: 6px; margin-top: 6px; }}
+.p {{ width: 150px; filter: drop-shadow(0 10px 12px rgba(0,0,0,.16)); }}
+.p svg {{ width: 150px; height: auto; }}
+img {{ width: 190px; }}
+</style></head><body><div class="wrap"><div class="p">{PROTO}</div><img src="data:image/png;base64,{logo}"></div></body></html>"""
+        await pg.set_viewport_size({"width": 256, "height": 256})
+        await pg.set_content(thumb); await pg.wait_for_timeout(150)
+        await pg.screenshot(path=str(OUT / "thumb.png"))
+        print("made assets/og/thumb.png")
         await b.close()
 
 if __name__ == "__main__":
