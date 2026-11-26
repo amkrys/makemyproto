@@ -46,7 +46,7 @@ const TABS = {
   careers: ["Received", "Reference", "Status", "Position", "Applicant name", "Phone number", "Email address", "City", "Portfolio link", "Cover note", "Attachments", "Submitted from"],
   newsletter: ["Subscribed", "Reference", "Status", "Email address", "First name", "Interests", "Language", "Submitted from", "Unsubscribe key"],
 };
-const HEADER_VERSION = "4";
+const HEADER_VERSION = "5";
 
 /* Order stages the customer sees on the Track order page. Pick one from the Status dropdown in the Quotes tab. */
 const ORDER_STATUSES = ["New", "Quote sent", "Confirmed", "Printing", "Ready", "Shipped", "Delivered", "On hold", "Cancelled"];   // bump when the headers above change; the sheet is updated on the next entry
@@ -90,6 +90,7 @@ function doGet() {
 function doPost(e) {
   try {
     const body = JSON.parse((e && e.postData && e.postData.contents) || "{}");
+    if (body && body.form === "admin") return json_(admin_(body));       // the MakeMeProto Ops app
     if (body && body.form === "track") return json_(track_(body));
     const check = checkEntry(body, SETTINGS);
     if (check.silent) return json_({ ok: true, ref: makeRef(PREFIX[body.form] || "X") });   // a bot: pretend it worked, save nothing
@@ -275,9 +276,10 @@ function appendRow_(b, ref, saved) {
 function ensureHeaders_(ss) {
   const props = PropertiesService.getScriptProperties();
   if (props.getProperty("HEADERS") === HEADER_VERSION) return;
-  Object.keys(TABS).forEach((form) => {
-    const sh = ss.getSheetByName(TAB_TITLES[form]) || ss.insertSheet(TAB_TITLES[form]);
-    sh.getRange(1, 1, 1, TABS[form].length).setValues([TABS[form]]).setFontWeight("bold").setBackground("#FFE4D6");
+  const all = Object.assign({}, TABS, ADMIN_TABS), titles = Object.assign({}, TAB_TITLES, ADMIN_TAB_TITLES);
+  Object.keys(all).forEach((form) => {
+    const sh = ss.getSheetByName(titles[form]) || ss.insertSheet(titles[form]);
+    sh.getRange(1, 1, 1, all[form].length).setValues([all[form]]).setFontWeight("bold").setBackground("#FFE4D6");
     sh.setFrozenRows(1);
     if (form === "quote") {
       sh.getRange(2, 3, Math.max(sh.getMaxRows() - 1, 1), 1).setDataValidation(
@@ -425,6 +427,235 @@ function alertOnce_(subject, body) {
   if (cache.get(key)) return;
   cache.put(key, "1", 21600);
   try { MailApp.sendEmail(SETTINGS.notifyEmail, "⚠️ MakeMeProto forms: " + subject, body); } catch (e) {}
+}
+
+/* =========================================================================================
+   MakeMeProto Ops app (admin API)
+   Only Google accounts listed in Script Properties can use it. Set these in
+   Project Settings → Script properties (they are private and never in this public code):
+     ADMIN_EMAILS           comma-separated, e.g. you@gmail.com,deepak@gmail.com
+     GOOGLE_WEB_CLIENT_ID   the "Web application" OAuth client ID the app signs in with
+   ========================================================================================= */
+const ADMIN_TABS = {
+  expenses: ["ID", "Date", "Amount (₹)", "Category", "Paid by", "Payment method", "Note", "Added by", "Added at"],
+  stock:    ["ID", "Material", "Colour", "Brand", "Spool size (g)", "Remaining (g)", "Low stock at (g)", "Note", "Updated", "Updated by"],
+};
+const ADMIN_TAB_TITLES = { expenses: "Expenses", stock: "Filament stock" };
+const EXPENSE_CATEGORIES = ["Filament", "Printer & parts", "Packaging", "Courier", "Marketing", "Software & domains", "Tools", "Other"];
+const PAY_METHODS = ["UPI", "Cash", "Card", "Bank transfer", "Other"];
+const INBOX_STATUSES = ["New", "Replied", "Done", "Spam"];
+const SESSION_DAYS = 30;
+
+function admin_(b) {
+  const action = String(b.action || "");
+  if (action === "login") return adminLogin_(b);
+  const who = adminSession_(b.session);
+  if (!who) return { ok: false, error: "auth", message: "Please sign in again." };
+  if (action === "logout") { PropertiesService.getScriptProperties().deleteProperty(sessionKey_(b.session)); return { ok: true }; }
+  const ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty("SHEET_ID"));
+  ensureHeaders_(ss);
+  const d = b.data || {};
+  switch (action) {
+    case "me": return { ok: true, email: who.email, name: who.name };
+    case "summary": return adminSummary_(ss);
+    case "orders": return { ok: true, orders: rows_(ss, TAB_TITLES.quote, TABS.quote.length, 400).map(orderOut_) };
+    case "updateOrder": return adminUpdateOrder_(ss, d);
+    case "inbox": return { ok: true, messages: rows_(ss, TAB_TITLES.contact, TABS.contact.length, 300).map(messageOut_),
+      applications: rows_(ss, TAB_TITLES.careers, TABS.careers.length, 300).map(applicationOut_) };
+    case "setInboxStatus": return adminInboxStatus_(ss, d);
+    case "expenses": return { ok: true, expenses: rows_(ss, ADMIN_TAB_TITLES.expenses, ADMIN_TABS.expenses.length, 2000).map(expenseOut_),
+      categories: EXPENSE_CATEGORIES, methods: PAY_METHODS };
+    case "addExpense": return adminAddExpense_(ss, d, who);
+    case "deleteExpense": return adminDeleteById_(ss, ADMIN_TAB_TITLES.expenses, d.id);
+    case "stock": return { ok: true, spools: rows_(ss, ADMIN_TAB_TITLES.stock, ADMIN_TABS.stock.length, 500).map(spoolOut_) };
+    case "saveSpool": return adminSaveSpool_(ss, d, who);
+    case "deleteSpool": return adminDeleteById_(ss, ADMIN_TAB_TITLES.stock, d.id);
+  }
+  return { ok: false, error: "action", message: "Unknown action." };
+}
+
+/* ---- sign-in: Google ID token → our own 30-day session ---- */
+function adminLogin_(b) {
+  const props = PropertiesService.getScriptProperties(), cache = CacheService.getScriptCache();
+  const tries = Number(cache.get("loginTries") || 0);
+  if (tries > 30) return { ok: false, error: "busy", message: "Too many sign-in attempts. Try again in 10 minutes." };
+  cache.put("loginTries", String(tries + 1), 600);
+  const clientId = String(props.getProperty("GOOGLE_WEB_CLIENT_ID") || "").trim();
+  const admins = String(props.getProperty("ADMIN_EMAILS") || "").toLowerCase().split(/[,\s]+/).filter(Boolean);
+  if (!clientId || !admins.length) return { ok: false, error: "setup", message: "The app isn't set up yet: add ADMIN_EMAILS and GOOGLE_WEB_CLIENT_ID in Script properties." };
+  const token = String(b.idToken || "");
+  if (!/^[\w-]+\.[\w-]+\.[\w-]+$/.test(token)) return { ok: false, error: "token", message: "Sign-in failed. Please try again." };
+  const res = UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo?id_token=" + encodeURIComponent(token), { muteHttpExceptions: true });
+  if (res.getResponseCode() !== 200) return { ok: false, error: "token", message: "Google couldn't confirm this sign-in. Please try again." };
+  const info = JSON.parse(res.getContentText());
+  const check = checkGoogleToken(info, clientId, admins, Date.now());
+  if (!check.ok) return check;
+  // tidy up expired sessions, then start a new one
+  const now = Date.now(), all = props.getProperties();
+  Object.keys(all).filter((k) => k.indexOf("S_") === 0).forEach((k) => { try { if (JSON.parse(all[k]).exp < now) props.deleteProperty(k); } catch (e) { props.deleteProperty(k); } });
+  const session = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, "");
+  const exp = now + SESSION_DAYS * 86400000;
+  props.setProperty(sessionKey_(session), JSON.stringify({ email: check.email, name: check.name, exp: exp }));
+  return { ok: true, session: session, email: check.email, name: check.name, expires: exp };
+}
+
+// pure: is this Google token for our app, fresh, verified, and one of our admins?
+function checkGoogleToken(info, clientId, admins, now) {
+  const email = String(info.email || "").toLowerCase();
+  if (info.aud !== clientId) return { ok: false, error: "token", message: "This sign-in is for a different app." };
+  if (["accounts.google.com", "https://accounts.google.com"].indexOf(info.iss) < 0) return { ok: false, error: "token", message: "Sign-in failed. Please try again." };
+  if (!(Number(info.exp) * 1000 > now)) return { ok: false, error: "token", message: "Sign-in expired. Please try again." };
+  if (String(info.email_verified) !== "true") return { ok: false, error: "token", message: "This Google account's email isn't verified." };
+  if (admins.indexOf(email) < 0) return { ok: false, error: "not-admin", message: email + " isn't allowed to use MakeMeProto Ops." };
+  return { ok: true, email: email, name: String(info.name || info.given_name || email.split("@")[0]) };
+}
+
+function sessionKey_(session) {
+  const bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(session || ""));
+  return "S_" + bytes.map((x) => ("0" + ((x + 256) % 256).toString(16)).slice(-2)).join("");
+}
+function adminSession_(session) {
+  if (!/^[a-f0-9]{64}$/.test(String(session || ""))) return null;
+  const raw = PropertiesService.getScriptProperties().getProperty(sessionKey_(session));
+  if (!raw) return null;
+  try { const s = JSON.parse(raw); return s.exp > Date.now() ? s : null; } catch (e) { return null; }
+}
+
+/* ---- reading and writing rows ---- */
+function rows_(ss, title, width, limit) {
+  const sh = ss.getSheetByName(title), last = sh ? sh.getLastRow() : 0;
+  if (last < 2) return [];
+  const first = Math.max(2, last - limit + 1);
+  const vals = sh.getRange(first, 1, last - first + 1, width).getValues();
+  return vals.map((v, i) => ({ row: first + i, v: v })).filter((r) => r.v.some((x) => x !== "")).reverse();   // newest first
+}
+function txt_(v) {
+  if (v instanceof Date) return Utilities.formatDate(v, "Asia/Kolkata", "dd MMM yyyy, HH:mm").replace(", 00:00", "");
+  return String(v == null ? "" : v).trim();
+}
+function day_(v) { return v instanceof Date ? Utilities.formatDate(v, "Asia/Kolkata", "yyyy-MM-dd") : String(v || "").trim(); }
+function pct_(v) { return typeof v === "number" ? Math.round(v * (v <= 1 ? 100 : 1)) + "%" : txt_(v); }
+function links_(v) { return String(v || "").split("\n").map((x) => x.trim()).filter((x) => /^https:\/\//.test(x)); }
+function findRow_(sh, col, value) {
+  const last = sh.getLastRow();
+  if (last < 2) return 0;
+  const vals = sh.getRange(2, col, last - 1, 1).getValues();
+  for (let i = vals.length - 1; i >= 0; i--) if (String(vals[i][0]).trim().toUpperCase() === String(value).trim().toUpperCase()) return i + 2;
+  return 0;
+}
+function shortId_(prefix) { return prefix + "-" + Utilities.getUuid().replace(/-/g, "").slice(0, 8).toUpperCase(); }
+function stamp_() { return Utilities.formatDate(new Date(), "Asia/Kolkata", "dd MMM yyyy, HH:mm"); }
+
+function orderOut_(r) {
+  const v = r.v;
+  return { row: r.row, received: txt_(v[0]), ref: txt_(v[1]), status: txt_(v[2]) || "New", name: txt_(v[3]), phone: txt_(v[4]),
+    material: txt_(v[5]), infill: pct_(v[6]), colour: txt_(v[7]), quantity: txt_(v[8]), weight: txt_(v[9]), size: txt_(v[10]),
+    estimate: txt_(v[11]), notes: txt_(v[12]), files: links_(v[13]), filesNote: /⚠️/.test(String(v[13])) ? String(v[13]).split("\n").filter((x) => /⚠️/.test(x)).join(" ") : "",
+    source: txt_(v[14]), update: txt_(v[15]), courier: txt_(v[16]), tracking: txt_(v[17]), expected: txt_(v[18]) };
+}
+function messageOut_(r) {
+  const v = r.v;
+  return { kind: "contact", row: r.row, received: txt_(v[0]), ref: txt_(v[1]), status: txt_(v[2]) || "New", name: txt_(v[3]), phone: txt_(v[4]),
+    service: txt_(v[5]), message: txt_(v[6]), source: txt_(v[7]) };
+}
+function applicationOut_(r) {
+  const v = r.v;
+  return { kind: "careers", row: r.row, received: txt_(v[0]), ref: txt_(v[1]), status: txt_(v[2]) || "New", role: txt_(v[3]), name: txt_(v[4]),
+    phone: txt_(v[5]), email: txt_(v[6]), city: txt_(v[7]), portfolio: txt_(v[8]), why: txt_(v[9]), files: links_(v[10]), source: txt_(v[11]) };
+}
+function expenseOut_(r) {
+  const v = r.v;
+  return { id: txt_(v[0]), date: day_(v[1]), amount: Number(v[2]) || 0, category: txt_(v[3]), paidBy: txt_(v[4]), method: txt_(v[5]),
+    note: txt_(v[6]), addedBy: txt_(v[7]), addedAt: txt_(v[8]) };
+}
+function spoolOut_(r) {
+  const v = r.v;
+  return { id: txt_(v[0]), material: txt_(v[1]), colour: txt_(v[2]), brand: txt_(v[3]), spoolSize: Number(v[4]) || 0, remaining: Number(v[5]) || 0,
+    lowAt: Number(v[6]) || 0, note: txt_(v[7]), updated: txt_(v[8]), updatedBy: txt_(v[9]) };
+}
+
+/* ---- actions ---- */
+function adminSummary_(ss) {
+  const orders = rows_(ss, TAB_TITLES.quote, TABS.quote.length, 400).map(orderOut_);
+  const msgs = rows_(ss, TAB_TITLES.contact, TABS.contact.length, 300).map(messageOut_);
+  const apps = rows_(ss, TAB_TITLES.careers, TABS.careers.length, 300).map(applicationOut_);
+  const month = Utilities.formatDate(new Date(), "Asia/Kolkata", "yyyy-MM");
+  const exps = rows_(ss, ADMIN_TAB_TITLES.expenses, ADMIN_TABS.expenses.length, 2000).map(expenseOut_);
+  const spools = rows_(ss, ADMIN_TAB_TITLES.stock, ADMIN_TABS.stock.length, 500).map(spoolOut_);
+  const st = (o) => orderStage(o.status);
+  return { ok: true,
+    newOrders: orders.filter((o) => o.status === "New").length,
+    activeOrders: orders.filter((o) => st(o).state === "active" && st(o).stage >= 1 && st(o).stage <= 4).length,
+    newMessages: msgs.filter((m) => m.status === "New").length + apps.filter((a) => a.status === "New").length,
+    monthExpenses: exps.filter((e) => e.date.slice(0, 7) === month).reduce((n, e) => n + e.amount, 0),
+    lowStock: spools.filter((s) => s.lowAt > 0 && s.remaining <= s.lowAt).length,
+    recentOrders: orders.slice(0, 10).map((o) => ({ ref: o.ref, name: o.name, received: o.received, estimate: o.estimate, status: o.status })) };
+}
+
+function adminUpdateOrder_(ss, d) {
+  const sh = ss.getSheetByName(TAB_TITLES.quote), row = findRow_(sh, 2, d.ref || "");
+  if (!row) return { ok: false, error: "notfound", message: "Order " + d.ref + " wasn't found." };
+  if (d.status != null) {
+    if (ORDER_STATUSES.indexOf(String(d.status)) < 0) return { ok: false, error: "status", message: "Unknown status." };
+    sh.getRange(row, 3).setValue(String(d.status));
+  }
+  [["update", 16, 500], ["courier", 17, 60], ["tracking", 18, 80], ["expected", 19, 40]].forEach(([k, col, max]) => {
+    if (d[k] != null) sh.getRange(row, col).setValue(cell(clean(d[k], max)));
+  });
+  return { ok: true, order: orderOut_({ row: row, v: sh.getRange(row, 1, 1, TABS.quote.length).getValues()[0] }) };
+}
+
+function adminInboxStatus_(ss, d) {
+  const title = d.kind === "careers" ? TAB_TITLES.careers : TAB_TITLES.contact;
+  if (INBOX_STATUSES.indexOf(String(d.status)) < 0) return { ok: false, error: "status", message: "Unknown status." };
+  const sh = ss.getSheetByName(title), row = findRow_(sh, 2, d.ref || "");
+  if (!row) return { ok: false, error: "notfound", message: d.ref + " wasn't found." };
+  sh.getRange(row, 3).setValue(String(d.status));
+  return { ok: true };
+}
+
+// pure: checks an expense before it's saved
+function checkExpense(d) {
+  const amount = Math.round(Number(d.amount) * 100) / 100;
+  if (!(amount > 0 && amount < 10000000)) return { ok: false, error: "amount", message: "Enter an amount above ₹0." };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(d.date || ""))) return { ok: false, error: "date", message: "Pick a date." };
+  if (EXPENSE_CATEGORIES.indexOf(String(d.category)) < 0) return { ok: false, error: "category", message: "Pick a category." };
+  if (d.method && PAY_METHODS.indexOf(String(d.method)) < 0) return { ok: false, error: "method", message: "Pick a payment method." };
+  return { ok: true, amount: amount };
+}
+function adminAddExpense_(ss, d, who) {
+  const c = checkExpense(d);
+  if (!c.ok) return c;
+  const sh = ss.getSheetByName(ADMIN_TAB_TITLES.expenses), id = shortId_("E");
+  sh.appendRow([id, String(d.date), c.amount, String(d.category), cell(clean(d.paidBy, 40) || who.name), String(d.method || ""), cell(clean(d.note, 200)), who.email, stamp_()]);
+  sh.getRange(sh.getLastRow(), 2).setNumberFormat("dd MMM yyyy");
+  return { ok: true, id: id };
+}
+
+// pure: checks a filament spool before it's saved
+function checkSpool(d) {
+  const material = clean(d.material, 30), colour = clean(d.colour, 40);
+  if (!material) return { ok: false, error: "material", message: "Add the material, e.g. PLA." };
+  if (!colour) return { ok: false, error: "colour", message: "Add the colour." };
+  const n = (x) => Math.max(0, Math.round(Number(x) || 0));
+  const size = n(d.spoolSize) || 1000, remaining = Math.min(n(d.remaining), 100000);
+  return { ok: true, material: material, colour: colour, brand: clean(d.brand, 40), spoolSize: size, remaining: remaining, lowAt: n(d.lowAt), note: clean(d.note, 200) };
+}
+function adminSaveSpool_(ss, d, who) {
+  const c = checkSpool(d);
+  if (!c.ok) return c;
+  const sh = ss.getSheetByName(ADMIN_TAB_TITLES.stock);
+  let row = d.id ? findRow_(sh, 1, d.id) : 0, id = row ? String(d.id) : shortId_("S");
+  const values = [id, cell(c.material), cell(c.colour), cell(c.brand), c.spoolSize, c.remaining, c.lowAt, cell(c.note), stamp_(), who.email];
+  if (row) sh.getRange(row, 1, 1, values.length).setValues([values]); else sh.appendRow(values);
+  return { ok: true, id: id };
+}
+
+function adminDeleteById_(ss, title, id) {
+  const sh = ss.getSheetByName(title), row = id ? findRow_(sh, 1, id) : 0;
+  if (!row) return { ok: false, error: "notfound", message: "That item wasn't found. It may already be deleted." };
+  sh.deleteRow(row);
+  return { ok: true };
 }
 
 /* ------------------------- Track order ------------------------- */
@@ -617,4 +848,4 @@ function json_(o) {
   return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
 }
 
-if (typeof module !== "undefined") module.exports = { orderStage, checkTrack, buildEmail, buildWelcome, validEmail, checkEntry, looksLike, validPhone, cell, safeName, makeRef, SETTINGS };
+if (typeof module !== "undefined") module.exports = { checkGoogleToken, checkExpense, checkSpool, orderStage, checkTrack, buildEmail, buildWelcome, validEmail, checkEntry, looksLike, validPhone, cell, safeName, makeRef, SETTINGS };
