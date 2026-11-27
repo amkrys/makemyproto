@@ -53,15 +53,15 @@ function addDemoData() {
 
   // ---- Expenses ----
   const exps = [
-    [1, 1499, "Filament", "Bal", "UPI", "2 × PLA 1 kg, black and white (Robu)"],
+    [1, 1499, "Filament", "Krishna", "UPI", "2 × PLA 1 kg, black and white (Robu)"],
     [2, 780, "Courier", "Deepak", "UPI", "Delhivery pickups this week"],
     [4, 349, "Packaging", "Deepak", "Cash", "Bubble wrap and boxes"],
-    [6, 2250, "Printer & parts", "Bal", "Card", "Spare hotend and nozzles"],
+    [6, 2250, "Printer & parts", "Krishna", "Card", "Spare hotend and nozzles"],
     [8, 899, "Filament", "Deepak", "UPI", "Silk PLA gold 1 kg"],
-    [10, 499, "Marketing", "Bal", "UPI", "Instagram boost for the name-lamp reel"],
-    [13, 1050, "Software & domains", "Bal", "Card", "makemeproto.com renewal"],
+    [10, 499, "Marketing", "Krishna", "UPI", "Instagram boost for the name-lamp reel"],
+    [13, 1050, "Software & domains", "Krishna", "Card", "makemeproto.com renewal"],
     [16, 260, "Tools", "Deepak", "Cash", "Deburring tool and sandpaper"],
-    [34, 1899, "Filament", "Bal", "UPI", "PETG black and grey"],
+    [34, 1899, "Filament", "Krishna", "UPI", "PETG black and grey"],
     [38, 650, "Packaging", "Deepak", "UPI", "Branded stickers"],
   ];
   appendDemo_(ss, ADMIN_TAB_TITLES.expenses, ADMIN_TABS.expenses, exps.map((e, i) => {
@@ -107,8 +107,8 @@ function addDemoData() {
   const iso = (n) => Utilities.formatDate(ago(-n), "Asia/Kolkata", "yyyy-MM-dd");
   appendDemo_(ss, ADMIN_TAB_TITLES.tasks, ADMIN_TABS.tasks, [
     ["T-D001", "Order 2 kg white PLA", "Deepak", iso(-1), "Open", "", "White spool is almost empty", DEMO_TAG, new Date(), ""],
-    ["T-D002", "Post the name-lamp reel", "Bal", iso(0), "Open", "", "", DEMO_TAG, new Date(), ""],
-    ["T-D003", "Call Dr. Kavita about a monthly rate", "Bal", iso(1), "Open", "", "200 dental bases a month", DEMO_TAG, new Date(), ""],
+    ["T-D002", "Post the name-lamp reel", "Krishna", iso(0), "Open", "", "", DEMO_TAG, new Date(), ""],
+    ["T-D003", "Call Dr. Kavita about a monthly rate", "Krishna", iso(1), "Open", "", "200 dental bases a month", DEMO_TAG, new Date(), ""],
     ["T-D004", "Send Neha a reminder about her quote", "Deepak", iso(2), "Open", R["Z9Q"], "", DEMO_TAG, new Date(), ""],
     ["T-D005", "Clean and level the printer bed", "Deepak", iso(-3), "Done", "", "", DEMO_TAG, new Date(), Utilities.formatDate(ago(2), "Asia/Kolkata", "dd MMM yyyy, HH:mm")],
   ]);

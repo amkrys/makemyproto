@@ -462,7 +462,7 @@ const JOB_STATUSES = ["Queued", "Printing", "Done", "Failed"];
 const GALLERY_TYPES = ["reel", "bts", "print", "vlog"];
 const GALLERY_FOLDER = "Website gallery";   // inside the uploads folder; never cleaned up automatically
 const DEFAULT_OPS_SETTINGS = {
-  founders: ["Bal", "Deepak"],
+  founders: ["Krishna", "Deepak"],
   printers: ["Printer 1"],
   rates: { "PLA": 2.5, "PETG": 3, "ABS": 3, "TPU": 4.5, "Silk PLA": 3.5, "Other": 3 },   // ₹ per gram of filament
   machinePerHour: 30,     // ₹ per print hour (electricity + wear)
@@ -1403,7 +1403,7 @@ function buildWelcome(name, base, unsubUrl) {
             <td style="padding:8px 0 8px 10px;font:15px/1.45 Arial,sans-serif;color:#1a1a1a"><b>${t}</b> <span style="color:#6d6a63">${d}</span></td></tr>`).join("")}
         </table></td></tr>
         <tr><td style="padding:22px 28px 8px">${btn(base + "media.html", "🎬 Watch our latest reels", "#141414", "#ffffff")}${btn(base + "pricing.html", "⚡ Get an instant price", "#FF5A1F", "#ffffff")}</td></tr>
-        <tr><td style="padding:4px 28px 26px;font:14px/1.6 Arial,sans-serif;color:#6d6a63">Got something you want printed? Just reply to this email.<br>Bal &amp; Deepak, MakeMeProto</td></tr>
+        <tr><td style="padding:4px 28px 26px;font:14px/1.6 Arial,sans-serif;color:#6d6a63">Got something you want printed? Just reply to this email.<br>Krishna &amp; Deepak, MakeMeProto</td></tr>
       </table>
     </td></tr>
     <tr><td style="padding:22px 6px 4px">${social}</td></tr>
