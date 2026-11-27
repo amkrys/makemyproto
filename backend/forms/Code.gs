@@ -496,6 +496,25 @@ function admin_(b) {
   const ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty("SHEET_ID"));
   ensureHeaders_(ss);
   const d = b.data || {};
+  if (action === "all") return adminAll_(ss, who);
+  return adminAction_(ss, action, d, who);
+}
+
+// Everything the app shows, in one request. The app used to send 14 at once; Google slows those down
+// (20+ seconds each) and some failed, leaving screens blank. One failed part doesn't stop the rest.
+const ALL_PARTS = ["settings", "summary", "orders", "inbox", "expenses", "stock", "payments", "documents", "tasks", "jobs", "media", "supplies", "printerLog", "appVersion"];
+function adminAll_(ss, who) {
+  const parts = {}, failed = [];
+  ALL_PARTS.forEach((p) => {
+    try {
+      const r = adminAction_(ss, p, {}, who);
+      if (r && r.ok) parts[p] = r; else failed.push(p);
+    } catch (e) { console.error("all/" + p, e); failed.push(p); }
+  });
+  return { ok: true, parts: parts, failed: failed };
+}
+
+function adminAction_(ss, action, d, who) {
   switch (action) {
     case "me": return { ok: true, email: who.email, name: who.name };
     case "summary": return adminSummary_(ss);
