@@ -46,7 +46,7 @@ const TABS = {
   careers: ["Received", "Reference", "Status", "Position", "Applicant name", "Phone number", "Email address", "City", "Portfolio link", "Cover note", "Attachments", "Submitted from"],
   newsletter: ["Subscribed", "Reference", "Status", "Email address", "First name", "Interests", "Language", "Submitted from", "Unsubscribe key"],
 };
-const HEADER_VERSION = "5";
+const HEADER_VERSION = "6";
 
 /* Order stages the customer sees on the Track order page. Pick one from the Status dropdown in the Quotes tab. */
 const ORDER_STATUSES = ["New", "Quote sent", "Confirmed", "Printing", "Ready", "Shipped", "Delivered", "On hold", "Cancelled"];   // bump when the headers above change; the sheet is updated on the next entry
@@ -92,6 +92,7 @@ function doPost(e) {
     const body = JSON.parse((e && e.postData && e.postData.contents) || "{}");
     if (body && body.form === "admin") return json_(admin_(body));       // the MakeMeProto Ops app
     if (body && body.form === "track") return json_(track_(body));
+    if (body && body.form === "gallery") return json_(gallery_());           // the website's Gallery page
     const check = checkEntry(body, SETTINGS);
     if (check.silent) return json_({ ok: true, ref: makeRef(PREFIX[body.form] || "X") });   // a bot: pretend it worked, save nothing
     if (!check.ok) return json_(check);
@@ -437,13 +438,37 @@ function alertOnce_(subject, body) {
      GOOGLE_WEB_CLIENT_ID   the "Web application" OAuth client ID the app signs in with
    ========================================================================================= */
 const ADMIN_TABS = {
-  expenses: ["ID", "Date", "Amount (₹)", "Category", "Paid by", "Payment method", "Note", "Added by", "Added at"],
-  stock:    ["ID", "Material", "Colour", "Brand", "Spool size (g)", "Remaining (g)", "Low stock at (g)", "Note", "Updated", "Updated by"],
+  expenses:  ["ID", "Date", "Amount (₹)", "Category", "Paid by", "Payment method", "Note", "Added by", "Added at"],
+  stock:     ["ID", "Material", "Colour", "Brand", "Spool size (g)", "Remaining (g)", "Low stock at (g)", "Note", "Updated", "Updated by", "Colour (hex)"],
+  payments:  ["ID", "Date", "Amount (₹)", "Order ref", "Customer", "Phone", "Type", "Payment method", "Note", "Added by", "Added at"],
+  documents: ["Number", "Type", "Date", "Order ref", "Customer", "Phone", "Items", "Subtotal (₹)", "Discount (₹)", "GST (₹)", "Total (₹)", "Created by", "Created at"],
+  tasks:     ["ID", "Task", "Assigned to", "Due", "Status", "Order ref", "Note", "Created by", "Created at", "Done at"],
+  jobs:      ["ID", "Job", "Order ref", "Printer", "Spool ID", "Filament (g)", "Print time (h)", "Status", "Position", "Started", "Finished", "Note", "Updated by"],
+  media:     ["ID", "Date", "Type", "Title", "Caption", "File ID", "Kind", "On website", "Instagram", "LinkedIn", "Added by", "Added at"],
 };
-const ADMIN_TAB_TITLES = { expenses: "Expenses", stock: "Filament stock" };
+const ADMIN_TAB_TITLES = { expenses: "Expenses", stock: "Filament stock", payments: "Payments", documents: "Quotes & invoices",
+  tasks: "Tasks", jobs: "Print queue", media: "Media posts" };
 const EXPENSE_CATEGORIES = ["Filament", "Printer & parts", "Packaging", "Courier", "Marketing", "Software & domains", "Tools", "Other"];
 const PAY_METHODS = ["UPI", "Cash", "Card", "Bank transfer", "Other"];
+const PAYMENT_TYPES = ["Advance", "Full payment", "Balance", "Refund"];
 const INBOX_STATUSES = ["New", "Replied", "Done", "Spam"];
+const TASK_STATUSES = ["Open", "Done"];
+const JOB_STATUSES = ["Queued", "Printing", "Done", "Failed"];
+const GALLERY_TYPES = ["reel", "bts", "print", "vlog"];
+const GALLERY_FOLDER = "Website gallery";   // inside the uploads folder; never cleaned up automatically
+const DEFAULT_OPS_SETTINGS = {
+  founders: ["Bal", "Deepak"],
+  printers: ["Printer 1"],
+  rates: { "PLA": 2.5, "PETG": 3, "ABS": 3, "TPU": 4.5, "Silk PLA": 3.5, "Other": 3 },   // ₹ per gram of filament
+  machinePerHour: 30,     // ₹ per print hour (electricity + wear)
+  designPerHour: 300,     // ₹ per hour of 3D design work
+  marginPct: 30,
+  minPrice: 99,
+  roundTo: 10,
+  gstPct: 0,              // 0 until you register for GST
+  quoteValidDays: 7,
+  business: { name: "MakeMeProto", phone: "", email: "contact@makemeproto.com", address: "Ahmedabad, Gujarat", gstin: "", upi: "" },
+};
 const SESSION_DAYS = 30;
 
 function admin_(b) {
@@ -458,7 +483,7 @@ function admin_(b) {
   switch (action) {
     case "me": return { ok: true, email: who.email, name: who.name };
     case "summary": return adminSummary_(ss);
-    case "orders": return { ok: true, orders: rows_(ss, TAB_TITLES.quote, TABS.quote.length, 400).map(orderOut_) };
+    case "orders": { const orders = rows_(ss, TAB_TITLES.quote, TABS.quote.length, 400).map(orderOut_); return { ok: true, orders: orders, money: orderMoney_(ss, orders) }; }
     case "updateOrder": return adminUpdateOrder_(ss, d);
     case "inbox": return { ok: true, messages: rows_(ss, TAB_TITLES.contact, TABS.contact.length, 300).map(messageOut_),
       applications: rows_(ss, TAB_TITLES.careers, TABS.careers.length, 300).map(applicationOut_) };
@@ -470,6 +495,26 @@ function admin_(b) {
     case "stock": return { ok: true, spools: rows_(ss, ADMIN_TAB_TITLES.stock, ADMIN_TABS.stock.length, 500).map(spoolOut_) };
     case "saveSpool": return adminSaveSpool_(ss, d, who);
     case "deleteSpool": return adminDeleteById_(ss, ADMIN_TAB_TITLES.stock, d.id);
+    case "settings": return { ok: true, settings: opsSettings_() };
+    case "saveSettings": return adminSaveSettings_(d);
+    case "payments": return { ok: true, payments: rows_(ss, ADMIN_TAB_TITLES.payments, ADMIN_TABS.payments.length, 3000).map(paymentOut_) };
+    case "addPayment": return adminAddPayment_(ss, d, who);
+    case "deletePayment": return adminDeleteById_(ss, ADMIN_TAB_TITLES.payments, d.id);
+    case "documents": return { ok: true, documents: rows_(ss, ADMIN_TAB_TITLES.documents, ADMIN_TABS.documents.length, 1000).map(documentOut_) };
+    case "issueDocument": return adminIssueDocument_(ss, d, who);
+    case "tasks": return { ok: true, tasks: rows_(ss, ADMIN_TAB_TITLES.tasks, ADMIN_TABS.tasks.length, 1000).map(taskOut_) };
+    case "saveTask": return adminSaveTask_(ss, d, who);
+    case "deleteTask": return adminDeleteById_(ss, ADMIN_TAB_TITLES.tasks, d.id);
+    case "jobs": return { ok: true, jobs: rows_(ss, ADMIN_TAB_TITLES.jobs, ADMIN_TABS.jobs.length, 500).map(jobOut_) };
+    case "saveJob": return adminSaveJob_(ss, d, who);
+    case "jobStatus": return adminJobStatus_(ss, d, who);
+    case "moveJob": return adminMoveJob_(ss, d);
+    case "deleteJob": return adminDeleteById_(ss, ADMIN_TAB_TITLES.jobs, d.id);
+    case "media": return { ok: true, media: rows_(ss, ADMIN_TAB_TITLES.media, ADMIN_TABS.media.length, 500).map(mediaOut_) };
+    case "startUpload": return adminStartUpload_(d);
+    case "addMedia": return adminAddMedia_(ss, d, who);
+    case "updateMedia": return adminUpdateMedia_(ss, d);
+    case "deleteMedia": return adminDeleteMedia_(ss, d);
   }
   return { ok: false, error: "action", message: "Unknown action." };
 }
@@ -571,25 +616,83 @@ function expenseOut_(r) {
 function spoolOut_(r) {
   const v = r.v;
   return { id: txt_(v[0]), material: txt_(v[1]), colour: txt_(v[2]), brand: txt_(v[3]), spoolSize: Number(v[4]) || 0, remaining: Number(v[5]) || 0,
-    lowAt: Number(v[6]) || 0, note: txt_(v[7]), updated: txt_(v[8]), updatedBy: txt_(v[9]) };
+    lowAt: Number(v[6]) || 0, note: txt_(v[7]), updated: txt_(v[8]), updatedBy: txt_(v[9]), colourHex: txt_(v[10]) };
 }
 
 /* ---- actions ---- */
 function adminSummary_(ss) {
-  const orders = rows_(ss, TAB_TITLES.quote, TABS.quote.length, 400).map(orderOut_);
+  const orderRows = rows_(ss, TAB_TITLES.quote, TABS.quote.length, 400), orders = orderRows.map(orderOut_);
   const msgs = rows_(ss, TAB_TITLES.contact, TABS.contact.length, 300).map(messageOut_);
   const apps = rows_(ss, TAB_TITLES.careers, TABS.careers.length, 300).map(applicationOut_);
-  const month = Utilities.formatDate(new Date(), "Asia/Kolkata", "yyyy-MM");
+  const today = Utilities.formatDate(new Date(), "Asia/Kolkata", "yyyy-MM-dd"), month = today.slice(0, 7);
   const exps = rows_(ss, ADMIN_TAB_TITLES.expenses, ADMIN_TABS.expenses.length, 2000).map(expenseOut_);
+  const pays = rows_(ss, ADMIN_TAB_TITLES.payments, ADMIN_TABS.payments.length, 3000).map(paymentOut_);
   const spools = rows_(ss, ADMIN_TAB_TITLES.stock, ADMIN_TABS.stock.length, 500).map(spoolOut_);
+  const tasks = rows_(ss, ADMIN_TAB_TITLES.tasks, ADMIN_TABS.tasks.length, 1000).map(taskOut_);
+  const jobs = rows_(ss, ADMIN_TAB_TITLES.jobs, ADMIN_TABS.jobs.length, 500).map(jobOut_);
+  const money = orderMoney_(ss, orders, pays);
   const st = (o) => orderStage(o.status);
+  const monthIncome = pays.filter((p) => p.date.slice(0, 7) === month).reduce((n, p) => n + p.amount, 0);
+  const monthExpenses = exps.filter((e) => e.date.slice(0, 7) === month).reduce((n, e) => n + e.amount, 0);
+  const ages = {};
+  orderRows.forEach((r) => { if (r.v[0] instanceof Date) ages[txt_(r.v[1])] = (Date.now() - r.v[0].getTime()) / 86400000; });
+  const reminders = buildReminders({ orders: orders, ages: ages, money: money, tasks: tasks, spools: spools, today: today });
   return { ok: true,
     newOrders: orders.filter((o) => o.status === "New").length,
     activeOrders: orders.filter((o) => st(o).state === "active" && st(o).stage >= 1 && st(o).stage <= 4).length,
     newMessages: msgs.filter((m) => m.status === "New").length + apps.filter((a) => a.status === "New").length,
-    monthExpenses: exps.filter((e) => e.date.slice(0, 7) === month).reduce((n, e) => n + e.amount, 0),
+    monthExpenses: monthExpenses,
+    monthIncome: monthIncome,
+    monthProfit: monthIncome - monthExpenses,
+    toCollect: Object.keys(money).reduce((n, k) => n + (money[k].owed ? money[k].balance : 0), 0),
     lowStock: spools.filter((s) => s.lowAt > 0 && s.remaining <= s.lowAt).length,
+    openTasks: tasks.filter((t) => t.status !== "Done").length,
+    printing: jobs.filter((j) => j.status === "Printing").length,
+    queued: jobs.filter((j) => j.status === "Queued").length,
+    reminders: reminders,
     recentOrders: orders.slice(0, 10).map((o) => ({ ref: o.ref, name: o.name, received: o.received, estimate: o.estimate, status: o.status })) };
+}
+
+/* Money per order: the latest invoice (or quote, or the website estimate) against payments received */
+function orderMoney_(ss, orders, pays) {
+  pays = pays || rows_(ss, ADMIN_TAB_TITLES.payments, ADMIN_TABS.payments.length, 3000).map(paymentOut_);
+  const docs = rows_(ss, ADMIN_TAB_TITLES.documents, ADMIN_TABS.documents.length, 1000).map(documentOut_);
+  return orderMoney(orders, docs, pays);
+}
+// pure
+function orderMoney(orders, docs, pays) {
+  const out = {};
+  const amountOf = (s) => { const n = Number(String(s || "").replace(/[^\d.]/g, "")); return isFinite(n) ? n : 0; };
+  orders.forEach((o) => {
+    if (!o.ref) return;
+    const mine = docs.filter((d) => d.ref === o.ref);   // newest first
+    const inv = mine.filter((d) => d.type === "Invoice")[0], quote = mine.filter((d) => d.type === "Quote")[0];
+    const total = inv ? inv.total : quote ? quote.total : amountOf(o.estimate);
+    const paid = pays.filter((p) => p.ref === o.ref).reduce((n, p) => n + p.amount, 0);
+    const stage = orderStage(o.status);
+    const balance = Math.round((total - paid) * 100) / 100;
+    out[o.ref] = { total: total, paid: paid, balance: balance, source: inv ? "invoice" : quote ? "quote" : "estimate",
+      owed: (stage.state === "active" || stage.state === "delivered") && stage.stage >= 1 && balance > 0 && total > 0 };
+  });
+  return out;
+}
+// pure: what needs doing, as notification-ready reminders. key is stable so the same reminder isn't sent twice
+function buildReminders(x) {
+  const out = [], first = (n) => String(n || "the customer").trim().split(/\s+/)[0];
+  x.orders.forEach((o) => {
+    const age = x.ages[o.ref] || 0;
+    if (o.status === "New" && age >= 1) out.push({ key: "new:" + o.ref, kind: "order", ref: o.ref, title: "Reply to " + first(o.name), text: o.ref + " has been waiting " + Math.floor(age) + " day" + (age >= 2 ? "s" : "") + "." });
+    if (o.status === "Quote sent" && age >= 3) out.push({ key: "quote:" + o.ref, kind: "order", ref: o.ref, title: "Follow up with " + first(o.name), text: "No answer yet on the quote for " + o.ref + "." });
+    const m = x.money[o.ref];
+    if (m && m.owed && /Delivered|Ready|Shipped/.test(o.status)) out.push({ key: "pay:" + o.ref + ":" + m.balance, kind: "money", ref: o.ref, title: "Collect ₹" + Math.round(m.balance) + " from " + first(o.name), text: o.ref + " is " + o.status.toLowerCase() + " but not fully paid." });
+  });
+  x.tasks.forEach((t) => {
+    if (t.status !== "Done" && t.due && t.due <= x.today) out.push({ key: "task:" + t.id + ":" + t.due, kind: "task", ref: t.id, title: (t.due < x.today ? "Overdue: " : "Due today: ") + t.title, text: t.assignee ? "For " + t.assignee + "." : "" });
+  });
+  x.spools.forEach((s) => {
+    if (s.lowAt > 0 && s.remaining <= s.lowAt) out.push({ key: "stock:" + s.id, kind: "stock", ref: s.id, title: s.material + " " + s.colour + " is running low", text: s.remaining + " g left." });
+  });
+  return out.slice(0, 30);
 }
 
 function adminUpdateOrder_(ss, d) {
@@ -639,14 +742,15 @@ function checkSpool(d) {
   if (!colour) return { ok: false, error: "colour", message: "Add the colour." };
   const n = (x) => Math.max(0, Math.round(Number(x) || 0));
   const size = n(d.spoolSize) || 1000, remaining = Math.min(n(d.remaining), 100000);
-  return { ok: true, material: material, colour: colour, brand: clean(d.brand, 40), spoolSize: size, remaining: remaining, lowAt: n(d.lowAt), note: clean(d.note, 200) };
+  const hex = /^#[0-9A-F]{6}$/i.test(String(d.colourHex || "")) ? String(d.colourHex).toUpperCase() : "";
+  return { ok: true, material: material, colour: colour, brand: clean(d.brand, 40), spoolSize: size, remaining: remaining, lowAt: n(d.lowAt), note: clean(d.note, 200), colourHex: hex };
 }
 function adminSaveSpool_(ss, d, who) {
   const c = checkSpool(d);
   if (!c.ok) return c;
   const sh = ss.getSheetByName(ADMIN_TAB_TITLES.stock);
   let row = d.id ? findRow_(sh, 1, d.id) : 0, id = row ? String(d.id) : shortId_("S");
-  const values = [id, cell(c.material), cell(c.colour), cell(c.brand), c.spoolSize, c.remaining, c.lowAt, cell(c.note), stamp_(), who.email];
+  const values = [id, cell(c.material), cell(c.colour), cell(c.brand), c.spoolSize, c.remaining, c.lowAt, cell(c.note), stamp_(), who.email, c.colourHex];
   if (row) sh.getRange(row, 1, 1, values.length).setValues([values]); else sh.appendRow(values);
   return { ok: true, id: id };
 }
@@ -656,6 +760,309 @@ function adminDeleteById_(ss, title, id) {
   if (!row) return { ok: false, error: "notfound", message: "That item wasn't found. It may already be deleted." };
   sh.deleteRow(row);
   return { ok: true };
+}
+
+/* ---- settings (rates, printers, business details for invoices) ---- */
+function opsSettings_() {
+  let saved = {};
+  try { saved = JSON.parse(PropertiesService.getScriptProperties().getProperty("OPS_SETTINGS") || "{}"); } catch (e) { saved = {}; }
+  return mergeSettings(DEFAULT_OPS_SETTINGS, saved);
+}
+// pure
+function mergeSettings(def, saved) {
+  const out = JSON.parse(JSON.stringify(def));
+  Object.keys(saved || {}).forEach((k) => {
+    if (!(k in out)) return;
+    if (out[k] && typeof out[k] === "object" && !Array.isArray(out[k]) && k !== "rates") Object.assign(out[k], saved[k] || {});
+    else out[k] = saved[k];
+  });
+  return out;
+}
+// pure: tidies the settings sent by the app
+function checkSettings(d) {
+  const num = (x, min, max, dflt) => { const n = Number(x); return x !== "" && x != null && isFinite(n) ? Math.min(max, Math.max(min, n)) : dflt; };
+  const list = (a, max) => (Array.isArray(a) ? a : []).map((x) => clean(x, 40)).filter(Boolean).slice(0, max);
+  const founders = list(d.founders, 6), printers = list(d.printers, 10);
+  if (!founders.length) return { ok: false, error: "founders", message: "Add at least one founder name." };
+  if (!printers.length) return { ok: false, error: "printers", message: "Add at least one printer." };
+  const rates = {};
+  Object.keys(d.rates || {}).slice(0, 20).forEach((k) => { const name = clean(k, 30); if (name) rates[name] = num(d.rates[k], 0, 1000, 0); });
+  const b = d.business || {}, D = DEFAULT_OPS_SETTINGS;
+  return { ok: true, settings: {
+    founders: founders, printers: printers, rates: Object.keys(rates).length ? rates : D.rates,
+    machinePerHour: num(d.machinePerHour, 0, 10000, D.machinePerHour), designPerHour: num(d.designPerHour, 0, 100000, D.designPerHour),
+    marginPct: num(d.marginPct, 0, 500, D.marginPct), minPrice: num(d.minPrice, 0, 100000, D.minPrice), roundTo: num(d.roundTo, 1, 1000, D.roundTo),
+    gstPct: num(d.gstPct, 0, 28, 0), quoteValidDays: num(d.quoteValidDays, 1, 90, D.quoteValidDays),
+    business: { name: clean(b.name, 60) || "MakeMeProto", phone: clean(b.phone, 20), email: clean(b.email, 80), address: clean(b.address, 200),
+      gstin: clean(b.gstin, 20).toUpperCase(), upi: clean(b.upi, 60) } } };
+}
+function adminSaveSettings_(d) {
+  const c = checkSettings(d);
+  if (!c.ok) return c;
+  PropertiesService.getScriptProperties().setProperty("OPS_SETTINGS", JSON.stringify(c.settings));
+  return { ok: true, settings: c.settings };
+}
+
+/* ---- payments ---- */
+function paymentOut_(r) {
+  const v = r.v;
+  return { id: txt_(v[0]), date: day_(v[1]), amount: Number(v[2]) || 0, ref: txt_(v[3]), customer: txt_(v[4]), phone: txt_(v[5]), type: txt_(v[6]),
+    method: txt_(v[7]), note: txt_(v[8]), addedBy: txt_(v[9]), addedAt: txt_(v[10]) };
+}
+// pure
+function checkPayment(d) {
+  const amount = Math.round(Number(d.amount) * 100) / 100;
+  if (!(amount > 0 && amount < 10000000)) return { ok: false, error: "amount", message: "Enter an amount above ₹0." };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(d.date || ""))) return { ok: false, error: "date", message: "Pick a date." };
+  if (PAYMENT_TYPES.indexOf(String(d.type)) < 0) return { ok: false, error: "type", message: "Pick advance, full payment, balance or refund." };
+  if (d.method && PAY_METHODS.indexOf(String(d.method)) < 0) return { ok: false, error: "method", message: "Pick a payment method." };
+  if (!clean(d.ref, 20) && !clean(d.customer, 60)) return { ok: false, error: "who", message: "Pick an order or add the customer's name." };
+  return { ok: true, amount: String(d.type) === "Refund" ? -amount : amount };
+}
+function adminAddPayment_(ss, d, who) {
+  const c = checkPayment(d);
+  if (!c.ok) return c;
+  const sh = ss.getSheetByName(ADMIN_TAB_TITLES.payments), id = shortId_("P");
+  sh.appendRow([id, String(d.date), c.amount, cell(clean(d.ref, 20).toUpperCase()), cell(clean(d.customer, 60)), digits(d.phone).slice(-10), String(d.type),
+    String(d.method || ""), cell(clean(d.note, 200)), who.email, stamp_()]);
+  sh.getRange(sh.getLastRow(), 2).setNumberFormat("dd MMM yyyy");
+  return { ok: true, id: id };
+}
+
+/* ---- quotes & invoices (the app makes the PDF; this keeps the number and a record) ---- */
+function documentOut_(r) {
+  const v = r.v;
+  return { number: txt_(v[0]), type: txt_(v[1]), date: day_(v[2]), ref: txt_(v[3]), customer: txt_(v[4]), phone: txt_(v[5]), items: txt_(v[6]),
+    subtotal: Number(v[7]) || 0, discount: Number(v[8]) || 0, gst: Number(v[9]) || 0, total: Number(v[10]) || 0, createdBy: txt_(v[11]), createdAt: txt_(v[12]) };
+}
+// pure: works out the totals the same way the app does
+function checkDocument(d, gstPct) {
+  if (["Quote", "Invoice"].indexOf(String(d.type)) < 0) return { ok: false, error: "type", message: "Pick quote or invoice." };
+  const items = (Array.isArray(d.items) ? d.items : []).slice(0, 30).map((i) => ({
+    name: clean(i && i.name, 80), qty: Math.round(Number(i && i.qty) * 100) / 100, rate: Math.round(Number(i && i.rate) * 100) / 100 }))
+    .filter((i) => i.name && i.qty > 0 && i.qty <= 100000 && i.rate >= 0 && i.rate < 10000000);
+  if (!items.length) return { ok: false, error: "items", message: "Add at least one line with a name, quantity and price." };
+  if (!clean(d.customer, 60)) return { ok: false, error: "customer", message: "Add the customer's name." };
+  const r2 = (n) => Math.round(n * 100) / 100;
+  const subtotal = r2(items.reduce((n, i) => n + i.qty * i.rate, 0));
+  const discount = Math.min(subtotal, Math.max(0, r2(Number(d.discount) || 0)));
+  const gst = r2((subtotal - discount) * (Number(gstPct) || 0) / 100);
+  return { ok: true, items: items, subtotal: subtotal, discount: discount, gst: gst, total: r2(subtotal - discount + gst) };
+}
+function adminIssueDocument_(ss, d, who) {
+  const settings = opsSettings_(), c = checkDocument(d, settings.gstPct);
+  if (!c.ok) return c;
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const props = PropertiesService.getScriptProperties(), year = Utilities.formatDate(new Date(), "Asia/Kolkata", "yyyy");
+    const key = "DOC_" + d.type + "_" + year, n = Number(props.getProperty(key) || 0) + 1;
+    props.setProperty(key, String(n));
+    const number = (d.type === "Invoice" ? "INV" : "QT") + "-" + year + "-" + ("000" + n).slice(-4);
+    const date = Utilities.formatDate(new Date(), "Asia/Kolkata", "yyyy-MM-dd");
+    const lines = c.items.map((i) => i.qty + " × " + i.name + " @ ₹" + i.rate).join("\n");
+    const sh = ss.getSheetByName(ADMIN_TAB_TITLES.documents);
+    sh.appendRow([number, d.type, date, cell(clean(d.ref, 20).toUpperCase()), cell(clean(d.customer, 60)), digits(d.phone).slice(-10), cell(lines),
+      c.subtotal, c.discount, c.gst, c.total, who.email, stamp_()]);
+    sh.getRange(sh.getLastRow(), 3).setNumberFormat("dd MMM yyyy");
+    return { ok: true, number: number, date: date, subtotal: c.subtotal, discount: c.discount, gst: c.gst, total: c.total, settings: settings };
+  } finally { lock.releaseLock(); }
+}
+
+/* ---- tasks ---- */
+function taskOut_(r) {
+  const v = r.v;
+  return { id: txt_(v[0]), title: txt_(v[1]), assignee: txt_(v[2]), due: day_(v[3]), status: txt_(v[4]) || "Open", ref: txt_(v[5]), note: txt_(v[6]),
+    createdBy: txt_(v[7]), createdAt: txt_(v[8]), doneAt: txt_(v[9]) };
+}
+// pure
+function checkTask(d) {
+  const title = clean(d.title, 140);
+  if (!title) return { ok: false, error: "title", message: "Write what needs doing." };
+  const due = String(d.due || "");
+  if (due && !/^\d{4}-\d{2}-\d{2}$/.test(due)) return { ok: false, error: "due", message: "Pick a due date." };
+  const status = TASK_STATUSES.indexOf(String(d.status)) >= 0 ? String(d.status) : "Open";
+  return { ok: true, title: title, assignee: clean(d.assignee, 40), due: due, status: status, ref: clean(d.ref, 20).toUpperCase(), note: clean(d.note, 300) };
+}
+function adminSaveTask_(ss, d, who) {
+  const c = checkTask(d);
+  if (!c.ok) return c;
+  const sh = ss.getSheetByName(ADMIN_TAB_TITLES.tasks);
+  const row = d.id ? findRow_(sh, 1, d.id) : 0, id = row ? String(d.id) : shortId_("T");
+  const prev = row ? sh.getRange(row, 1, 1, ADMIN_TABS.tasks.length).getValues()[0] : null;
+  const doneAt = c.status === "Done" ? (prev && prev[9] ? prev[9] : stamp_()) : "";
+  const values = [id, cell(c.title), cell(c.assignee), c.due, c.status, cell(c.ref), cell(c.note), prev ? prev[7] : who.email, prev ? prev[8] : stamp_(), doneAt];
+  if (row) sh.getRange(row, 1, 1, values.length).setValues([values]); else sh.appendRow(values);
+  return { ok: true, id: id };
+}
+
+/* ---- print queue ---- */
+function jobOut_(r) {
+  const v = r.v;
+  return { id: txt_(v[0]), title: txt_(v[1]), ref: txt_(v[2]), printer: txt_(v[3]), spoolId: txt_(v[4]), grams: Number(v[5]) || 0, hours: Number(v[6]) || 0,
+    status: txt_(v[7]) || "Queued", position: Number(v[8]) || 0, started: txt_(v[9]), finished: txt_(v[10]), note: txt_(v[11]), updatedBy: txt_(v[12]) };
+}
+// pure
+function checkJob(d) {
+  const title = clean(d.title, 120);
+  if (!title) return { ok: false, error: "title", message: "Name the job, e.g. Name lamp × 2." };
+  const grams = Math.max(0, Math.round(Number(d.grams) || 0)), hours = Math.max(0, Math.round((Number(d.hours) || 0) * 10) / 10);
+  if (grams > 20000 || hours > 500) return { ok: false, error: "size", message: "That filament or time looks too big." };
+  return { ok: true, title: title, ref: clean(d.ref, 20).toUpperCase(), printer: clean(d.printer, 40), spoolId: clean(d.spoolId, 20), grams: grams, hours: hours, note: clean(d.note, 300) };
+}
+function adminSaveJob_(ss, d, who) {
+  const c = checkJob(d);
+  if (!c.ok) return c;
+  const sh = ss.getSheetByName(ADMIN_TAB_TITLES.jobs);
+  const row = d.id ? findRow_(sh, 1, d.id) : 0, id = row ? String(d.id) : shortId_("J");
+  if (row) {
+    sh.getRange(row, 2, 1, 6).setValues([[cell(c.title), cell(c.ref), cell(c.printer), c.spoolId, c.grams, c.hours]]);
+    sh.getRange(row, 12, 1, 2).setValues([[cell(c.note), who.email]]);
+  } else {
+    const all = rows_(ss, ADMIN_TAB_TITLES.jobs, ADMIN_TABS.jobs.length, 500).map(jobOut_);
+    const pos = all.reduce((m, j) => Math.max(m, j.position), 0) + 1;
+    sh.appendRow([id, cell(c.title), cell(c.ref), cell(c.printer), c.spoolId, c.grams, c.hours, "Queued", pos, "", "", cell(c.note), who.email]);
+  }
+  return { ok: true, id: id };
+}
+function adminJobStatus_(ss, d, who) {
+  const status = String(d.status);
+  if (JOB_STATUSES.indexOf(status) < 0) return { ok: false, error: "status", message: "Unknown status." };
+  const sh = ss.getSheetByName(ADMIN_TAB_TITLES.jobs), row = d.id ? findRow_(sh, 1, d.id) : 0;
+  if (!row) return { ok: false, error: "notfound", message: "That job wasn't found." };
+  const job = jobOut_({ row: row, v: sh.getRange(row, 1, 1, ADMIN_TABS.jobs.length).getValues()[0] });
+  sh.getRange(row, 8).setValue(status);
+  sh.getRange(row, 13).setValue(who.email);
+  let spool = null;
+  if (status === "Printing") {
+    sh.getRange(row, 10).setValue(stamp_());
+    if (job.ref) {   // move the order along so the customer sees it on the Track order page
+      const qs = ss.getSheetByName(TAB_TITLES.quote), orow = findRow_(qs, 2, job.ref);
+      if (orow && ["New", "Quote sent", "Confirmed"].indexOf(String(qs.getRange(orow, 3).getValue())) >= 0) qs.getRange(orow, 3).setValue("Printing");
+    }
+  }
+  if (status === "Done" && job.status !== "Done") {
+    sh.getRange(row, 11).setValue(stamp_());
+    if (job.spoolId && job.grams > 0) {   // take the filament off the spool
+      const ss2 = ss.getSheetByName(ADMIN_TAB_TITLES.stock), srow = findRow_(ss2, 1, job.spoolId);
+      if (srow) {
+        const left = Math.max(0, (Number(ss2.getRange(srow, 6).getValue()) || 0) - job.grams);
+        ss2.getRange(srow, 6).setValue(left);
+        ss2.getRange(srow, 9, 1, 2).setValues([[stamp_(), who.email]]);
+        spool = { id: job.spoolId, remaining: left };
+      }
+    }
+  }
+  return { ok: true, spool: spool };
+}
+function adminMoveJob_(ss, d) {
+  const sh = ss.getSheetByName(ADMIN_TAB_TITLES.jobs);
+  const jobs = rows_(ss, ADMIN_TAB_TITLES.jobs, ADMIN_TABS.jobs.length, 500).map(jobOut_).filter((j) => j.status === "Queued").sort((a, b) => a.position - b.position);
+  const i = jobs.findIndex((j) => j.id === d.id), k = i + (Number(d.dir) < 0 ? -1 : 1);
+  if (i < 0 || k < 0 || k >= jobs.length) return { ok: true };
+  const a = jobs[i], b = jobs[k];
+  sh.getRange(a.row || findRow_(sh, 1, a.id), 9).setValue(b.position);
+  sh.getRange(b.row || findRow_(sh, 1, b.id), 9).setValue(a.position);
+  return { ok: true };
+}
+
+/* ---- media posts (website gallery; the app shares to Instagram and LinkedIn itself) ---- */
+function galleryFolder_() {
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty("GALLERY_FOLDER_ID");
+  if (id) { try { return DriveApp.getFolderById(id); } catch (e) { /* deleted: make a new one */ } }
+  const f = child_(DriveApp.getFolderById(props.getProperty("FOLDER_ID")), GALLERY_FOLDER);
+  props.setProperty("GALLERY_FOLDER_ID", f.getId());
+  return f;
+}
+function mediaOut_(r) {
+  const v = r.v, fileId = txt_(v[5]), kind = txt_(v[6]) || "image";
+  return { id: txt_(v[0]), date: day_(v[1]), type: txt_(v[2]), title: txt_(v[3]), caption: txt_(v[4]), fileId: fileId, kind: kind,
+    website: txt_(v[7]) === "Yes", instagram: txt_(v[8]), linkedin: txt_(v[9]), addedBy: txt_(v[10]), addedAt: txt_(v[11]),
+    url: fileId ? (kind === "video" ? "https://drive.google.com/file/d/" + fileId + "/preview" : "https://lh3.googleusercontent.com/d/" + fileId + "=w1600") : "",
+    thumb: fileId ? "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w800" : "" };
+}
+// pure
+function checkUpload(d) {
+  const mime = String(d.mime || "").toLowerCase(), size = Number(d.size) || 0;
+  const isVideo = /^video\/(mp4|quicktime|webm|3gpp)$/.test(mime), isImage = /^image\/(jpeg|png|webp|heic|heif)$/.test(mime);
+  if (!isVideo && !isImage) return { ok: false, error: "type", message: "Pick a photo (JPG, PNG, WebP, HEIC) or a video (MP4, MOV, WebM)." };
+  const maxMb = isVideo ? 300 : 25;
+  if (!(size > 0) || size > maxMb * 1048576) return { ok: false, error: "size", message: "That file is too big. The limit is " + maxMb + " MB for " + (isVideo ? "videos" : "photos") + "." };
+  return { ok: true, mime: mime, size: size, name: safeName(d.name || (isVideo ? "video.mp4" : "photo.jpg")) };
+}
+function adminStartUpload_(d) {
+  const c = checkUpload(d);
+  if (!c.ok) return c;
+  if (driveFull_()) return { ok: false, error: "drive", message: "Google Drive is almost full. Free up some space first." };
+  const folder = galleryFolder_();
+  const stampName = Utilities.formatDate(new Date(), "Asia/Kolkata", "yyyy-MM-dd HHmm") + " " + c.name;
+  const res = UrlFetchApp.fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id", {
+    method: "post", contentType: "application/json; charset=UTF-8", muteHttpExceptions: true,
+    headers: { Authorization: "Bearer " + ScriptApp.getOAuthToken(), "X-Upload-Content-Type": c.mime, "X-Upload-Content-Length": String(c.size) },
+    payload: JSON.stringify({ name: stampName, mimeType: c.mime, parents: [folder.getId()] }),
+  });
+  const h = res.getHeaders(), url = h.Location || h.location;
+  if (res.getResponseCode() !== 200 || !url) { console.error(res.getContentText()); return { ok: false, error: "upload", message: "Couldn't start the upload. Try again." }; }
+  return { ok: true, uploadUrl: url, chunk: 4 * 1024 * 1024 };   // the app sends the file straight to Drive in 4 MB pieces
+}
+function adminAddMedia_(ss, d, who) {
+  const type = GALLERY_TYPES.indexOf(String(d.type)) >= 0 ? String(d.type) : "print";
+  const title = clean(d.title, 100);
+  if (!title) return { ok: false, error: "title", message: "Add a title." };
+  let file;
+  try { file = DriveApp.getFileById(String(d.fileId || "")); } catch (e) { return { ok: false, error: "file", message: "The upload didn't finish. Try again." }; }
+  const folderId = galleryFolder_().getId(), parents = file.getParents();
+  let inFolder = false;
+  while (parents.hasNext()) if (parents.next().getId() === folderId) inFolder = true;
+  if (!inFolder) return { ok: false, error: "file", message: "That file isn't in the gallery folder." };
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);   // so the website can show it
+  const kind = /^video\//.test(file.getMimeType()) ? "video" : "image";
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(String(d.date || "")) ? String(d.date) : Utilities.formatDate(new Date(), "Asia/Kolkata", "yyyy-MM-dd");
+  const sh = ss.getSheetByName(ADMIN_TAB_TITLES.media), id = shortId_("M");
+  sh.appendRow([id, date, type, cell(title), cell(clean(d.caption, 2000)), file.getId(), kind, d.website ? "Yes" : "No", "", "", who.email, stamp_()]);
+  sh.getRange(sh.getLastRow(), 2).setNumberFormat("dd MMM yyyy");
+  CacheService.getScriptCache().remove("gallery");
+  return { ok: true, id: id };
+}
+function adminUpdateMedia_(ss, d) {
+  const sh = ss.getSheetByName(ADMIN_TAB_TITLES.media), row = d.id ? findRow_(sh, 1, d.id) : 0;
+  if (!row) return { ok: false, error: "notfound", message: "That post wasn't found." };
+  if (d.title != null && clean(d.title, 100)) sh.getRange(row, 4).setValue(cell(clean(d.title, 100)));
+  if (d.caption != null) sh.getRange(row, 5).setValue(cell(clean(d.caption, 2000)));
+  if (d.type != null && GALLERY_TYPES.indexOf(String(d.type)) >= 0) sh.getRange(row, 3).setValue(String(d.type));
+  if (d.website != null) sh.getRange(row, 8).setValue(d.website ? "Yes" : "No");
+  if (d.instagram != null) sh.getRange(row, 9).setValue(d.instagram ? stamp_() : "");
+  if (d.linkedin != null) sh.getRange(row, 10).setValue(d.linkedin ? stamp_() : "");
+  CacheService.getScriptCache().remove("gallery");
+  return { ok: true };
+}
+function adminDeleteMedia_(ss, d) {
+  const sh = ss.getSheetByName(ADMIN_TAB_TITLES.media), row = d.id ? findRow_(sh, 1, d.id) : 0;
+  if (!row) return { ok: false, error: "notfound", message: "That post wasn't found." };
+  const fileId = String(sh.getRange(row, 6).getValue() || "");
+  if (fileId) { try { DriveApp.getFileById(fileId).setTrashed(true); } catch (e) { /* already gone */ } }
+  sh.deleteRow(row);
+  CacheService.getScriptCache().remove("gallery");
+  return { ok: true };
+}
+// public: what the website's Gallery page shows (cached for 5 minutes)
+function gallery_() {
+  const cache = CacheService.getScriptCache(), hit = cache.get("gallery");
+  if (hit) return JSON.parse(hit);
+  const ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty("SHEET_ID"));
+  const sh = ss.getSheetByName(ADMIN_TAB_TITLES.media);
+  const items = !sh ? [] : rows_(ss, ADMIN_TAB_TITLES.media, ADMIN_TABS.media.length, 300).map(mediaOut_).filter((m) => m.website && m.fileId).slice(0, 120)
+    .map((m) => galleryItem(m));
+  const out = { ok: true, items: items };
+  try { cache.put("gallery", JSON.stringify(out), 300); } catch (e) { /* too big to cache */ }
+  return out;
+}
+// pure: the shape the website's gallery code expects
+function galleryItem(m) {
+  const item = { id: m.id, type: m.type, title: m.title, titleEn: m.title, caption: m.caption, captionEn: m.caption, date: m.date, poster: m.thumb };
+  if (m.kind === "video") item.drive = m.fileId; else item.image = m.url;
+  return item;
 }
 
 /* ------------------------- Track order ------------------------- */
@@ -848,4 +1255,4 @@ function json_(o) {
   return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
 }
 
-if (typeof module !== "undefined") module.exports = { checkGoogleToken, checkExpense, checkSpool, orderStage, checkTrack, buildEmail, buildWelcome, validEmail, checkEntry, looksLike, validPhone, cell, safeName, makeRef, SETTINGS };
+if (typeof module !== "undefined") module.exports = { checkGoogleToken, checkExpense, checkSpool, checkSettings, mergeSettings, checkPayment, checkDocument, checkTask, checkJob, checkUpload, orderMoney, buildReminders, galleryItem, DEFAULT_OPS_SETTINGS, orderStage, checkTrack, buildEmail, buildWelcome, validEmail, checkEntry, looksLike, validPhone, cell, safeName, makeRef, SETTINGS };

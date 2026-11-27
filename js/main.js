@@ -1137,7 +1137,7 @@ const mediaSlug = (m) => (m.titleEn || m.title).toLowerCase().replace(/[^a-z0-9]
 const mediaTitle = (m) => (LANG === "en" ? m.titleEn || m.title : m.title);
 const mediaCaption = (m) => (LANG === "en" ? m.captionEn || m.caption : m.caption) || "";
 const mediaDate = (m) => { try { return new Date(m.date + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }); } catch (e) { return m.date; } };
-const playable = (m) => !m.soon && (m.instagram || m.youtube || m.video || m.image);
+const playable = (m) => !m.soon && (m.instagram || m.youtube || m.video || m.image || m.drive);
 const escHtml = (v) => String(v == null ? "" : v).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
 function mediaThumb(m, cls = "mcard__media") {
@@ -1152,7 +1152,8 @@ function mediaThumb(m, cls = "mcard__media") {
 function initGallery() {
   const grid = $("#mediaGrid");
   const vlogList = $("#vlogList");
-  const list = (window.MEDIA || []).slice().sort((a, b) => (a.soon === b.soon ? String(b.date).localeCompare(String(a.date)) : a.soon ? 1 : -1));
+  const sortMedia = (arr) => arr.slice().sort((a, b) => (a.soon === b.soon ? String(b.date).localeCompare(String(a.date)) : a.soon ? 1 : -1));
+  let list = sortMedia(window.MEDIA || []);
   if (!grid && !vlogList) return;
   let filter = "all", shown = [];
   const box = $("#mediaBox"), stage = $("#mboxStage");
@@ -1220,6 +1221,8 @@ function initGallery() {
       html = `<iframe class="mbox__frame mbox__frame--ig" src="${escHtml(url)}embed/" title="${escHtml(mediaTitle(m))}" loading="lazy" allowfullscreen></iframe>`;
     } else if (m.youtube) {
       html = `<iframe class="mbox__frame mbox__frame--yt" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(m.youtube)}?autoplay=1&rel=0" title="${escHtml(mediaTitle(m))}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
+    } else if (m.drive) {
+      html = `<iframe class="mbox__frame mbox__frame--drive" src="https://drive.google.com/file/d/${encodeURIComponent(m.drive)}/preview" title="${escHtml(mediaTitle(m))}" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
     } else if (m.video) {
       html = `<video class="mbox__video" src="${escHtml(m.video)}" ${m.poster ? `poster="${escHtml(m.poster)}"` : ""} controls autoplay playsinline loop></video>`;
     } else if (m.image) {
@@ -1270,8 +1273,28 @@ function initGallery() {
   render();
   addEventListener("mmp:lang", render);
   // a shared link like media.html#m-our-logo-comes-to-life opens that item
-  const hit = location.hash.startsWith("#m-") ? list.findIndex((m) => "#m-" + mediaSlug(m) === location.hash) : -1;
-  if (hit > -1) setTimeout(() => open(hit, list), 300);
+  const openFromHash = () => {
+    const hit = location.hash.startsWith("#m-") ? list.findIndex((m) => "#m-" + mediaSlug(m) === location.hash) : -1;
+    if (hit > -1 && !box?.open) setTimeout(() => open(hit, list), 300);
+    return hit > -1;
+  };
+  const opened = openFromHash();
+
+  // posts published from the MakeMeProto Ops app (photos and videos kept in Google Drive)
+  if (CONFIG.forms?.endpoint) {
+    fetch(CONFIG.forms.endpoint, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ form: "gallery" }) })
+      .then((r) => r.json())
+      .then((res) => {
+        const items = (res && res.ok && Array.isArray(res.items) ? res.items : []).filter((m) => m && m.title && MEDIA_TYPES[m.type]);
+        if (!items.length) return;
+        const ids = new Set(items.map((m) => m.id));
+        // once real posts exist, the placeholder samples step aside
+        list = sortMedia(items.concat((window.MEDIA || []).filter((m) => !m.sample && !ids.has(m.id))));
+        render();
+        if (!opened) openFromHash();
+      })
+      .catch(() => { /* offline or blocked: the built-in list still shows */ });
+  }
 }
 
 /* =========================================================
