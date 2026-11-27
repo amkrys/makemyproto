@@ -41,12 +41,12 @@ const SETTINGS = {
 
 const TABS = {
   quote:   ["Received", "Reference", "Status", "Customer name", "WhatsApp number", "Material", "Infill density", "Colour", "Quantity", "Estimated weight", "Dimensions", "Website estimate", "Customer notes", "Attachments", "Submitted from",
-            "Customer update", "Courier", "Tracking number", "Expected by"],   // the last four are shown to the customer on the Track order page
+            "Customer update", "Courier", "Tracking number", "Expected by", "Photos"],   // update…expected and photos are shown to the customer on the Track order page
   contact: ["Received", "Reference", "Status", "Customer name", "Phone number", "Service required", "Message", "Submitted from"],
   careers: ["Received", "Reference", "Status", "Position", "Applicant name", "Phone number", "Email address", "City", "Portfolio link", "Cover note", "Attachments", "Submitted from"],
   newsletter: ["Subscribed", "Reference", "Status", "Email address", "First name", "Interests", "Language", "Submitted from", "Unsubscribe key"],
 };
-const HEADER_VERSION = "6";
+const HEADER_VERSION = "7";
 
 /* Order stages the customer sees on the Track order page. Pick one from the Status dropdown in the Quotes tab. */
 const ORDER_STATUSES = ["New", "Quote sent", "Confirmed", "Printing", "Ready", "Shipped", "Delivered", "On hold", "Cancelled"];   // bump when the headers above change; the sheet is updated on the next entry
@@ -93,6 +93,7 @@ function doPost(e) {
     if (body && body.form === "admin") return json_(admin_(body));       // the MakeMeProto Ops app
     if (body && body.form === "track") return json_(track_(body));
     if (body && body.form === "gallery") return json_(gallery_());           // the website's Gallery page
+    if (body && body.form === "release") return json_(release_(body));       // a new app version from GitHub Actions
     const check = checkEntry(body, SETTINGS);
     if (check.silent) return json_({ ok: true, ref: makeRef(PREFIX[body.form] || "X") });   // a bot: pretend it worked, save nothing
     if (!check.ok) return json_(check);
@@ -445,9 +446,13 @@ const ADMIN_TABS = {
   tasks:     ["ID", "Task", "Assigned to", "Due", "Status", "Order ref", "Note", "Created by", "Created at", "Done at"],
   jobs:      ["ID", "Job", "Order ref", "Printer", "Spool ID", "Filament (g)", "Print time (h)", "Status", "Position", "Started", "Finished", "Note", "Updated by"],
   media:     ["ID", "Date", "Type", "Title", "Caption", "File ID", "Kind", "On website", "Instagram", "LinkedIn", "Added by", "Added at"],
+  supplies:  ["ID", "Item", "Unit", "Quantity", "Low stock at", "Cost per unit (₹)", "Note", "Updated", "Updated by"],
+  printlog:  ["ID", "Date", "Printer", "Type", "Note", "Cost (₹)", "Added by", "Added at"],
 };
 const ADMIN_TAB_TITLES = { expenses: "Expenses", stock: "Filament stock", payments: "Payments", documents: "Quotes & invoices",
-  tasks: "Tasks", jobs: "Print queue", media: "Media posts" };
+  tasks: "Tasks", jobs: "Print queue", media: "Media posts", supplies: "Supplies", printlog: "Printer log" };
+const SERVICE_TYPES = ["Nozzle change", "Bed levelling", "Cleaning", "Lubrication", "Belt tension", "Repair", "Other"];
+const ORDER_CHANNELS = ["WhatsApp", "Instagram", "Phone call", "Walk-in", "Email", "Other"];
 const EXPENSE_CATEGORIES = ["Filament", "Printer & parts", "Packaging", "Courier", "Marketing", "Software & domains", "Tools", "Other"];
 const PAY_METHODS = ["UPI", "Cash", "Card", "Bank transfer", "Other"];
 const PAYMENT_TYPES = ["Advance", "Full payment", "Balance", "Refund"];
@@ -468,6 +473,17 @@ const DEFAULT_OPS_SETTINGS = {
   gstPct: 0,              // 0 until you register for GST
   quoteValidDays: 7,
   business: { name: "MakeMeProto", phone: "", email: "contact@makemeproto.com", address: "Ahmedabad, Gujarat", gstin: "", upi: "" },
+  serviceEveryHours: 150,   // remind to service a printer after this many print hours
+  // WhatsApp messages the app fills in. {name} {ref} {link} {courier} {tracking} are replaced.
+  templates: {
+    "New": "Hi {name}! MakeMeProto here, about your request {ref}.",
+    "Quote sent": "Hi {name}! Your quote for order {ref} is ready. Shall we go ahead?",
+    "Confirmed": "Hi {name}! Your order {ref} is confirmed. We'll start printing soon.\n\nTrack it any time: {link}",
+    "Printing": "Hi {name}! Your order {ref} is on the printer now.\n\nTrack it any time: {link}",
+    "Ready": "Hi {name}! Your order {ref} is ready. Pickup or delivery?\n\nTrack it any time: {link}",
+    "Shipped": "Hi {name}! Your order {ref} is on its way with {courier} (tracking no. {tracking}).\n\nTrack it any time: {link}",
+    "Delivered": "Hi {name}! Hope you love your print! Could you share a photo or a quick Google review? It helps us a lot.",
+  },
 };
 const SESSION_DAYS = 30;
 
@@ -515,6 +531,16 @@ function admin_(b) {
     case "addMedia": return adminAddMedia_(ss, d, who);
     case "updateMedia": return adminUpdateMedia_(ss, d);
     case "deleteMedia": return adminDeleteMedia_(ss, d);
+    case "createOrder": return adminCreateOrder_(ss, d, who);
+    case "addOrderPhoto": return adminOrderPhoto_(ss, d, true);
+    case "removeOrderPhoto": return adminOrderPhoto_(ss, d, false);
+    case "supplies": return { ok: true, supplies: rows_(ss, ADMIN_TAB_TITLES.supplies, ADMIN_TABS.supplies.length, 500).map(supplyOut_) };
+    case "saveSupply": return adminSaveSupply_(ss, d, who);
+    case "deleteSupply": return adminDeleteById_(ss, ADMIN_TAB_TITLES.supplies, d.id);
+    case "printerLog": return { ok: true, log: rows_(ss, ADMIN_TAB_TITLES.printlog, ADMIN_TABS.printlog.length, 1000).map(logOut_) };
+    case "addLog": return adminAddLog_(ss, d, who);
+    case "deleteLog": return adminDeleteById_(ss, ADMIN_TAB_TITLES.printlog, d.id);
+    case "appVersion": return { ok: true, release: appRelease_() };
   }
   return { ok: false, error: "action", message: "Unknown action." };
 }
@@ -596,7 +622,7 @@ function orderOut_(r) {
   return { row: r.row, received: txt_(v[0]), ref: txt_(v[1]), status: txt_(v[2]) || "New", name: txt_(v[3]), phone: txt_(v[4]),
     material: txt_(v[5]), infill: pct_(v[6]), colour: txt_(v[7]), quantity: txt_(v[8]), weight: txt_(v[9]), size: txt_(v[10]),
     estimate: txt_(v[11]), notes: txt_(v[12]), files: links_(v[13]), filesNote: /⚠️/.test(String(v[13])) ? String(v[13]).split("\n").filter((x) => /⚠️/.test(x)).join(" ") : "",
-    source: txt_(v[14]), update: txt_(v[15]), courier: txt_(v[16]), tracking: txt_(v[17]), expected: txt_(v[18]) };
+    source: txt_(v[14]), update: txt_(v[15]), courier: txt_(v[16]), tracking: txt_(v[17]), expected: txt_(v[18]), photos: photoIds(v[19]) };
 }
 function messageOut_(r) {
   const v = r.v;
@@ -629,14 +655,21 @@ function adminSummary_(ss) {
   const pays = rows_(ss, ADMIN_TAB_TITLES.payments, ADMIN_TABS.payments.length, 3000).map(paymentOut_);
   const spools = rows_(ss, ADMIN_TAB_TITLES.stock, ADMIN_TABS.stock.length, 500).map(spoolOut_);
   const tasks = rows_(ss, ADMIN_TAB_TITLES.tasks, ADMIN_TABS.tasks.length, 1000).map(taskOut_);
-  const jobs = rows_(ss, ADMIN_TAB_TITLES.jobs, ADMIN_TABS.jobs.length, 500).map(jobOut_);
+  const jobRows = rows_(ss, ADMIN_TAB_TITLES.jobs, ADMIN_TABS.jobs.length, 500), jobs = jobRows.map(jobOut_);
+  const supplies = rows_(ss, ADMIN_TAB_TITLES.supplies, ADMIN_TABS.supplies.length, 500).map(supplyOut_);
+  const logRows = rows_(ss, ADMIN_TAB_TITLES.printlog, ADMIN_TABS.printlog.length, 1000);
+  const ms = (v) => v instanceof Date ? v.getTime() : (Date.parse(String(v || "")) || 0);
+  const service = serviceDue(
+    jobRows.filter((r) => String(r.v[7]) === "Done").map((r) => ({ printer: txt_(r.v[3]), hours: Number(r.v[6]) || 0, finished: ms(r.v[10]) })),
+    logRows.map((r) => ({ printer: txt_(r.v[2]), date: ms(r.v[1]) })),
+    opsSettings_().serviceEveryHours);
   const money = orderMoney_(ss, orders, pays);
   const st = (o) => orderStage(o.status);
   const monthIncome = pays.filter((p) => p.date.slice(0, 7) === month).reduce((n, p) => n + p.amount, 0);
   const monthExpenses = exps.filter((e) => e.date.slice(0, 7) === month).reduce((n, e) => n + e.amount, 0);
   const ages = {};
   orderRows.forEach((r) => { if (r.v[0] instanceof Date) ages[txt_(r.v[1])] = (Date.now() - r.v[0].getTime()) / 86400000; });
-  const reminders = buildReminders({ orders: orders, ages: ages, money: money, tasks: tasks, spools: spools, today: today });
+  const reminders = buildReminders({ orders: orders, ages: ages, money: money, tasks: tasks, spools: spools, today: today, supplies: supplies, service: service });
   return { ok: true,
     newOrders: orders.filter((o) => o.status === "New").length,
     activeOrders: orders.filter((o) => st(o).state === "active" && st(o).stage >= 1 && st(o).stage <= 4).length,
@@ -645,7 +678,7 @@ function adminSummary_(ss) {
     monthIncome: monthIncome,
     monthProfit: monthIncome - monthExpenses,
     toCollect: Object.keys(money).reduce((n, k) => n + (money[k].owed ? money[k].balance : 0), 0),
-    lowStock: spools.filter((s) => s.lowAt > 0 && s.remaining <= s.lowAt).length,
+    lowStock: spools.filter((s) => s.lowAt > 0 && s.remaining <= s.lowAt).length + supplies.filter((s) => s.lowAt > 0 && s.quantity <= s.lowAt).length,
     openTasks: tasks.filter((t) => t.status !== "Done").length,
     printing: jobs.filter((j) => j.status === "Printing").length,
     queued: jobs.filter((j) => j.status === "Queued").length,
@@ -691,6 +724,12 @@ function buildReminders(x) {
   });
   x.spools.forEach((s) => {
     if (s.lowAt > 0 && s.remaining <= s.lowAt) out.push({ key: "stock:" + s.id, kind: "stock", ref: s.id, title: s.material + " " + s.colour + " is running low", text: s.remaining + " g left." });
+  });
+  (x.supplies || []).forEach((s) => {
+    if (s.lowAt > 0 && s.quantity <= s.lowAt) out.push({ key: "supply:" + s.id + ":" + s.quantity, kind: "stock", ref: s.id, title: s.name + " is running low", text: s.quantity + " " + (s.unit || "left") + " left." });
+  });
+  (x.service || []).forEach((p) => {
+    out.push({ key: "service:" + p.printer + ":" + Math.floor(p.hours / 50), kind: "print", ref: p.printer, title: "Service " + p.printer, text: Math.round(p.hours) + " print hours since the last service." });
   });
   return out.slice(0, 30);
 }
@@ -793,6 +832,8 @@ function checkSettings(d) {
     machinePerHour: num(d.machinePerHour, 0, 10000, D.machinePerHour), designPerHour: num(d.designPerHour, 0, 100000, D.designPerHour),
     marginPct: num(d.marginPct, 0, 500, D.marginPct), minPrice: num(d.minPrice, 0, 100000, D.minPrice), roundTo: num(d.roundTo, 1, 1000, D.roundTo),
     gstPct: num(d.gstPct, 0, 28, 0), quoteValidDays: Math.round(num(d.quoteValidDays, 1, 90, D.quoteValidDays)),
+    serviceEveryHours: Math.round(num(d.serviceEveryHours, 10, 5000, D.serviceEveryHours)),
+    templates: Object.keys(D.templates).reduce((o, k) => { const t = clean((d.templates || {})[k], 600); o[k] = t || D.templates[k]; return o; }, {}),
     business: { name: clean(b.name, 60) || "MakeMeProto", phone: clean(b.phone, 20), email: clean(b.email, 80), address: clean(b.address, 200),
       gstin: clean(b.gstin, 20).toUpperCase(), upi: clean(b.upi, 60) } } };
 }
@@ -935,14 +976,14 @@ function adminJobStatus_(ss, d, who) {
   sh.getRange(row, 13).setValue(who.email);
   let spool = null;
   if (status === "Printing") {
-    sh.getRange(row, 10).setValue(stamp_());
+    sh.getRange(row, 10).setValue(new Date()).setNumberFormat("dd MMM yyyy, HH:mm");
     if (job.ref) {   // move the order along so the customer sees it on the Track order page
       const qs = ss.getSheetByName(TAB_TITLES.quote), orow = findRow_(qs, 2, job.ref);
       if (orow && ["New", "Quote sent", "Confirmed"].indexOf(String(qs.getRange(orow, 3).getValue())) >= 0) qs.getRange(orow, 3).setValue("Printing");
     }
   }
   if (status === "Done" && job.status !== "Done") {
-    sh.getRange(row, 11).setValue(stamp_());
+    sh.getRange(row, 11).setValue(new Date()).setNumberFormat("dd MMM yyyy, HH:mm");
     if (job.spoolId && job.grams > 0) {   // take the filament off the spool
       const ss2 = ss.getSheetByName(ADMIN_TAB_TITLES.stock), srow = findRow_(ss2, 1, job.spoolId);
       if (srow) {
@@ -964,6 +1005,146 @@ function adminMoveJob_(ss, d) {
   sh.getRange(a.row || findRow_(sh, 1, a.id), 9).setValue(b.position);
   sh.getRange(b.row || findRow_(sh, 1, b.id), 9).setValue(a.position);
   return { ok: true };
+}
+
+/* ---- orders added in the app (WhatsApp, Instagram, calls, walk-ins) ---- */
+// pure
+function checkNewOrder(d) {
+  const name = clean(d.name, 80), phone = digits(d.phone);
+  if (!name) return { ok: false, error: "name", message: "Add the customer's name." };
+  if (phone && !validPhone(phone)) return { ok: false, error: "phone", message: "That phone number doesn't look right." };
+  const channel = ORDER_CHANNELS.indexOf(String(d.channel)) >= 0 ? String(d.channel) : "Other";
+  const qty = Math.max(1, Math.min(100000, Math.round(Number(d.quantity) || 1)));
+  const est = Number(String(d.estimate || "").replace(/[^\d.]/g, "")) || 0;
+  return { ok: true, name: name, phone: phone, channel: channel, quantity: qty, estimate: est > 0 ? "₹" + est : "",
+    material: clean(d.material, 20), colour: clean(d.colour, 30), size: clean(d.size, 40), weight: clean(d.weight, 20), notes: clean(d.notes, 1000) };
+}
+function adminCreateOrder_(ss, d, who) {
+  const c = checkNewOrder(d);
+  if (!c.ok) return c;
+  const ref = makeRef("Q"), sh = ss.getSheetByName(TAB_TITLES.quote);
+  const when = Utilities.formatDate(new Date(), "Asia/Kolkata", "dd MMM yyyy, HH:mm");
+  sh.appendRow([when, ref, "New", cell(c.name), c.phone, cell(c.material), "", cell(c.colour), c.quantity, cell(c.weight), cell(c.size), c.estimate, cell(c.notes), "",
+    "Added in the app · " + c.channel + " · " + who.email, "", "", "", "", ""]);
+  return { ok: true, order: orderOut_({ row: sh.getLastRow(), v: sh.getRange(sh.getLastRow(), 1, 1, TABS.quote.length).getValues()[0] }) };
+}
+
+/* ---- order photos (shown to the customer on the Track order page) ---- */
+// pure: file ids kept one per line in the Photos column
+function photoIds(v) { return String(v || "").split(/[\s,]+/).map((x) => x.trim()).filter((x) => /^[\w-]{20,}$/.test(x)); }
+function orderPhotoFolder_() {
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty("ORDER_PHOTO_FOLDER_ID");
+  if (id) { try { return DriveApp.getFolderById(id); } catch (e) { /* deleted: make a new one */ } }
+  const f = child_(DriveApp.getFolderById(props.getProperty("FOLDER_ID")), "Order photos");
+  props.setProperty("ORDER_PHOTO_FOLDER_ID", f.getId());
+  return f;
+}
+function adminOrderPhoto_(ss, d, add) {
+  const sh = ss.getSheetByName(TAB_TITLES.quote), row = findRow_(sh, 2, d.ref || "");
+  if (!row) return { ok: false, error: "notfound", message: "Order " + d.ref + " wasn't found." };
+  const cellRange = sh.getRange(row, 20), ids = photoIds(cellRange.getValue()), fileId = String(d.fileId || "");
+  if (add) {
+    let file;
+    try { file = DriveApp.getFileById(fileId); } catch (e) { return { ok: false, error: "file", message: "The upload didn't finish. Try again." }; }
+    const folderId = orderPhotoFolder_().getId(), parents = file.getParents();
+    let inFolder = false;
+    while (parents.hasNext()) if (parents.next().getId() === folderId) inFolder = true;
+    if (!inFolder) return { ok: false, error: "file", message: "That file isn't in the order photos folder." };
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    if (ids.indexOf(fileId) < 0) ids.push(fileId);
+  } else {
+    const i = ids.indexOf(fileId);
+    if (i >= 0) { ids.splice(i, 1); try { DriveApp.getFileById(fileId).setTrashed(true); } catch (e) { /* gone */ } }
+  }
+  cellRange.setValue(ids.slice(-12).join("\n"));
+  return { ok: true, photos: ids };
+}
+
+/* ---- supplies (LEDs, magnets, boxes, packaging…) ---- */
+function supplyOut_(r) {
+  const v = r.v;
+  return { id: txt_(v[0]), name: txt_(v[1]), unit: txt_(v[2]), quantity: Number(v[3]) || 0, lowAt: Number(v[4]) || 0, cost: Number(v[5]) || 0,
+    note: txt_(v[6]), updated: txt_(v[7]), updatedBy: txt_(v[8]) };
+}
+// pure
+function checkSupply(d) {
+  const name = clean(d.name, 60);
+  if (!name) return { ok: false, error: "name", message: "Name the item, e.g. Warm white LED strip." };
+  const n = (x) => Math.max(0, Math.round((Number(x) || 0) * 100) / 100);
+  return { ok: true, name: name, unit: clean(d.unit, 20) || "pcs", quantity: Math.min(n(d.quantity), 1000000), lowAt: n(d.lowAt), cost: n(d.cost), note: clean(d.note, 200) };
+}
+function adminSaveSupply_(ss, d, who) {
+  const c = checkSupply(d);
+  if (!c.ok) return c;
+  const sh = ss.getSheetByName(ADMIN_TAB_TITLES.supplies);
+  const row = d.id ? findRow_(sh, 1, d.id) : 0, id = row ? String(d.id) : shortId_("U");
+  const values = [id, cell(c.name), cell(c.unit), c.quantity, c.lowAt, c.cost, cell(c.note), stamp_(), who.email];
+  if (row) sh.getRange(row, 1, 1, values.length).setValues([values]); else sh.appendRow(values);
+  return { ok: true, id: id };
+}
+
+/* ---- printer log (servicing, repairs) ---- */
+function logOut_(r) {
+  const v = r.v;
+  return { id: txt_(v[0]), date: day_(v[1]), printer: txt_(v[2]), type: txt_(v[3]), note: txt_(v[4]), cost: Number(v[5]) || 0, addedBy: txt_(v[6]), addedAt: txt_(v[7]) };
+}
+// pure
+function checkLog(d) {
+  const printer = clean(d.printer, 40);
+  if (!printer) return { ok: false, error: "printer", message: "Pick the printer." };
+  if (SERVICE_TYPES.indexOf(String(d.type)) < 0) return { ok: false, error: "type", message: "Pick what was done." };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(d.date || ""))) return { ok: false, error: "date", message: "Pick a date." };
+  return { ok: true, printer: printer, type: String(d.type), date: String(d.date), note: clean(d.note, 300), cost: Math.max(0, Math.round((Number(d.cost) || 0) * 100) / 100) };
+}
+function adminAddLog_(ss, d, who) {
+  const c = checkLog(d);
+  if (!c.ok) return c;
+  const sh = ss.getSheetByName(ADMIN_TAB_TITLES.printlog), id = shortId_("L");
+  sh.appendRow([id, c.date, cell(c.printer), c.type, cell(c.note), c.cost, who.email, stamp_()]);
+  sh.getRange(sh.getLastRow(), 2).setNumberFormat("dd MMM yyyy");
+  return { ok: true, id: id };
+}
+// pure: printers that have printed more than [every] hours since their last log entry
+function serviceDue(doneJobs, logs, every) {
+  const printers = {};
+  doneJobs.forEach((j) => { if (j.printer) printers[j.printer] = true; });
+  return Object.keys(printers).map((p) => {
+    const last = logs.filter((l) => l.printer === p).reduce((m, l) => Math.max(m, l.date || 0), 0);
+    const hours = doneJobs.filter((j) => j.printer === p && (j.finished || 0) > last).reduce((n, j) => n + j.hours, 0);
+    return { printer: p, hours: hours };
+  }).filter((x) => x.hours >= every);
+}
+
+/* ---- app releases: GitHub Actions sends each signed APK here; the app checks for updates ---- */
+function release_(b) {
+  const key = PropertiesService.getScriptProperties().getProperty("RELEASE_KEY");
+  if (!key || String(b.key || "") !== key) return { ok: false, error: "auth", message: "Not allowed." };
+  const code = Math.round(Number(b.versionCode) || 0);
+  if (!(code > 0) || !b.apk) return { ok: false, error: "release", message: "Missing version or APK." };
+  const props = PropertiesService.getScriptProperties();
+  let folder;
+  const fid = props.getProperty("RELEASE_FOLDER_ID");
+  try { folder = fid ? DriveApp.getFolderById(fid) : null; } catch (e) { folder = null; }
+  if (!folder) { folder = child_(DriveApp.getFolderById(props.getProperty("FOLDER_ID")), "App releases"); props.setProperty("RELEASE_FOLDER_ID", folder.getId()); }
+  const name = "makemeproto-ops-" + clean(b.versionName, 20) + ".apk";
+  const file = folder.createFile(Utilities.newBlob(Utilities.base64Decode(String(b.apk)), "application/vnd.android.package-archive", name));
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  const info = { versionCode: code, versionName: clean(b.versionName, 20), notes: clean(b.notes, 1000), fileId: file.getId(), size: file.getSize(), date: stamp_() };
+  props.setProperty("APP_RELEASE", JSON.stringify(info));
+  // keep the last three APKs, bin older ones
+  const all = [], it = folder.getFiles();
+  while (it.hasNext()) all.push(it.next());
+  all.sort((a, b2) => b2.getDateCreated() - a.getDateCreated()).slice(3).forEach((f) => f.setTrashed(true));
+  return { ok: true, release: info };
+}
+function appRelease_() {
+  try {
+    const info = JSON.parse(PropertiesService.getScriptProperties().getProperty("APP_RELEASE") || "null");
+    if (!info) return null;
+    info.url = "https://drive.usercontent.google.com/download?id=" + info.fileId + "&export=download&confirm=t";
+    return info;
+  } catch (e) { return null; }
 }
 
 /* ---- media posts (website gallery; the app shares to Instagram and LinkedIn itself) ---- */
@@ -995,7 +1176,7 @@ function adminStartUpload_(d) {
   const c = checkUpload(d);
   if (!c.ok) return c;
   if (driveFull_()) return { ok: false, error: "drive", message: "Google Drive is almost full. Free up some space first." };
-  const folder = galleryFolder_();
+  const folder = d.folder === "orders" ? orderPhotoFolder_() : galleryFolder_();
   const stampName = Utilities.formatDate(new Date(), "Asia/Kolkata", "yyyy-MM-dd HHmm") + " " + c.name;
   const res = UrlFetchApp.fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id", {
     method: "post", contentType: "application/json; charset=UTF-8", muteHttpExceptions: true,
@@ -1119,6 +1300,7 @@ function track_(b) {
     item: { material: fmt(row[5]), infill: typeof row[6] === "number" ? Math.round(row[6] * (row[6] <= 1 ? 100 : 1)) + "%" : fmt(row[6]), colour: fmt(row[7]), quantity: fmt(row[8]), weight: fmt(row[9]), size: fmt(row[10]) },
     estimate: fmt(row[11]),
     update: fmt(row[15]), courier: fmt(row[16]), tracking: fmt(row[17]), expected: fmt(row[18]),
+    photos: photoIds(row[19]).map((id) => ({ thumb: "https://drive.google.com/thumbnail?id=" + id + "&sz=w600", full: "https://lh3.googleusercontent.com/d/" + id + "=w1600" })),
   };
 }
 
@@ -1255,4 +1437,4 @@ function json_(o) {
   return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
 }
 
-if (typeof module !== "undefined") module.exports = { checkGoogleToken, checkExpense, checkSpool, checkSettings, mergeSettings, checkPayment, checkDocument, checkTask, checkJob, checkUpload, orderMoney, buildReminders, galleryItem, DEFAULT_OPS_SETTINGS, orderStage, checkTrack, buildEmail, buildWelcome, validEmail, checkEntry, looksLike, validPhone, cell, safeName, makeRef, SETTINGS };
+if (typeof module !== "undefined") module.exports = { checkNewOrder, photoIds, checkSupply, checkLog, serviceDue, checkGoogleToken, checkExpense, checkSpool, checkSettings, mergeSettings, checkPayment, checkDocument, checkTask, checkJob, checkUpload, orderMoney, buildReminders, galleryItem, DEFAULT_OPS_SETTINGS, orderStage, checkTrack, buildEmail, buildWelcome, validEmail, checkEntry, looksLike, validPhone, cell, safeName, makeRef, SETTINGS };

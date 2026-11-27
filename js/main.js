@@ -1416,6 +1416,7 @@ function initTrack() {
       ${stopped ? `<p class="trackres__banner">${r.state === "hold" ? "⏸️" : "✖️"} ${escHtml(r.status)}</p>`
         : `<div class="tsteps-bar" style="--frac:${(pct / 100).toFixed(2)}"><ol class="tstepper" aria-label="${T("Order ki progress", "Order progress")}">${steps}</ol></div>`}
       ${r.update ? `<div class="trackres__update"><span aria-hidden="true">💬</span><div><b>${T("Humari taraf se update", "Update from us")}</b><p>${escHtml(r.update)}</p></div></div>` : ""}
+      ${(r.photos || []).length ? `<div class="trackres__photos"><b>${T("Aapke print ki photos", "Photos of your print")}</b><div>${r.photos.map((ph) => `<a href="${escHtml(ph.full)}" target="_blank" rel="noopener"><img src="${escHtml(ph.thumb)}" alt="${T("Order ki photo", "Order photo")}" loading="lazy"></a>`).join("")}</div></div>` : ""}
       ${rows.length ? `<dl class="trackres__info">${rows.map(([k, v]) => `<div><dt class="mono">${escHtml(k)}</dt><dd>${escHtml(v)}</dd></div>`).join("")}</dl>` : ""}
       <div class="trackres__actions">
         <a class="btn btn--ink" href="${waLink(waFormat("Order status 🔍", [["Reference", r.ref], ["Status shown", r.status]], "Hi! I have a question about my order."))}" target="_blank" rel="noopener">💬 ${T("Is order ke baare mein WhatsApp karo", "Ask about this order on WhatsApp")}</a>
