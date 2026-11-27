@@ -792,7 +792,7 @@ function checkSettings(d) {
     founders: founders, printers: printers, rates: Object.keys(rates).length ? rates : D.rates,
     machinePerHour: num(d.machinePerHour, 0, 10000, D.machinePerHour), designPerHour: num(d.designPerHour, 0, 100000, D.designPerHour),
     marginPct: num(d.marginPct, 0, 500, D.marginPct), minPrice: num(d.minPrice, 0, 100000, D.minPrice), roundTo: num(d.roundTo, 1, 1000, D.roundTo),
-    gstPct: num(d.gstPct, 0, 28, 0), quoteValidDays: num(d.quoteValidDays, 1, 90, D.quoteValidDays),
+    gstPct: num(d.gstPct, 0, 28, 0), quoteValidDays: Math.round(num(d.quoteValidDays, 1, 90, D.quoteValidDays)),
     business: { name: clean(b.name, 60) || "MakeMeProto", phone: clean(b.phone, 20), email: clean(b.email, 80), address: clean(b.address, 200),
       gstin: clean(b.gstin, 20).toUpperCase(), upi: clean(b.upi, 60) } } };
 }
