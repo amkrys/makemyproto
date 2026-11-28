@@ -991,7 +991,21 @@ function mergeSettings(def, saved) {
   return out;
 }
 // pure: tidies the settings sent by the app
+// The app leaves out any field still at its default value; put those defaults back before checking, so nothing becomes 0 or empty.
+const APP_MATERIAL_DEFAULTS = { rate: 5, cost: 2.5, density: 1.24, hex: "#8E8E8E", show: true, strength: 3, heat: 1, flex: 1, about: "" };
+const APP_BUSINESS_DEFAULTS = { name: "MakeMeProto", email: "contact@makemeproto.com", address: "Ahmedabad, Gujarat" };
+// pure
+function fillAppDefaults(d) {
+  const D = DEFAULT_OPS_SETTINGS, out = Object.assign({}, d || {});
+  ["founders", "printers", "materials", "wasteSmallPct", "wasteLargePct", "smallUpToG", "gramsPerHour", "machinePerHour", "designPerHour",
+    "minPrice", "roundTo", "quoteValidDays", "serviceEveryHours"].forEach((k) => { if (out[k] === undefined) out[k] = JSON.parse(JSON.stringify(D[k])); });
+  if (out.gstPct === undefined) out.gstPct = 0;
+  if (Array.isArray(out.materials)) out.materials = out.materials.map((m) => Object.assign({}, APP_MATERIAL_DEFAULTS, m || {}));
+  out.business = Object.assign({}, APP_BUSINESS_DEFAULTS, out.business || {});
+  return out;
+}
 function checkSettings(d) {
+  d = fillAppDefaults(d);
   const num = (x, min, max, dflt) => { const n = Number(x); return x !== "" && x != null && isFinite(n) ? Math.min(max, Math.max(min, n)) : dflt; };
   const list = (a, max) => (Array.isArray(a) ? a : []).map((x) => clean(x, 40)).filter(Boolean).slice(0, max);
   const founders = list(d.founders, 6), printers = list(d.printers, 10);
