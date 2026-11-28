@@ -46,7 +46,7 @@ const TABS = {
   careers: ["Received", "Reference", "Status", "Position", "Applicant name", "Phone number", "Email address", "City", "Portfolio link", "Cover note", "Attachments", "Submitted from"],
   newsletter: ["Subscribed", "Reference", "Status", "Email address", "First name", "Interests", "Language", "Submitted from", "Unsubscribe key"],
 };
-const HEADER_VERSION = "7";
+const HEADER_VERSION = "8";
 
 /* Order stages the customer sees on the Track order page. Pick one from the Status dropdown in the Quotes tab. */
 const ORDER_STATUSES = ["New", "Quote sent", "Confirmed", "Printing", "Ready", "Shipped", "Delivered", "On hold", "Cancelled"];   // bump when the headers above change; the sheet is updated on the next entry
@@ -93,6 +93,7 @@ function doPost(e) {
     if (body && body.form === "admin") return json_(admin_(body));       // the MakeMeProto Ops app
     if (body && body.form === "track") return json_(track_(body));
     if (body && body.form === "gallery") return json_(gallery_());           // the website's Gallery page
+    if (body && body.form === "pricing") return json_(pricing_());           // the website's price calculator and material cards
     if (body && body.form === "release") return json_(release_(body));       // a new app version from GitHub Actions
     const check = checkEntry(body, SETTINGS);
     if (check.silent) return json_({ ok: true, ref: makeRef(PREFIX[body.form] || "X") });   // a bot: pretend it worked, save nothing
@@ -439,14 +440,14 @@ function alertOnce_(subject, body) {
      GOOGLE_WEB_CLIENT_ID   the "Web application" OAuth client ID the app signs in with
    ========================================================================================= */
 const ADMIN_TABS = {
-  expenses:  ["ID", "Date", "Amount (₹)", "Category", "Paid by", "Payment method", "Note", "Added by", "Added at"],
+  expenses:  ["ID", "Date", "Amount (₹)", "Category", "Paid by", "Payment method", "Note", "Added by", "Added at", "Split"],
   stock:     ["ID", "Material", "Colour", "Brand", "Spool size (g)", "Remaining (g)", "Low stock at (g)", "Note", "Updated", "Updated by", "Colour (hex)"],
   payments:  ["ID", "Date", "Amount (₹)", "Order ref", "Customer", "Phone", "Type", "Payment method", "Note", "Added by", "Added at"],
   documents: ["Number", "Type", "Date", "Order ref", "Customer", "Phone", "Items", "Subtotal (₹)", "Discount (₹)", "GST (₹)", "Total (₹)", "Created by", "Created at"],
   tasks:     ["ID", "Task", "Assigned to", "Due", "Status", "Order ref", "Note", "Created by", "Created at", "Done at"],
   jobs:      ["ID", "Job", "Order ref", "Printer", "Spool ID", "Filament (g)", "Print time (h)", "Status", "Position", "Started", "Finished", "Note", "Updated by"],
   media:     ["ID", "Date", "Type", "Title", "Caption", "File ID", "Kind", "On website", "Instagram", "LinkedIn", "Added by", "Added at"],
-  supplies:  ["ID", "Item", "Unit", "Quantity", "Low stock at", "Cost per unit (₹)", "Note", "Updated", "Updated by"],
+  supplies:  ["ID", "Item", "Unit", "Quantity", "Low stock at", "Cost per unit (₹)", "Note", "Updated", "Updated by", "Used per order"],
   printlog:  ["ID", "Date", "Printer", "Type", "Note", "Cost (₹)", "Added by", "Added at"],
 };
 const ADMIN_TAB_TITLES = { expenses: "Expenses", stock: "Filament stock", payments: "Payments", documents: "Quotes & invoices",
@@ -455,6 +456,7 @@ const SERVICE_TYPES = ["Nozzle change", "Bed levelling", "Cleaning", "Lubricatio
 const ORDER_CHANNELS = ["WhatsApp", "Instagram", "Phone call", "Walk-in", "Email", "Other"];
 const EXPENSE_CATEGORIES = ["Filament", "Printer & parts", "Packaging", "Courier", "Marketing", "Software & domains", "Tools", "Other"];
 const PAY_METHODS = ["UPI", "Cash", "Card", "Bank transfer", "Other"];
+const SETTLE_CATEGORY = "Settle up";   // money moved between people to clear a balance; never counted as spending
 const PAYMENT_TYPES = ["Advance", "Full payment", "Balance", "Refund"];
 const INBOX_STATUSES = ["New", "Replied", "Done", "Spam"];
 const TASK_STATUSES = ["Open", "Done"];
@@ -464,12 +466,29 @@ const GALLERY_FOLDER = "Website gallery";   // inside the uploads folder; never 
 const DEFAULT_OPS_SETTINGS = {
   founders: ["Krishna", "Deepak"],
   printers: ["Printer 1"],
-  rates: { "PLA": 2.5, "PETG": 3, "ABS": 3, "TPU": 4.5, "Silk PLA": 3.5, "Other": 3 },   // ₹ per gram of filament
-  machinePerHour: 30,     // ₹ per print hour (electricity + wear)
+  // One price list for the website calculator and the app. rate = what the customer pays per gram, cost = what the filament costs us.
+  materials: [
+    { name: "PLA", rate: 5, cost: 2.5, density: 1.24, hex: "#FF5A1F", show: true, strength: 3, heat: 1, flex: 1,
+      about: "Easy, accurate, many colours. Best for gifts, models, prototypes and display pieces." },
+    { name: "PETG", rate: 6, cost: 3, density: 1.27, hex: "#1FBF8F", show: true, strength: 4, heat: 2, flex: 2,
+      about: "Tough and water resistant. Good for brackets, outdoor parts and food-contact containers." },
+    { name: "ABS", rate: 6, cost: 3, density: 1.04, hex: "#3B6CFF", show: true, strength: 4, heat: 4, flex: 2,
+      about: "Heat resistant and machinable. For car parts, enclosures, jigs and functional parts." },
+    { name: "TPU", rate: 8, cost: 4.5, density: 1.21, hex: "#141414", show: true, strength: 3, heat: 2, flex: 5,
+      about: "Flexible like rubber. Phone cases, gaskets, grips, bumpers and wearable parts." },
+    { name: "Silk PLA", rate: 6, cost: 3.5, density: 1.24, hex: "#C9A227", show: false, strength: 3, heat: 1, flex: 1,
+      about: "Shiny, metallic look. Trophies, vases and decor." },
+  ],
+  // Filament wasted while printing (supports, purge, brim, failed starts) is added to the grams we charge for.
+  wasteSmallPct: 30,      // small items waste more, relatively
+  wasteLargePct: 25,
+  smallUpToG: 100,        // items up to this many grams count as small
+  gramsPerHour: 15,       // rough printer speed, for print-time estimates
+  machinePerHour: 30,     // ₹ per print hour (electricity + wear), our cost only
   designPerHour: 300,     // ₹ per hour of 3D design work
-  marginPct: 30,
-  minPrice: 99,
+  minPrice: 300,          // minimum order
   roundTo: 10,
+  rates: {},              // filled from materials (₹ per gram it costs us), kept for older app versions
   gstPct: 0,              // 0 until you register for GST
   quoteValidDays: 7,
   business: { name: "MakeMeProto", phone: "", email: "contact@makemeproto.com", address: "Ahmedabad, Gujarat", gstin: "", upi: "" },
@@ -519,13 +538,14 @@ function adminAction_(ss, action, d, who) {
     case "me": return { ok: true, email: who.email, name: who.name };
     case "summary": return adminSummary_(ss);
     case "orders": { const orders = rows_(ss, TAB_TITLES.quote, TABS.quote.length, 400).map(orderOut_); return { ok: true, orders: orders, money: orderMoney_(ss, orders) }; }
-    case "updateOrder": return adminUpdateOrder_(ss, d);
+    case "updateOrder": return adminUpdateOrder_(ss, d, who);
     case "inbox": return { ok: true, messages: rows_(ss, TAB_TITLES.contact, TABS.contact.length, 300).map(messageOut_),
       applications: rows_(ss, TAB_TITLES.careers, TABS.careers.length, 300).map(applicationOut_) };
     case "setInboxStatus": return adminInboxStatus_(ss, d);
     case "expenses": return { ok: true, expenses: rows_(ss, ADMIN_TAB_TITLES.expenses, ADMIN_TABS.expenses.length, 2000).map(expenseOut_),
       categories: EXPENSE_CATEGORIES, methods: PAY_METHODS };
     case "addExpense": return adminAddExpense_(ss, d, who);
+    case "updateExpense": return adminUpdateExpense_(ss, d, who);
     case "deleteExpense": return adminDeleteById_(ss, ADMIN_TAB_TITLES.expenses, d.id);
     case "stock": return { ok: true, spools: rows_(ss, ADMIN_TAB_TITLES.stock, ADMIN_TABS.stock.length, 500).map(spoolOut_) };
     case "saveSpool": return adminSaveSpool_(ss, d, who);
@@ -656,7 +676,7 @@ function applicationOut_(r) {
 function expenseOut_(r) {
   const v = r.v;
   return { id: txt_(v[0]), date: day_(v[1]), amount: Number(v[2]) || 0, category: txt_(v[3]), paidBy: txt_(v[4]), method: txt_(v[5]),
-    note: txt_(v[6]), addedBy: txt_(v[7]), addedAt: txt_(v[8]) };
+    note: txt_(v[6]), addedBy: txt_(v[7]), addedAt: txt_(v[8]), split: txt_(v[9]) };
 }
 function spoolOut_(r) {
   const v = r.v;
@@ -685,7 +705,7 @@ function adminSummary_(ss) {
   const money = orderMoney_(ss, orders, pays);
   const st = (o) => orderStage(o.status);
   const monthIncome = pays.filter((p) => p.date.slice(0, 7) === month).reduce((n, p) => n + p.amount, 0);
-  const monthExpenses = exps.filter((e) => e.date.slice(0, 7) === month).reduce((n, e) => n + e.amount, 0);
+  const monthExpenses = exps.filter((e) => e.date.slice(0, 7) === month && e.category !== SETTLE_CATEGORY).reduce((n, e) => n + e.amount, 0);
   const ages = {};
   orderRows.forEach((r) => { if (r.v[0] instanceof Date) ages[txt_(r.v[1])] = (Date.now() - r.v[0].getTime()) / 86400000; });
   const reminders = buildReminders({ orders: orders, ages: ages, money: money, tasks: tasks, spools: spools, today: today, supplies: supplies, service: service });
@@ -753,17 +773,85 @@ function buildReminders(x) {
   return out.slice(0, 30);
 }
 
-function adminUpdateOrder_(ss, d) {
+function adminUpdateOrder_(ss, d, who) {
   const sh = ss.getSheetByName(TAB_TITLES.quote), row = findRow_(sh, 2, d.ref || "");
   if (!row) return { ok: false, error: "notfound", message: "Order " + d.ref + " wasn't found." };
+  let changed = false;
   if (d.status != null) {
     if (ORDER_STATUSES.indexOf(String(d.status)) < 0) return { ok: false, error: "status", message: "Unknown status." };
+    changed = String(sh.getRange(row, 3).getValue()) !== String(d.status);
     sh.getRange(row, 3).setValue(String(d.status));
   }
   [["update", 16, 500], ["courier", 17, 60], ["tracking", 18, 80], ["expected", 19, 40]].forEach(([k, col, max]) => {
     if (d[k] != null) sh.getRange(row, col).setValue(cell(clean(d[k], max)));
   });
-  return { ok: true, order: orderOut_({ row: row, v: sh.getRange(row, 1, 1, TABS.quote.length).getValues()[0] }) };
+  const order = orderOut_({ row: row, v: sh.getRange(row, 1, 1, TABS.quote.length).getValues()[0] });
+  let auto = [];
+  if (changed && who) { try { auto = autoForOrder_(ss, order, who); } catch (e) { console.error("auto", e); } }
+  return { ok: true, order: order, auto: auto };
+}
+
+// pure: "85 g each", "85g", "1.2 kg" → grams per piece
+function parseGrams(w) {
+  const m = String(w || "").replace(/,/g, "").match(/(\d+(?:\.\d+)?)\s*(kg|g)?/i);
+  if (!m) return 0;
+  return Number(m[1]) * (/kg/i.test(m[2] || "") ? 1000 : 1);
+}
+// pure: the spool an order should print from: same material, colour name matching, most filament left
+function matchSpool(spools, material, colour) {
+  const mat = String(material || "").trim().toLowerCase(), col = String(colour || "").trim().toLowerCase();
+  const same = spools.filter((s) => s.material.toLowerCase() === mat && s.remaining > 0);
+  const byColour = col && col !== "not sure" ? same.filter((s) => s.colour.toLowerCase() === col || s.colour.toLowerCase().indexOf(col) >= 0 || col.indexOf(s.colour.toLowerCase()) >= 0) : [];
+  const pick = (byColour.length ? byColour : []).sort((a, b) => b.remaining - a.remaining)[0];
+  return pick || null;
+}
+// pure: what the automation should do for an order now in `status`, given what it already did (flags) and its jobs
+function autoPlan(status, flags, jobs) {
+  const open = jobs.filter((j) => j.status === "Queued" || j.status === "Printing");
+  const plan = [];
+  const stage = { "Confirmed": 1, "Printing": 2, "Ready": 3, "Shipped": 4, "Delivered": 4 }[status] || 0;
+  if (stage >= 1 && !flags.job && !jobs.length) plan.push("addJob");
+  if (stage === 2) plan.push("startJobs");
+  if (stage >= 3) plan.push("finishJobs");
+  if (stage >= 4 && !flags.packed) plan.push("pack");
+  if (status === "Cancelled" && open.some((j) => j.status === "Queued")) plan.push("dropQueued");
+  return plan;
+}
+function autoForOrder_(ss, o, who) {
+  const props = PropertiesService.getScriptProperties(), key = "AUTO_" + o.ref;
+  let flags = {};
+  try { flags = JSON.parse(props.getProperty(key) || "{}"); } catch (e) { flags = {}; }
+  const jobsOf = () => rows_(ss, ADMIN_TAB_TITLES.jobs, ADMIN_TABS.jobs.length, 500).map(jobOut_).filter((j) => j.ref.toUpperCase() === o.ref.toUpperCase());
+  const plan = autoPlan(o.status, flags, jobsOf()), done = [];
+  plan.forEach((step) => {
+    if (step === "addJob") {
+      const s = opsSettings_(), spools = rows_(ss, ADMIN_TAB_TITLES.stock, ADMIN_TABS.stock.length, 500).map(spoolOut_);
+      const qty = Math.max(1, parseInt(o.quantity, 10) || 1), each = parseGrams(o.weight);
+      const price = quotePrice(s, o.material, each, qty, 0, 0), spool = matchSpool(spools, o.material, o.colour);
+      const r = adminSaveJob_(ss, { title: (o.name ? o.name + ": " : "") + qty + " × " + [o.material, o.colour !== "Not sure" ? o.colour : ""].filter(Boolean).join(" "),
+        ref: o.ref, printer: s.printers[0], spoolId: spool ? spool.id : "", grams: Math.round(price.billedGrams * qty), hours: Math.round(price.hours * 10) / 10,
+        note: "Added automatically when the order was confirmed." + (each ? "" : " Add the grams and hours from your slicer.") + (spool ? "" : " Pick the spool.") }, who);
+      if (r.ok) { flags.job = r.id; done.push("Added to the print queue" + (spool ? " (" + spool.material + " " + spool.colour + ")" : "")); }
+    }
+    if (step === "startJobs") jobsOf().filter((j) => j.status === "Queued").forEach((j) => { adminJobStatus_(ss, { id: j.id, status: "Printing" }, who); done.push("Print job started"); });
+    if (step === "finishJobs") jobsOf().filter((j) => j.status === "Queued" || j.status === "Printing").forEach((j) => {
+      const r = adminJobStatus_(ss, { id: j.id, status: "Done" }, who);
+      done.push(r.spool ? "Print job done, " + j.grams + " g taken off the spool" : "Print job done");
+    });
+    if (step === "pack") {
+      const sh = ss.getSheetByName(ADMIN_TAB_TITLES.supplies);
+      rows_(ss, ADMIN_TAB_TITLES.supplies, ADMIN_TABS.supplies.length, 500).map((r) => Object.assign(supplyOut_(r), { row: r.row })).filter((u) => u.perOrder > 0).forEach((u) => {
+        const left = Math.max(0, u.quantity - u.perOrder);
+        sh.getRange(u.row, 4).setValue(left);
+        sh.getRange(u.row, 8, 1, 2).setValues([[stamp_(), who.email]]);
+        done.push(u.perOrder + " " + u.unit + " " + u.name + " used");
+      });
+      flags.packed = true;
+    }
+    if (step === "dropQueued") jobsOf().filter((j) => j.status === "Queued").forEach((j) => { adminDeleteById_(ss, ADMIN_TAB_TITLES.jobs, j.id); done.push("Queued print job removed"); });
+  });
+  props.setProperty(key, JSON.stringify(flags));
+  return done;
 }
 
 function adminInboxStatus_(ss, d) {
@@ -780,17 +868,43 @@ function checkExpense(d) {
   const amount = Math.round(Number(d.amount) * 100) / 100;
   if (!(amount > 0 && amount < 10000000)) return { ok: false, error: "amount", message: "Enter an amount above ₹0." };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(d.date || ""))) return { ok: false, error: "date", message: "Pick a date." };
-  if (EXPENSE_CATEGORIES.indexOf(String(d.category)) < 0) return { ok: false, error: "category", message: "Pick a category." };
+  const settle = String(d.category) === SETTLE_CATEGORY;
+  if (!settle && EXPENSE_CATEGORIES.indexOf(String(d.category)) < 0) return { ok: false, error: "category", message: "Pick a category." };
   if (d.method && PAY_METHODS.indexOf(String(d.method)) < 0) return { ok: false, error: "method", message: "Pick a payment method." };
-  return { ok: true, amount: amount };
+  const paidBy = clean(d.paidBy, 40);
+  const sp = checkSplit(d.split);
+  if (!sp.ok) return sp;
+  if (settle && (!paidBy || sp.parts.length !== 1 || sp.parts[0].name === paidBy))
+    return { ok: false, error: "split", message: "Pick who paid and who received the money." };
+  return { ok: true, amount: amount, paidBy: paidBy, split: sp.text };
+}
+// pure: "Krishna:50|Deepak:50" (percent each). Empty means split equally between the founders.
+function checkSplit(v) {
+  const text = clean(v, 300);
+  if (!text) return { ok: true, text: "", parts: [] };
+  const parts = text.split("|").map((x) => { const i = x.lastIndexOf(":"); return { name: clean(x.slice(0, i), 40), pct: Number(x.slice(i + 1)) }; });
+  if (parts.some((p) => !p.name || !(p.pct > 0) || p.pct > 100)) return { ok: false, error: "split", message: "Check the split: each share must be above 0%." };
+  const sum = parts.reduce((n, p) => n + p.pct, 0);
+  if (Math.abs(sum - 100) > 0.5) return { ok: false, error: "split", message: "The shares must add up to 100%." };
+  return { ok: true, parts: parts, text: parts.map((p) => p.name + ":" + Math.round(p.pct * 100) / 100).join("|") };
 }
 function adminAddExpense_(ss, d, who) {
   const c = checkExpense(d);
   if (!c.ok) return c;
   const sh = ss.getSheetByName(ADMIN_TAB_TITLES.expenses), id = shortId_("E");
-  sh.appendRow([id, String(d.date), c.amount, String(d.category), cell(clean(d.paidBy, 40) || who.name), String(d.method || ""), cell(clean(d.note, 200)), who.email, stamp_()]);
+  sh.appendRow([id, String(d.date), c.amount, String(d.category), cell(c.paidBy || who.name), String(d.method || ""), cell(clean(d.note, 200)), who.email, stamp_(), cell(c.split)]);
   sh.getRange(sh.getLastRow(), 2).setNumberFormat("dd MMM yyyy");
   return { ok: true, id: id };
+}
+function adminUpdateExpense_(ss, d, who) {
+  const c = checkExpense(d);
+  if (!c.ok) return c;
+  const sh = ss.getSheetByName(ADMIN_TAB_TITLES.expenses), row = d.id ? findRow_(sh, 1, d.id) : 0;
+  if (!row) return { ok: false, error: "notfound", message: "That expense wasn't found. It may have been deleted." };
+  sh.getRange(row, 2, 1, 6).setValues([[String(d.date), c.amount, String(d.category), cell(c.paidBy || who.name), String(d.method || ""), cell(clean(d.note, 200))]]);
+  sh.getRange(row, 2).setNumberFormat("dd MMM yyyy");
+  sh.getRange(row, 10).setValue(cell(c.split));
+  return { ok: true, id: String(d.id) };
 }
 
 // pure: checks a filament spool before it's saved
@@ -824,14 +938,54 @@ function adminDeleteById_(ss, title, id) {
 function opsSettings_() {
   let saved = {};
   try { saved = JSON.parse(PropertiesService.getScriptProperties().getProperty("OPS_SETTINGS") || "{}"); } catch (e) { saved = {}; }
-  return mergeSettings(DEFAULT_OPS_SETTINGS, saved);
+  return withRates(mergeSettings(DEFAULT_OPS_SETTINGS, saved), saved);
+}
+// pure: older saved settings had only filament costs ("rates"); carry them over, and keep rates in step with materials
+function withRates(s, saved) {
+  if (!(saved && Array.isArray(saved.materials)) && saved && saved.rates) {
+    s.materials = s.materials.map((m) => saved.rates[m.name] != null ? Object.assign({}, m, { cost: Number(saved.rates[m.name]) || m.cost }) : m);
+  }
+  s.rates = s.materials.reduce((o, m) => { o[m.name] = m.cost; return o; }, {});
+  return s;
+}
+// pure: the price formula the website and the app share.
+// grams = actual filament for ONE piece (from the slicer or the website's STL estimate)
+function quotePrice(p, materialName, grams, qty, designHours, extras) {
+  const m = (p.materials || []).filter((x) => x.name === materialName)[0] || (p.materials || [])[0] || { rate: 0, cost: 0 };
+  const g = Math.max(0, Number(grams) || 0), q = Math.max(1, Math.round(Number(qty) || 1));
+  const wastePct = g <= p.smallUpToG ? p.wasteSmallPct : p.wasteLargePct;
+  const billed = g * (1 + wastePct / 100);                    // grams we charge for, per piece
+  const print = billed * m.rate * q;
+  const hours = billed * q / Math.max(1, p.gramsPerHour);
+  const design = Math.max(0, Number(designHours) || 0) * p.designPerHour, extra = Math.max(0, Number(extras) || 0);
+  const minApplied = print > 0 && print < p.minPrice;
+  const total = (minApplied ? p.minPrice : print) + design + extra;
+  const rounded = Math.ceil(total / Math.max(1, p.roundTo)) * Math.max(1, p.roundTo);
+  const cost = billed * q * m.cost + hours * p.machinePerHour + extra;
+  return { material: m.name, wastePct: wastePct, billedGrams: billed, print: print, design: design, extras: extra, minApplied: minApplied,
+    total: rounded, hours: hours, cost: cost, profit: rounded - cost };
+}
+// pure: what the website is allowed to see (no costs)
+function publicPricing(s) {
+  return { ok: true, materials: s.materials.filter((m) => m.show).map((m) => ({ name: m.name, rate: m.rate, density: m.density, hex: m.hex,
+      about: m.about, strength: m.strength, heat: m.heat, flex: m.flex })),
+    wasteSmallPct: s.wasteSmallPct, wasteLargePct: s.wasteLargePct, smallUpToG: s.smallUpToG, minPrice: s.minPrice,
+    gramsPerHour: s.gramsPerHour, designPerHour: s.designPerHour, roundTo: s.roundTo };
+}
+function pricing_() {
+  const cache = CacheService.getScriptCache(), hit = cache.get("pricing");
+  if (hit) return JSON.parse(hit);
+  const out = publicPricing(opsSettings_());
+  cache.put("pricing", JSON.stringify(out), 300);
+  return out;
 }
 // pure
 function mergeSettings(def, saved) {
   const out = JSON.parse(JSON.stringify(def));
   Object.keys(saved || {}).forEach((k) => {
     if (!(k in out)) return;
-    if (out[k] && typeof out[k] === "object" && !Array.isArray(out[k]) && k !== "rates") Object.assign(out[k], saved[k] || {});
+    if (out[k] && typeof out[k] === "object" && !Array.isArray(out[k]) && k !== "rates" && k !== "templates") Object.assign(out[k], saved[k] || {});
+    else if (k === "templates") Object.assign(out[k], saved[k] || {});
     else out[k] = saved[k];
   });
   return out;
@@ -843,13 +997,23 @@ function checkSettings(d) {
   const founders = list(d.founders, 6), printers = list(d.printers, 10);
   if (!founders.length) return { ok: false, error: "founders", message: "Add at least one founder name." };
   if (!printers.length) return { ok: false, error: "printers", message: "Add at least one printer." };
-  const rates = {};
-  Object.keys(d.rates || {}).slice(0, 20).forEach((k) => { const name = clean(k, 30); if (name) rates[name] = num(d.rates[k], 0, 1000, 0); });
-  const b = d.business || {}, D = DEFAULT_OPS_SETTINGS;
+  const D = DEFAULT_OPS_SETTINGS, b = d.business || {};
+  const seen = {}, materials = (Array.isArray(d.materials) ? d.materials : []).slice(0, 20).map((m) => {
+    const name = clean(m && m.name, 30);
+    if (!name || seen[name.toLowerCase()]) return null;
+    seen[name.toLowerCase()] = true;
+    const lvl = (x) => Math.round(num(x, 1, 5, 3));
+    return { name: name, rate: num(m.rate, 0, 1000, 0), cost: num(m.cost, 0, 1000, 0), density: num(m.density, 0.5, 3, 1.24),
+      hex: /^#[0-9A-F]{6}$/i.test(String(m.hex || "")) ? String(m.hex).toUpperCase() : "#8E8E8E", show: m.show !== false,
+      strength: lvl(m.strength), heat: lvl(m.heat), flex: lvl(m.flex), about: clean(m.about, 200) };
+  }).filter(Boolean);
+  if (Array.isArray(d.materials) && !materials.length) return { ok: false, error: "materials", message: "Keep at least one material." };
   return { ok: true, settings: {
-    founders: founders, printers: printers, rates: Object.keys(rates).length ? rates : D.rates,
+    founders: founders, printers: printers, materials: materials.length ? materials : D.materials,
+    wasteSmallPct: num(d.wasteSmallPct, 0, 200, D.wasteSmallPct), wasteLargePct: num(d.wasteLargePct, 0, 200, D.wasteLargePct),
+    smallUpToG: Math.round(num(d.smallUpToG, 1, 100000, D.smallUpToG)), gramsPerHour: num(d.gramsPerHour, 1, 1000, D.gramsPerHour),
     machinePerHour: num(d.machinePerHour, 0, 10000, D.machinePerHour), designPerHour: num(d.designPerHour, 0, 100000, D.designPerHour),
-    marginPct: num(d.marginPct, 0, 500, D.marginPct), minPrice: num(d.minPrice, 0, 100000, D.minPrice), roundTo: num(d.roundTo, 1, 1000, D.roundTo),
+    minPrice: num(d.minPrice, 0, 100000, D.minPrice), roundTo: num(d.roundTo, 1, 1000, D.roundTo),
     gstPct: num(d.gstPct, 0, 28, 0), quoteValidDays: Math.round(num(d.quoteValidDays, 1, 90, D.quoteValidDays)),
     serviceEveryHours: Math.round(num(d.serviceEveryHours, 10, 5000, D.serviceEveryHours)),
     templates: Object.keys(D.templates).reduce((o, k) => { const t = clean((d.templates || {})[k], 600); o[k] = t || D.templates[k]; return o; }, {}),
@@ -860,7 +1024,8 @@ function adminSaveSettings_(d) {
   const c = checkSettings(d);
   if (!c.ok) return c;
   PropertiesService.getScriptProperties().setProperty("OPS_SETTINGS", JSON.stringify(c.settings));
-  return { ok: true, settings: c.settings };
+  CacheService.getScriptCache().remove("pricing");   // the website picks up new prices straight away
+  return { ok: true, settings: opsSettings_() };
 }
 
 /* ---- payments ---- */
@@ -1084,21 +1249,22 @@ function adminOrderPhoto_(ss, d, add) {
 function supplyOut_(r) {
   const v = r.v;
   return { id: txt_(v[0]), name: txt_(v[1]), unit: txt_(v[2]), quantity: Number(v[3]) || 0, lowAt: Number(v[4]) || 0, cost: Number(v[5]) || 0,
-    note: txt_(v[6]), updated: txt_(v[7]), updatedBy: txt_(v[8]) };
+    note: txt_(v[6]), updated: txt_(v[7]), updatedBy: txt_(v[8]), perOrder: Number(v[9]) || 0 };
 }
 // pure
 function checkSupply(d) {
   const name = clean(d.name, 60);
   if (!name) return { ok: false, error: "name", message: "Name the item, e.g. Warm white LED strip." };
   const n = (x) => Math.max(0, Math.round((Number(x) || 0) * 100) / 100);
-  return { ok: true, name: name, unit: clean(d.unit, 20) || "pcs", quantity: Math.min(n(d.quantity), 1000000), lowAt: n(d.lowAt), cost: n(d.cost), note: clean(d.note, 200) };
+  return { ok: true, name: name, unit: clean(d.unit, 20) || "pcs", quantity: Math.min(n(d.quantity), 1000000), lowAt: n(d.lowAt), cost: n(d.cost), note: clean(d.note, 200),
+    perOrder: Math.min(n(d.perOrder), 1000) };
 }
 function adminSaveSupply_(ss, d, who) {
   const c = checkSupply(d);
   if (!c.ok) return c;
   const sh = ss.getSheetByName(ADMIN_TAB_TITLES.supplies);
   const row = d.id ? findRow_(sh, 1, d.id) : 0, id = row ? String(d.id) : shortId_("U");
-  const values = [id, cell(c.name), cell(c.unit), c.quantity, c.lowAt, c.cost, cell(c.note), stamp_(), who.email];
+  const values = [id, cell(c.name), cell(c.unit), c.quantity, c.lowAt, c.cost, cell(c.note), stamp_(), who.email, c.perOrder];
   if (row) sh.getRange(row, 1, 1, values.length).setValues([values]); else sh.appendRow(values);
   return { ok: true, id: id };
 }
